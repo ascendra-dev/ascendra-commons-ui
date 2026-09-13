@@ -8,8 +8,7 @@ export default function HomePage() {
         <PageHeaderGroup>
           <PageTitle>Dashboard</PageTitle>
           <PageSubtitle>
-            No modules vendored yet — each shipped ascendra-commons-ui module adds its own nav
-            entry here.
+            One link per shipped module — audit-logging.ui is the first.
           </PageSubtitle>
         </PageHeaderGroup>
       </PageHeader>
