@@ -1,0 +1,25 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "radix-nova",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "app/globals.css",
+    "baseColor": "stone",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "lucide",
+  "rtl": false,
+  "aliases": {
+    "components": "@/ascendra-ui/shadcn/components",
+    "utils": "@/ascendra-ui/shadcn/lib/utils",
+    "ui": "@/ascendra-ui/shadcn/components/ui",
+    "lib": "@/ascendra-ui/shadcn/lib",
+    "hooks": "@/ascendra-ui/shadcn/hooks"
+  },
+  "menuColor": "default",
+  "menuAccent": "subtle",
+  "registries": {}
+}

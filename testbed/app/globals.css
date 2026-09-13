@@ -1,0 +1,506 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface-soft: var(--surface-soft);
+  /* semantic aliases — available as Tailwind utilities (bg-brand, text-positive, etc.) */
+  --color-brand: var(--brand);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-dimmed: var(--dimmed);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-8: var(--chart-8);
+  --color-chart-7: var(--chart-7);
+  --color-chart-6: var(--chart-6);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 0.875rem;
+  /* ── Semantic type scale ── */
+  --text-caption: 0.6875rem;           /* 11px — timestamps, tooltips */
+  --text-caption--line-height: 1rem;
+  --text-label: 0.75rem;               /* 12px — form labels, badge text */
+  --text-label--line-height: 1rem;
+  --text-body-sm: 0.875rem;            /* 14px — secondary body copy */
+  --text-body-sm--line-height: 1.25rem;
+  --text-body: 1rem;                   /* 16px — primary body copy */
+  --text-body--line-height: 1.5rem;
+  --text-heading-sm: 1.125rem;         /* 18px — card titles */
+  --text-heading-sm--line-height: 1.75rem;
+  --text-heading: 1.25rem;             /* 20px — section headings */
+  --text-heading--line-height: 1.75rem;
+  --text-heading-lg: 1.5rem;           /* 24px — page headings */
+  --text-heading-lg--line-height: 2rem;
+  --text-display: 1.875rem;            /* 30px — hero / display */
+  --text-display--line-height: 2.25rem;
+}
+
+:root {
+  /* background: #fff #1b1b1f */
+  --background: oklch(1 0 0);
+  /* foreground: #2b2b34 #f6f6f7 */
+  --foreground: oklch(0.2928 0.0163 285.35);
+  --surface-soft: oklch(0.98 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.147 0.004 49.25);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.147 0.004 49.25);
+  /* primary: #6c47ff */
+  --primary: oklch(0.5573 0.2543 283.67);
+  --primary-foreground: oklch(0.98 0.02 201);
+  /* secondary: #fff #33333e */
+  --secondary: oklch(1 0 0);
+  --secondary-foreground: oklch(0.147 0.004 49.25);
+  /* muted: #fafafb #111113 */
+  --muted: oklch(0.9854 0.0013 286.38);
+  /* muted-foreground: #5f5f6f #adadb7 */
+  --muted-foreground: oklch(0.4913 0.0254 285.43);
+  --accent: oklch(0.97 0.001 106.424);
+  --accent-foreground: oklch(0.216 0.006 56.043);
+  --destructive: oklch(0.577 0.245 27.325);
+  /* #ececee */
+  --border: oklch(0.9437 0.0027 286.35);
+  --input: oklch(0.923 0.003 48.717);
+  --ring: oklch(0.5573 0.2543 283.67);
+  /* chart palette: violet → sky → emerald → rose → orange → amber → red → primary */
+  --chart-1: oklch(0.606 0.23 281); /* violet-500   */
+  --chart-2: oklch(0.679 0.154 233); /* sky-500      */
+  --chart-3: oklch(0.698 0.152 163); /* emerald-500  */
+  --chart-4: oklch(0.647 0.227 14); /* rose-500     */
+  --chart-5: oklch(0.702 0.187 44); /* orange-500   */
+  --chart-6: oklch(0.769 0.17 70); /* amber-500    */
+  --chart-7: oklch(0.637 0.213 27); /* red-500      */
+  --chart-8: oklch(0.557 0.254 284); /* primary      */
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0.001 106.423);
+  --sidebar-foreground: oklch(0.147 0.004 49.25);
+  --sidebar-primary: oklch(0.61 0.11 222);
+  --sidebar-primary-foreground: oklch(0.98 0.02 201);
+  --sidebar-accent: oklch(0.97 0.001 106.424);
+  --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
+  --sidebar-border: oklch(0.923 0.003 48.717);
+  --sidebar-ring: oklch(0.709 0.01 56.259);
+
+  /* ============================================================
+     COLOR PALETTE
+     Raw color tokens.
+     Use via var(--color-gray-500) in CSS, or via Tailwind
+     arbitrary values: text-[var(--color-purple-700)]
+     ============================================================ */
+
+  /* Gray — 16-step scale */
+  --color-gray-50: #fafafb;
+  --color-gray-100: #f6f6f7;
+  --color-gray-200: #ececee;
+  --color-gray-300: #dbdbe0;
+  --color-gray-400: #c7c7cf;
+  --color-gray-500: #adadb7;
+  --color-gray-600: #90909d;
+  --color-gray-700: #767684;
+  --color-gray-800: #5f5f6f;
+  --color-gray-900: #4c4c5c;
+  --color-gray-950: #525260;
+  --color-gray-1000: #3d3d4a;
+  --color-gray-1100: #33333e;
+  --color-gray-1200: #2b2b34;
+  --color-gray-1300: #232328;
+  --color-gray-1400: #1b1b1f;
+  --color-gray-1500: #111113;
+  --color-gray: #767684; /* alias for gray-700 */
+
+  /* Purple — brand color family */
+  --color-purple-50: #f5f3ff;
+  --color-purple-100: #e3e0ff;
+  --color-purple-200: #ccc8ff;
+  --color-purple-300: #bab0ff;
+  --color-purple-400: #a698ff;
+  --color-purple-500: #9280ff;
+  --color-purple-600: #846bff;
+  --color-purple-650: #775cff;
+  --color-purple-700: #6c47ff; /* ← brand */
+  --color-purple-750: #6038ff;
+  --color-purple-800: #5f15fe;
+  --color-purple-900: #4d06d1;
+  --color-purple-1000: #3707a6;
+  --color-purple-1100: #27057c;
+  --color-purple-1300: #16034b;
+  --color-purple: #6c47ff; /* alias for purple-700 */
+
+  /* Green — success */
+  --color-green-100: #aff9bf;
+  --color-green-400: #31c854;
+  --color-green-500: #1eb43c;
+  --color-green-600: #199d34;
+  --color-green-700: #15892b;
+  --color-green: #15892b; /* alias for green-700 */
+
+  /* Red — error/danger */
+  --color-red-50: #fef8f8;
+  --color-red-100: #fedddd;
+  --color-red-200: #fec4c4;
+  --color-red-450: #ff5c5c;
+  --color-red-500: #f86969;
+  --color-red-600: #f73d3d;
+  --color-red-700: #e02e2e; /* ← brand red */
+  --color-red-800: #c22a2a;
+  --color-red-900: #aa1b1b;
+  --color-red-1000: #921414;
+  --color-red-1100: #7a1313;
+  --color-red-1400: #3d0101;
+  --color-red-1500: #240b0a;
+  --color-red: #e02e2e; /* alias for red-700 */
+
+  /* Orange — warning */
+  --color-orange-50: #fff8f2;
+  --color-orange-100: #ffe4c4;
+  --color-orange-500: #fd7224;
+  --color-orange-600: #e06213;
+  --color-orange-700: #c3540f;
+  --color-orange-800: #a8470c;
+  --color-orange-1200: #5f1e0c;
+  --color-orange: #c3540f; /* alias for orange-700 */
+
+  /* Blue — info/link */
+  --color-blue-50: #f6faff;
+  --color-blue-100: #daeafe;
+  --color-blue-500: #6694f8;
+  --color-blue-600: #307ff6;
+  --color-blue-700: #236dd7; /* ← brand blue */
+  --color-blue-800: #1c5bb6;
+  --color-blue-1200: #0b1c49;
+  --color-blue-1300: #0c1637;
+  --color-blue: #236dd7; /* alias for blue-700 */
+
+  /* Amber — caution */
+  --color-amber-400: #f59e0b;
+  --color-amber-700: #b45309;
+  --color-amber: #b45309; /* alias for amber-700 */
+
+  /* Base */
+  --color-white: #fff;
+  --color-black: #000;
+  --color-umbra: #191c21; /* near-black used in shadow rgba values */
+
+  /* ============================================================
+     SEMANTIC ALIASES — Light Mode
+     Intent-based names that map to palette values.
+     Override in .dark for theme switching.
+     ============================================================ */
+  --brand: var(--color-purple-700); /* #6c47ff — primary brand */
+  --positive: var(--color-green-700); /* #15892b — success */
+  --negative: var(--color-red-700); /* #e02e2e — error/danger */
+  --warning: var(--color-orange-500); /* #fd7224 — warning */
+  --info: var(--color-blue-700); /* #236dd7 — informational */
+  --dimmed: var(--color-gray-500); /* #adadb7 — de-emphasized text */
+  --bg-main: var(--color-white);
+  --bg-menu: var(--color-white);
+  --bg-separator: var(--color-gray-200); /* #ececee */
+
+  /* Shadows */
+  --shadow-xs:
+    0px 0px 2px 0px #00000014, 0px 1px 2px 0px #0000000f,
+    0px 0px 0px 1px #0000000a;
+
+  /* ============================================================
+     SYNTAX HIGHLIGHTING
+     For code blocks rendered inside the dashboard.
+     ============================================================ */
+  --sh-class: var(--color-white);
+  --sh-identifier: var(--color-white);
+  --sh-sign: var(--color-white);
+  --sh-property: var(--color-purple-300);
+  --sh-entity: var(--color-green-100);
+  --sh-jsxliterals: var(--color-white);
+  --sh-string: #def7fd;
+  --sh-keyword: var(--color-purple-300);
+  --sh-comment: var(--color-gray-600);
+}
+
+.dark {
+  /* background: #fff #1b1b1f */
+  --background: oklch(0.2238 0.0077 285.76);
+  /* foreground: #2b2b34 #f6f6f7 */
+  --foreground: oklch(0.9734 0.0013 286.37);
+  --surface-soft: oklch(0.22 0 0);
+  --card: oklch(0.216 0.006 285.76);
+  --card-foreground: oklch(0.985 0.001 106.423);
+  --popover: oklch(0.216 0.006 56.043);
+  --popover-foreground: oklch(0.985 0.001 106.423);
+  --primary: oklch(0.5573 0.2543 283.67);
+  --primary-foreground: oklch(0.3 0.05 230);
+  /* secondary: #fff #33333e */
+  --secondary: oklch(0.3256 0.0194 285.28);
+  --secondary-foreground: oklch(0.985 0.001 106.423);
+  /* muted: #fafafb #111113 */
+  --muted: oklch(0.1785 0.0041 285.98);
+  /* muted-foreground: #5f5f6f #adadb7 */
+  --muted-foreground: oklch(0.7507 0.0142 286.05);
+  --accent: oklch(0.268 0.007 34.298);
+  --accent-foreground: oklch(0.985 0.001 106.423);
+  --destructive: oklch(0.704 0.191 22.216);
+  /* #232328 */
+  --border: oklch(0.2582 0.0093 285.73);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.5573 0.2543 283.67);
+  --sidebar: oklch(0.216 0.006 56.043);
+  --sidebar-foreground: oklch(0.985 0.001 106.423);
+  --sidebar-primary: oklch(0.8 0.13 212);
+  --sidebar-primary-foreground: oklch(0.3 0.05 230);
+  --sidebar-accent: oklch(0.268 0.007 34.298);
+  --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.553 0.013 58.071);
+
+  /* ============================================================
+     SEMANTIC ALIASES — Dark Mode overrides
+     ============================================================ */
+  --brand: var(--color-purple-600); /* #846bff */
+  --positive: var(--color-green-400); /* #31c854 */
+  --negative: var(--color-red-600); /* #f73d3d */
+  --warning: var(--color-orange-500); /* #fd7224 */
+  --info: var(--color-blue-600); /* #307ff6 */
+  --dimmed: var(--color-gray-800); /* #5f5f6f */
+  --bg-main: var(--color-gray-1400); /* #1b1b1f */
+  --bg-menu: var(--color-gray-1100); /* #33333e */
+  --bg-separator: var(--color-gray-1300); /* #232328 */
+
+  --shadow-xs:
+    0px 1.5px 2px 0px #00000052, 0px -1px 0px 0px #ffffff0a,
+    0px 0px 0px 1px #ffffff1f;
+
+  --sh-comment: var(--color-gray-700);
+
+  /* chart palette — neon boost for dark backgrounds */
+  --chart-1: oklch(0.72 0.26 281); /* violet neon   */
+  --chart-2: oklch(0.78 0.18 233); /* sky neon      */
+  --chart-3: oklch(0.78 0.18 163); /* emerald neon  */
+  --chart-4: oklch(0.74 0.25 14); /* rose neon     */
+  --chart-5: oklch(0.78 0.21 44); /* orange neon   */
+  --chart-6: oklch(0.86 0.18 70); /* amber neon    */
+  --chart-7: oklch(0.72 0.23 27); /* red neon      */
+  --chart-8: oklch(0.7 0.26 284); /* primary neon  */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html,
+  body {
+    overflow-x: hidden; /* fallback for older browsers */
+    overflow-x: clip; /* modern: doesn't create a scroll container, inner overflow-x:auto works correctly on iOS */
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  :root {
+    --app-layout-spacing: 1.5rem; /* mobile */
+  }
+  @media (min-width: 768px) {
+    :root {
+      --app-layout-spacing: 2.5rem; /* tablet/desktop */
+    }
+  }
+}
+
+@layer components {
+  .app-container {
+    @apply mx-auto w-[calc(100%-var(--app-layout-spacing))] max-w-6xl;
+  }
+}
+
+@keyframes checkbox-draw {
+  from {
+    stroke-dashoffset: 14;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .checkbox-svg {
+    stroke-dasharray: 14;
+    stroke-dashoffset: 0;
+    animation: checkbox-draw 200ms cubic-bezier(0.34, 1.56, 0.64, 1) 100ms both;
+  }
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+.animate-nudge {
+  animation: nudge 0.4s ease;
+  will-change: transform;
+}
+
+@keyframes nudge-strong {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-12px);
+  }
+  40% {
+    transform: translateX(12px);
+  }
+  60% {
+    transform: translateX(-8px);
+  }
+  80% {
+    transform: translateX(8px);
+  }
+}
+
+.animate-nudge-strong {
+  animation: nudge-strong 0.3s ease-in-out;
+  will-change: transform;
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%) scaleX(0.4);
+  }
+  40% {
+    transform: translateX(0%) scaleX(0.6);
+  }
+  100% {
+    transform: translateX(100%) scaleX(0.4);
+  }
+}
+
+.animate-progress-indeterminate {
+  animation: progress-indeterminate 1.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Prevent iOS zoom on input focus (triggered when font-size < 16px) */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* table */
+th {
+  font-weight: inherit;
+}
+
+/* Global Scrollbar (All Scroll Containers) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+.dark * {
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+/* ── Print / PDF export ─────────────────────────────────────────────────────── */
+@media print {
+  /* Force background colors and images to print */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide all app chrome — selectors use the data-slot attributes on each component */
+  [data-slot="header"],
+  [data-slot="nav"],
+  [data-slot="side-bar"],
+  [data-slot="side-bar-toggle"],
+  [data-slot="side-bar-overlay"],
+  .no-print {
+    display: none !important;
+  }
+
+  /* Remove top spacing added for the header/nav rows */
+  [data-slot="main-container"] {
+    margin-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
+
+/* Hide scrollbar but keep scroll functionality */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
