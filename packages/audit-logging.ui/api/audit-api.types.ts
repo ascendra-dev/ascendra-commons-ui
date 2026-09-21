@@ -57,3 +57,52 @@ export interface AuditQueryResult {
   /** Present only when more records match. */
   nextCursor?: string;
 }
+
+export interface AuditDailyCount {
+  /** YYYY-MM-DD, UTC. */
+  day: string;
+  count: number;
+}
+
+export interface AuditActionCount {
+  action: string;
+  count: number;
+}
+
+export interface AuditActorCount {
+  actor: string;
+  count: number;
+}
+
+export interface AuditTenantCount {
+  tenantId: string | null;
+  count: number;
+}
+
+/** GET /audit/stats — the Overview screen. */
+export interface AuditStats {
+  /** Normalized window label, e.g. '30d'. */
+  window: string;
+  /** Oldest first. */
+  perDay: AuditDailyCount[];
+  topActions: AuditActionCount[];
+  topActors: AuditActorCount[];
+  perTenant: AuditTenantCount[];
+}
+
+export interface ActorActionCount {
+  action: string;
+  count: number;
+  lastOccurredAt: string;
+}
+
+/** GET /audit/actors/:actor/activity — the Actor Activity screen. */
+export interface ActorActivitySummary {
+  actor: string;
+  firstSeen: string | null;
+  lastSeen: string | null;
+  totalRecords: number;
+  /** Includes null when the actor touched a platform-level record. */
+  tenantsTouched: Array<string | null>;
+  byAction: ActorActionCount[];
+}

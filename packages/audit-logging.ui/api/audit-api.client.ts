@@ -1,5 +1,5 @@
 import { apiClient } from '@/ascendra-ui/lib/api/client';
-import type { AuditEventDetail, AuditQuery, AuditQueryResult } from './audit-api.types';
+import type { ActorActivitySummary, AuditEventDetail, AuditQuery, AuditQueryResult, AuditStats } from './audit-api.types';
 
 /**
  * Uses the raw apiClient axios instance, not ascendra-ui's `api.get<T>`
@@ -56,5 +56,32 @@ export const auditApi = {
       { params: toQueryParams(query) },
     );
     return data;
+  },
+
+  async actorActivity(
+    actor: string,
+    query: { occurredAfter?: string; occurredBefore?: string } = {},
+  ): Promise<ActorActivitySummary> {
+    const { data } = await apiClient.get<ActorActivitySummary>(
+      `/audit/actors/${encodeURIComponent(actor)}/activity`,
+      { params: query },
+    );
+    return data;
+  },
+
+  async stats(window = '30d', tenantId?: string | null): Promise<AuditStats> {
+    const params: Record<string, string> = { window };
+    if (tenantId !== undefined) params.tenantId = tenantId ?? 'null';
+    const { data } = await apiClient.get<AuditStats>('/audit/stats', { params });
+    return data;
+  },
+
+  /** GET /audit/events.csv — same filters as findEvents, returns the raw CSV text. */
+  async downloadEventsCsv(query: Omit<AuditQuery, 'limit' | 'cursor'>): Promise<Blob> {
+    const { data } = await apiClient.get<string>('/audit/events.csv', {
+      params: toQueryParams(query),
+      responseType: 'blob',
+    });
+    return new Blob([data], { type: 'text/csv' });
   },
 };

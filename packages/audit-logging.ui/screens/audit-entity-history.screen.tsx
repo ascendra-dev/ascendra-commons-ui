@@ -3,8 +3,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { BackLink, MainContent, PageHeader, PageHeaderGroup, PageSubtitle, PageTitle, SimpleAlert } from '@/ascendra-ui';
 import { auditApi } from '../api/audit-api.client';
+import { auditLogLinks } from '../links';
 import type { AuditQueryResult } from '../api/audit-api.types';
-import { AuditEventTable } from './_audit-event-table';
+import { AuditEventTimeline } from './_audit-event-timeline';
 
 export interface AuditEntityHistoryScreenProps {
   entityType: string;
@@ -25,9 +26,9 @@ export function AuditEntityHistoryScreen({
 
   return (
     <>
-      <PageHeader>
+      <PageHeader variant="dashboard">
         <PageHeaderGroup>
-          <BackLink href="/audit-log">Back to Audit Log</BackLink>
+          <BackLink href={auditLogLinks.list()}>Back to Audit Log</BackLink>
           <PageTitle>Entity History</PageTitle>
           <PageSubtitle>
             {entityType} / {entityId}
@@ -38,7 +39,7 @@ export function AuditEntityHistoryScreen({
         {isLoading && <p className="text-muted-foreground text-sm">Loading…</p>}
         {isError && <SimpleAlert variant="destructive">Could not load this entity's history.</SimpleAlert>}
         {data && (
-          <AuditEventTable
+          <AuditEventTimeline
             records={data.records}
             emptyMessage="Nothing has ever been recorded against this entity."
           />

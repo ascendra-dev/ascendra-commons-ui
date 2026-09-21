@@ -62,8 +62,5 @@ function createCursorWalkingQueryFn(
 
 export const auditQueryFunctions: QueryFunctionMap<AuditEvent> = {
   recent: createCursorWalkingQueryFn((query) => auditApi.findEvents(query)),
-  'by-entity': createCursorWalkingQueryFn((query) => auditApi.findEvents(query)),
-  'by-actor-action': createCursorWalkingQueryFn((query) => auditApi.findEvents(query)),
-  'by-date-range': createCursorWalkingQueryFn((query) => auditApi.findEvents(query)),
-  'by-correlation': createCursorWalkingQueryFn((query) => auditApi.findEvents(query)),
+  'advanced-filter': createCursorWalkingQueryFn((query) => auditApi.findEvents(query)),
 };

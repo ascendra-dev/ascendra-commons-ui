@@ -1,13 +1,13 @@
 "use client";
 
 import { DashboardShell } from "@/components/dashboard-shell";
-import { AuditLogListScreen } from "@/ascendra-commons-ui/audit-logging.ui";
-import { mockAuditQueryFunctions } from "@/ascendra-commons-ui/audit-logging.ui/mocks";
+import { AuditOverviewScreen } from "@/ascendra-commons-ui/audit-logging.ui";
+import { mockStats } from "@/ascendra-commons-ui/audit-logging.ui/mocks";
 
-export default function AuditLogPage() {
+export default function AuditOverviewPage() {
   return (
     <DashboardShell>
-      <AuditLogListScreen queryFunctions={mockAuditQueryFunctions} />
+      <AuditOverviewScreen fetchStats={mockStats} />
     </DashboardShell>
   );
 }

@@ -1,126 +1,173 @@
 import type { QueryFn, QueryFunctionMap } from '@/ascendra-ui';
-import type { AuditEvent, AuditEventDetail, AuditQueryResult, FieldDiffEntry } from '../api/audit-api.types';
+import type {
+  ActorActivitySummary,
+  AuditEvent,
+  AuditEventDetail,
+  AuditQueryResult,
+  AuditStats,
+  FieldDiffEntry,
+} from '../api/audit-api.types';
 
 const NOW = Date.now();
 const hoursAgo = (h: number) => new Date(NOW - h * 60 * 60 * 1000).toISOString();
 
+/** Fixture ids look like the real thing (uuids) — see AUI-004 in this repo's hard-instructions.md. */
 export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
   {
-    id: 'evt_1001',
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e01',
     entityType: 'invoice',
-    entityId: 'inv_501',
+    entityId: 'a7c1e4b2-5f3d-4a8e-9b2c-6d1f0e4a7c01',
     tenantId: 'tenant_acme',
     actor: 'jane@acme.test',
     action: 'invoice.created',
     before: null,
     after: { status: 'draft', amount: 4200 },
-    occurredAt: hoursAgo(72),
+    occurredAt: hoursAgo(120),
     reason: null,
-    correlationId: 'corr_a1',
+    correlationId: '5b9e1c04-2a71-4c3e-9f8a-d3b6e0c1a1a1',
   },
   {
-    id: 'evt_1002',
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e02',
     entityType: 'invoice',
-    entityId: 'inv_501',
+    entityId: 'a7c1e4b2-5f3d-4a8e-9b2c-6d1f0e4a7c01',
     tenantId: 'tenant_acme',
     actor: 'jane@acme.test',
     action: 'invoice.issued',
     before: { status: 'draft' },
     after: { status: 'issued' },
-    occurredAt: hoursAgo(71),
+    occurredAt: hoursAgo(119),
     reason: null,
-    correlationId: 'corr_a1',
+    correlationId: '5b9e1c04-2a71-4c3e-9f8a-d3b6e0c1a1a1',
   },
   {
-    id: 'evt_1003',
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e03',
     entityType: 'invoice',
-    entityId: 'inv_501',
+    entityId: 'a7c1e4b2-5f3d-4a8e-9b2c-6d1f0e4a7c01',
     tenantId: 'tenant_acme',
     actor: 'system',
     action: 'invoice.void',
     before: { status: 'issued' },
     after: { status: 'void' },
-    occurredAt: hoursAgo(48),
+    occurredAt: hoursAgo(96),
     reason: 'Duplicate invoice raised in error',
-    correlationId: 'corr_a2',
+    correlationId: '71a29f6e-0c3d-4b8a-9e1f-2c5d6a7b8c02',
   },
   {
-    id: 'evt_1004',
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e04',
     entityType: 'payment-link',
-    entityId: 'plk_88',
+    entityId: 'b8d2f5c3-6a4e-4b9f-8c3d-7e2a1f5b8d01',
     tenantId: 'tenant_acme',
     actor: 'jane@acme.test',
     action: 'payment-link.created',
     before: null,
     after: { amount: 1500, expiresAt: hoursAgo(-168) },
-    occurredAt: hoursAgo(40),
+    occurredAt: hoursAgo(88),
     reason: null,
-    correlationId: 'corr_b1',
+    correlationId: '3f10a2c7-4b8d-4e9a-9c1f-5d6e7a8b9c03',
   },
   {
-    id: 'evt_1005',
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e05',
     entityType: 'payment-link',
-    entityId: 'plk_88',
+    entityId: 'b8d2f5c3-6a4e-4b9f-8c3d-7e2a1f5b8d01',
     tenantId: 'tenant_acme',
     actor: 'customer_9021',
     action: 'payment-link.resolved',
     before: { status: 'active' },
     after: { status: 'resolved' },
-    occurredAt: hoursAgo(39),
+    occurredAt: hoursAgo(87),
     reason: null,
-    correlationId: 'corr_b1',
+    correlationId: '3f10a2c7-4b8d-4e9a-9c1f-5d6e7a8b9c03',
   },
   {
-    id: 'evt_1006',
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e06',
     entityType: 'user',
-    entityId: 'usr_12',
+    entityId: 'c9e3f6d4-7b5f-4c8a-9d4e-8f3b2a6c9d01',
     tenantId: 'tenant_globex',
     actor: 'admin@globex.test',
     action: 'user.role_granted',
     before: { roles: ['viewer'] },
     after: { roles: ['viewer', 'billing_admin'] },
-    occurredAt: hoursAgo(30),
+    occurredAt: hoursAgo(78),
     reason: 'Requested via support ticket #4471',
-    correlationId: 'corr_c1',
+    correlationId: '91be0d4a-3c7e-4f9b-8d2c-6a1e5f7b8c04',
   },
   {
-    id: 'evt_1007',
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e07',
     entityType: 'invoice',
-    entityId: 'inv_777',
+    entityId: 'd0f4a7e5-8c6a-4d9b-9e5f-9a4c3b7d0e01',
     tenantId: 'tenant_globex',
     actor: 'admin@globex.test',
     action: 'invoice.created',
     before: null,
     after: { status: 'draft', amount: 980 },
-    occurredAt: hoursAgo(20),
+    occurredAt: hoursAgo(68),
     reason: null,
-    correlationId: 'corr_c2',
+    correlationId: 'c2b1a3f8-5d9e-4a7c-8b3f-7d2e6a9c1b05',
   },
   {
-    id: 'evt_1008',
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e08',
     entityType: 'invoice',
-    entityId: 'inv_777',
+    entityId: 'd0f4a7e5-8c6a-4d9b-9e5f-9a4c3b7d0e01',
     tenantId: 'tenant_globex',
     actor: 'admin@globex.test',
     action: 'invoice.issued',
     before: { status: 'draft' },
     after: { status: 'issued' },
-    occurredAt: hoursAgo(19),
+    occurredAt: hoursAgo(67),
     reason: null,
-    correlationId: 'corr_c2',
+    correlationId: 'c2b1a3f8-5d9e-4a7c-8b3f-7d2e6a9c1b05',
   },
   {
-    id: 'evt_1009',
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e09',
     entityType: 'payment-link',
-    entityId: 'plk_90',
+    entityId: 'e1a5b8f6-9d7b-4e8a-8f6a-0b5d4c8e1f01',
     tenantId: null,
     actor: 'system',
     action: 'payment-link.expired',
     before: { status: 'active' },
     after: { status: 'expired' },
-    occurredAt: hoursAgo(2),
+    occurredAt: hoursAgo(50),
     reason: null,
-    correlationId: 'corr_d1',
+    correlationId: 'd3c2b4a9-6e0f-4b8d-9c4a-8e3f7b0d2c06',
+  },
+  {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e10',
+    entityType: 'user',
+    entityId: 'f2b6c9a7-0e8c-4f9b-9a7b-1c6e5d9f2a01',
+    tenantId: 'tenant_meridian',
+    actor: 'ops@meridian.test',
+    action: 'user.role_revoked',
+    before: { roles: ['viewer', 'billing_admin'] },
+    after: { roles: ['viewer'] },
+    occurredAt: hoursAgo(40),
+    reason: 'Offboarded contractor',
+    correlationId: 'e4d3c5b0-7f1a-4c9e-8d5b-9f4a8c1e3d07',
+  },
+  {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e11',
+    entityType: 'attachment',
+    entityId: 'a3c7d0b8-1f9d-4a0c-8b8c-2d7f6e0a3b01',
+    tenantId: 'tenant_acme',
+    actor: 'jane@acme.test',
+    action: 'attachment.uploaded',
+    before: null,
+    after: { fileName: 'certificate-of-incorporation.pdf' },
+    occurredAt: hoursAgo(24),
+    reason: 'KYC — certificate of incorporation',
+    correlationId: 'f5e4d6c1-8a2b-4d0f-9e6c-0a5b9d2f4e08',
+  },
+  {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e12',
+    entityType: 'channel_route',
+    entityId: 'b4d8e1c9-2a0e-4b1d-9c9d-3e8a7f1b4c01',
+    tenantId: 'tenant_meridian',
+    actor: 'ops@meridian.test',
+    action: 'notification.route_set',
+    before: { channel: 'email' },
+    after: { channel: 'sms' },
+    occurredAt: hoursAgo(3),
+    reason: 'Enable SMS for invoice notices',
+    correlationId: '06f5e7d2-9b3c-4e1a-8f7d-1b6a0e3c5f09',
   },
 ];
 
@@ -133,14 +180,11 @@ function diffFields(before: Record<string, unknown> | null, after: Record<string
     .filter((entry) => JSON.stringify(entry.before) !== JSON.stringify(entry.after));
 }
 
-function matches(event: AuditEvent, filter: Partial<Record<keyof AuditEvent, string>>): boolean {
-  return Object.entries(filter).every(([key, value]) => {
-    if (!value) return true;
-    return event[key as keyof AuditEvent] === value;
-  });
+function matchesText(value: string, filter: string | undefined): boolean {
+  return !filter || value === filter;
 }
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 5;
 
 function paginate(records: AuditEvent[], batch: number): { data: AuditEvent[]; totalBatches: number } {
   const start = (batch - 1) * PAGE_SIZE;
@@ -149,26 +193,37 @@ function paginate(records: AuditEvent[], batch: number): { data: AuditEvent[]; t
   return { data: page, totalBatches: hasMore ? batch + 1 : batch };
 }
 
-function mockQueryFn(filterKeys: (keyof AuditEvent)[]): QueryFn<AuditEvent> {
-  return async (params, batch) => {
-    const filter: Partial<Record<keyof AuditEvent, string>> = {};
-    for (const key of filterKeys) {
-      const value = params[key as string];
-      if (typeof value === 'string') filter[key] = value;
-    }
-    const filtered = MOCK_AUDIT_EVENTS.filter((event) => matches(event, filter)).sort(
-      (a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime(),
-    );
-    return paginate(filtered, batch);
-  };
+function sortNewestFirst(records: AuditEvent[]): AuditEvent[] {
+  return [...records].sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());
 }
 
+const mockRecent: QueryFn<AuditEvent> = async (_params, batch) => paginate(sortNewestFirst(MOCK_AUDIT_EVENTS), batch);
+
+const mockAdvancedFilter: QueryFn<AuditEvent> = async (params, batch) => {
+  const entityType = typeof params.entityType === 'string' ? params.entityType : undefined;
+  const action = typeof params.action === 'string' ? params.action : undefined;
+  const actor = typeof params.actor === 'string' ? params.actor : undefined;
+  const correlationId = typeof params.correlationId === 'string' ? params.correlationId : undefined;
+  const occurredAfter = params.occurredAfter instanceof Date ? params.occurredAfter : undefined;
+  const occurredBefore = params.occurredBefore instanceof Date ? params.occurredBefore : undefined;
+
+  const filtered = MOCK_AUDIT_EVENTS.filter((event) => {
+    if (!matchesText(event.entityType, entityType)) return false;
+    if (!matchesText(event.action, action)) return false;
+    if (!matchesText(event.actor, actor)) return false;
+    if (!matchesText(event.correlationId, correlationId)) return false;
+    const occurredAt = new Date(event.occurredAt);
+    if (occurredAfter && occurredAt < occurredAfter) return false;
+    if (occurredBefore && occurredAt > occurredBefore) return false;
+    return true;
+  });
+
+  return paginate(sortNewestFirst(filtered), batch);
+};
+
 export const mockAuditQueryFunctions: QueryFunctionMap<AuditEvent> = {
-  recent: mockQueryFn([]),
-  'by-entity': mockQueryFn(['entityType', 'entityId']),
-  'by-actor-action': mockQueryFn(['actor', 'action']),
-  'by-date-range': mockQueryFn([]),
-  'by-correlation': mockQueryFn(['correlationId']),
+  recent: mockRecent,
+  'advanced-filter': mockAdvancedFilter,
 };
 
 export async function mockGetEvent(id: string): Promise<AuditEventDetail> {
@@ -178,9 +233,92 @@ export async function mockGetEvent(id: string): Promise<AuditEventDetail> {
 }
 
 export async function mockEntityHistory(entityType: string, entityId: string): Promise<AuditQueryResult> {
-  return { records: MOCK_AUDIT_EVENTS.filter((e) => e.entityType === entityType && e.entityId === entityId) };
+  return { records: sortNewestFirst(MOCK_AUDIT_EVENTS.filter((e) => e.entityType === entityType && e.entityId === entityId)) };
 }
 
 export async function mockTrace(correlationId: string): Promise<AuditQueryResult> {
-  return { records: MOCK_AUDIT_EVENTS.filter((e) => e.correlationId === correlationId) };
+  return { records: sortNewestFirst(MOCK_AUDIT_EVENTS.filter((e) => e.correlationId === correlationId)) };
+}
+
+export async function mockStats(window = '30d'): Promise<AuditStats> {
+  const byDay = new Map<string, number>();
+  const byAction = new Map<string, number>();
+  const byActor = new Map<string, number>();
+  const byTenant = new Map<string | null, number>();
+
+  for (const event of MOCK_AUDIT_EVENTS) {
+    const day = event.occurredAt.slice(0, 10);
+    byDay.set(day, (byDay.get(day) ?? 0) + 1);
+    byAction.set(event.action, (byAction.get(event.action) ?? 0) + 1);
+    byActor.set(event.actor, (byActor.get(event.actor) ?? 0) + 1);
+    byTenant.set(event.tenantId, (byTenant.get(event.tenantId) ?? 0) + 1);
+  }
+
+  return {
+    window,
+    perDay: [...byDay.entries()].map(([day, count]) => ({ day, count })).sort((a, b) => a.day.localeCompare(b.day)),
+    topActions: [...byAction.entries()].map(([action, count]) => ({ action, count })).sort((a, b) => b.count - a.count),
+    topActors: [...byActor.entries()].map(([actor, count]) => ({ actor, count })).sort((a, b) => b.count - a.count),
+    perTenant: [...byTenant.entries()].map(([tenantId, count]) => ({ tenantId, count })).sort((a, b) => b.count - a.count),
+  };
+}
+
+export async function mockActorActivity(actor: string): Promise<ActorActivitySummary> {
+  const events = MOCK_AUDIT_EVENTS.filter((e) => e.actor === actor);
+  const byAction = new Map<string, { count: number; lastOccurredAt: string }>();
+  for (const event of events) {
+    const existing = byAction.get(event.action);
+    if (existing) {
+      existing.count += 1;
+      if (event.occurredAt > existing.lastOccurredAt) existing.lastOccurredAt = event.occurredAt;
+    } else {
+      byAction.set(event.action, { count: 1, lastOccurredAt: event.occurredAt });
+    }
+  }
+  const sorted = sortNewestFirst(events);
+  return {
+    actor,
+    firstSeen: events.length ? sorted[sorted.length - 1].occurredAt : null,
+    lastSeen: events.length ? sorted[0].occurredAt : null,
+    totalRecords: events.length,
+    tenantsTouched: [...new Set(events.map((e) => e.tenantId))],
+    byAction: [...byAction.entries()]
+      .map(([action, v]) => ({ action, ...v }))
+      .sort((a, b) => b.count - a.count),
+  };
+}
+
+function toCsvValue(value: unknown): string {
+  const text = value === null || value === undefined ? '' : String(value);
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+export async function mockDownloadCsv(query: {
+  entityType?: string;
+  action?: string;
+  actor?: string;
+  correlationId?: string;
+  occurredAfter?: string;
+  occurredBefore?: string;
+}): Promise<Blob> {
+  const occurredAfter = query.occurredAfter ? new Date(query.occurredAfter) : undefined;
+  const occurredBefore = query.occurredBefore ? new Date(query.occurredBefore) : undefined;
+  const filtered = MOCK_AUDIT_EVENTS.filter((event) => {
+    if (!matchesText(event.entityType, query.entityType)) return false;
+    if (!matchesText(event.action, query.action)) return false;
+    if (!matchesText(event.actor, query.actor)) return false;
+    if (!matchesText(event.correlationId, query.correlationId)) return false;
+    const occurredAt = new Date(event.occurredAt);
+    if (occurredAfter && occurredAt < occurredAfter) return false;
+    if (occurredBefore && occurredAt > occurredBefore) return false;
+    return true;
+  });
+
+  const header = ['id', 'occurredAt', 'actor', 'action', 'entityType', 'entityId', 'tenantId', 'reason', 'correlationId'];
+  const rows = sortNewestFirst(filtered).map((e) =>
+    [e.id, e.occurredAt, e.actor, e.action, e.entityType, e.entityId, e.tenantId ?? '', e.reason ?? '', e.correlationId]
+      .map(toCsvValue)
+      .join(','),
+  );
+  return new Blob([[header.join(','), ...rows].join('\n')], { type: 'text/csv' });
 }
