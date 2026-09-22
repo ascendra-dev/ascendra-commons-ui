@@ -1,10 +1,10 @@
-import Link from "next/link";
-import { Button, PageHeader, PageHeaderGroup, PageMain, PageSubtitle, PageTitle } from "@/ascendra-ui";
+import { PageHeader, PageHeaderGroup, PageMain, PageSubtitle, PageTitle } from "@/ascendra-ui";
 
 /**
- * The vertical's own app — everything below `/observability` belongs to the
- * shell (`app/observability/`, copied verbatim from `packages/observability`)
- * and is never hand-touched here. This is the one link into it.
+ * The vertical's own home page. The one link into the observability shell
+ * lives in the top bar (app/layout.tsx) — every vertical page, this one
+ * included, keeps that same top bar; only /observability adds its own
+ * sidebar on top of it (packages/observability/layout.tsx).
  */
 export default function HomePage() {
   return (
@@ -15,11 +15,7 @@ export default function HomePage() {
           <PageSubtitle>A stand-in vertical app, proving the copy-once observability shell.</PageSubtitle>
         </PageHeaderGroup>
       </PageHeader>
-      <PageMain>
-        <Button asChild>
-          <Link href="/observability">Open Observability</Link>
-        </Button>
-      </PageMain>
+      <PageMain />
     </>
   );
 }

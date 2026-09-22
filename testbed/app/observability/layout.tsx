@@ -4,19 +4,13 @@ import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   ContentArea,
-  Header,
-  HeaderActions,
-  HeaderLink,
-  HeaderLinks,
-  MainContainer,
-  Nav,
-  NavLink,
-  PageLayout,
   SideBar,
   SideBarMain,
-  SideBarOverlay,
+  SideBarMenuItem,
+  SideBarMenuItemGroup,
+  SideBarMenuSet,
+  SideBarMenuSetTitle,
   SideBarToggle,
-  ThemeToggle,
 } from '@/ascendra-ui';
 import { auditLoggingNav } from '@/ascendra-commons-ui/audit-logging.ui/nav';
 import type { ModuleNavEntry } from '@/ascendra-commons-ui/shared/nav';
@@ -29,11 +23,19 @@ import { sessionAuthAdapter } from './auth/session-auth.adapter';
 const moduleNavEntries: ModuleNavEntry[] = [...auditLoggingNav];
 
 /**
- * The one shell every bundled module mounts under — replaces the old
- * per-vertical DashboardShell + hand-aggregated nav. Copying this whole
+ * The sidebar shell every bundled module mounts under, styled the same way
+ * ascendra-ui's own showcase app builds its sidebar (`SideBarMain` >
+ * `SideBarMenuSet` > `SideBarMenuItemGroup` > `SideBarMenuItem`, see
+ * ascendra-ui/app/showcase/layout.tsx). Copying this whole
  * `packages/observability` folder into a vertical's `app/` tree *is* what
  * installs the admin UI; the vertical adds one link to this shell's mount
  * path and never touches routing or nav again.
+ *
+ * Deliberately owns no top bar/top nav — those belong to the vertical's own
+ * root layout (its own branding, avatar, theme toggle, the app-wide Nav bar
+ * with the one link in here) and this layout nests inside it (Next.js
+ * layout composition: this file's return value becomes the vertical's
+ * MainContainer's children), contributing only the module sidebar.
  *
  * Nav visibility is filtered by the current user's allowedActions (via
  * `session-auth.adapter.ts`) — an entry is hidden entirely, never shown
@@ -53,31 +55,23 @@ export default function ObservabilityLayout({ children }: { children: ReactNode 
       : moduleNavEntries.filter((entry) => allowedActions.includes(entry.requiredAction));
 
   return (
-    <PageLayout>
-      <SideBarOverlay />
-      <Header>
-        <HeaderLinks>
-          <HeaderLink href="/observability">Observability</HeaderLink>
-        </HeaderLinks>
-        <HeaderActions>
-          <ThemeToggle />
-        </HeaderActions>
-      </Header>
-      <Nav>
-        {visibleEntries.map((entry) => (
-          <NavLink key={entry.id} href={entry.href}>
-            <entry.icon className="mr-1.5 inline size-3.5" />
-            {entry.label}
-          </NavLink>
-        ))}
-      </Nav>
-      <MainContainer>
-        <SideBarToggle />
-        <SideBar>
-          <SideBarMain />
-        </SideBar>
-        <ContentArea>{children}</ContentArea>
-      </MainContainer>
-    </PageLayout>
+    <>
+      <SideBarToggle />
+      <SideBar>
+        <SideBarMain>
+          <SideBarMenuSet>
+            <SideBarMenuSetTitle>Modules</SideBarMenuSetTitle>
+            <SideBarMenuItemGroup>
+              {visibleEntries.map((entry) => (
+                <SideBarMenuItem key={entry.id} alternate="stand-alone" icon={entry.icon} path={entry.href}>
+                  {entry.label}
+                </SideBarMenuItem>
+              ))}
+            </SideBarMenuItemGroup>
+          </SideBarMenuSet>
+        </SideBarMain>
+      </SideBar>
+      <ContentArea>{children}</ContentArea>
+    </>
   );
 }
