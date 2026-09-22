@@ -7,10 +7,10 @@ building `ascendra-commons-ui` module packages — found by manual review of
 implemented screens against a module's own design mock (`<module>.api/mocks.html`
 in `ascendra-commons`) and direct investigation of `ascendra-ui`'s real
 component source. Same convention and purpose as
-`ascendra-pay-002/reference/ascendra-ui/hard-instructions.md`, copied into
-`testbed/docs/` for reference — this is this repo's **own** such registry,
-for admin/observability/DataTable-heavy findings specific to building module
-UIs here, not a fork of that file. Read both.
+`ascendra-pay-002/reference/ascendra-ui/hard-instructions.md` — this is this
+repo's **own** such registry, for admin/observability/DataTable-heavy findings
+specific to building module UIs here, not a fork of that file. Read both (the
+other lives in the `ascendra-pay-002` project, not copied here).
 
 This file supplements, never replaces, `ascendra-ui`'s own
 `docs/ui-reference.md`/`docs/showcase-reference.md`. Where an entry here and
@@ -179,9 +179,8 @@ fields together (plus `columns` for layout) rather than one preset per field
 requests (e.g. a dedicated endpoint), not different filters on the same one.
 
 **Reference:** `ascendra-ui/providers/data-table-query/data-table-query.types.ts`
-(`QueryDef.columns`); `reference/ascendra-ui/field-hint-guide.md` (copied
-into `testbed/docs/`) for the mandatory/optional badge authoring guidance
-that applies to the same form.
+(`QueryDef.columns`); `ascendra-pay-002/reference/ascendra-ui/field-hint-guide.md`
+for the mandatory/optional badge authoring guidance that applies to the same form.
 
 ---
 
