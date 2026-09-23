@@ -67,6 +67,8 @@ export interface AuditDailyCount {
 export interface AuditActionCount {
   action: string;
   count: number;
+  /** Distinct actors who performed this action within the window. */
+  actors: number;
 }
 
 export interface AuditActorCount {
@@ -79,6 +81,12 @@ export interface AuditTenantCount {
   count: number;
 }
 
+export interface AuditKpiValue {
+  value: number;
+  /** Percentage change vs. the prior equivalent period. */
+  deltaPct: number;
+}
+
 /** GET /audit/stats — the Overview screen. */
 export interface AuditStats {
   /** Normalized window label, e.g. '30d'. */
@@ -86,8 +94,19 @@ export interface AuditStats {
   /** Oldest first. */
   perDay: AuditDailyCount[];
   topActions: AuditActionCount[];
+  /** Kept for other consumers (e.g. an actor-focused screen); the Overview screen no longer renders this as its own table. */
   topActors: AuditActorCount[];
   perTenant: AuditTenantCount[];
+  kpis: {
+    /** vs. yesterday */
+    recordsToday: AuditKpiValue;
+    /** vs. prior 7 days */
+    records7d: AuditKpiValue;
+    /** vs. prior 30 days */
+    distinctActors30d: AuditKpiValue;
+    /** vs. prior 30 days */
+    entityTypes30d: AuditKpiValue;
+  };
 }
 
 export interface ActorActionCount {

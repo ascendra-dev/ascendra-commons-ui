@@ -7,6 +7,7 @@ export type {
   AuditDailyCount,
   AuditEvent,
   AuditEventDetail,
+  AuditKpiValue,
   AuditQuery,
   AuditQueryResult,
   AuditStats,

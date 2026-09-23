@@ -5,6 +5,7 @@ export type {
   ActorActivitySummary,
   AuditEvent,
   AuditEventDetail,
+  AuditKpiValue,
   AuditQuery,
   AuditQueryResult,
   AuditStats,

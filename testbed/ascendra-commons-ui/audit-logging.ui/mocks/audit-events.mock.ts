@@ -1,10 +1,14 @@
 import type { QueryFn, QueryFunctionMap } from '@/ascendra-ui';
 import type {
   ActorActivitySummary,
+  AuditActionCount,
+  AuditActorCount,
+  AuditDailyCount,
   AuditEvent,
   AuditEventDetail,
   AuditQueryResult,
   AuditStats,
+  AuditTenantCount,
   FieldDiffEntry,
 } from '../api/audit-api.types';
 
@@ -240,26 +244,145 @@ export async function mockTrace(correlationId: string): Promise<AuditQueryResult
   return { records: sortNewestFirst(MOCK_AUDIT_EVENTS.filter((e) => e.correlationId === correlationId)) };
 }
 
-export async function mockStats(window = '30d'): Promise<AuditStats> {
-  const byDay = new Map<string, number>();
-  const byAction = new Map<string, number>();
-  const byActor = new Map<string, number>();
-  const byTenant = new Map<string | null, number>();
+// ─── Overview stats (synthetic, realistic-scale) ───────────────────────────
+// mockStats() deliberately does NOT aggregate MOCK_AUDIT_EVENTS above — those
+// 12 rows exist only to demo List/Detail/History/Trace click-throughs, and
+// aggregating them produces single-digit daily counts, which makes Recharts
+// pick decimal Y-axis ticks and makes every KPI read "1" or "2" (see this
+// repo's own hard-instructions.md AUI-004 note on a similarly-undersized
+// batch size, and the framework-level hard-instructions.md AUI-017). This
+// section generates a separate, realistic-scale synthetic dataset — the
+// Overview screen's KPI row, volume chart, and top-actions table are built
+// from it instead.
 
-  for (const event of MOCK_AUDIT_EVENTS) {
-    const day = event.occurredAt.slice(0, 10);
-    byDay.set(day, (byDay.get(day) ?? 0) + 1);
-    byAction.set(event.action, (byAction.get(event.action) ?? 0) + 1);
-    byActor.set(event.actor, (byActor.get(event.actor) ?? 0) + 1);
-    byTenant.set(event.tenantId, (byTenant.get(event.tenantId) ?? 0) + 1);
+/** Deterministic PRNG (mulberry32) — stable fixture across runs/environments. */
+function mulberry32(seed: number) {
+  return function random() {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const STATS_ACTIONS = [
+  'invoice.status_changed',
+  'payment.settled',
+  'attachment.uploaded',
+  'role.assigned',
+  'invoice.created',
+  'payment-link.created',
+  'user.role_granted',
+  'notification.route_set',
+  'kyc_document.verified',
+  'payout.reversed',
+] as const;
+
+const STATS_ENTITY_TYPES = [
+  'invoice',
+  'payment',
+  'payment-link',
+  'user',
+  'attachment',
+  'channel_route',
+  'kyc_document',
+  'dispute',
+  'payout',
+  'subscription',
+] as const;
+
+/** 60 days of daily volume — the trailing 30 are shown; all 60 back the prior-period comparisons. */
+function generateDailyVolume(days: number, rng: () => number): number[] {
+  const base = 1400;
+  const out: number[] = [];
+  for (let i = 0; i < days; i++) {
+    const weekendDip = i % 7 === 5 || i % 7 === 6 ? 0.55 : 1;
+    const drift = 1 + (i / days) * 0.35;
+    const noise = 0.85 + rng() * 0.3;
+    let value = Math.round(base * weekendDip * drift * noise);
+    if (i === days - 5) value = Math.round(value * 2.1); // one visible spike day
+    out.push(Math.max(120, value));
   }
+  return out;
+}
+
+function pctDelta(current: number, prior: number): number {
+  if (prior === 0) return current === 0 ? 0 : 100;
+  return Math.round(((current - prior) / prior) * 1000) / 10;
+}
+
+const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);
+
+export async function mockStats(window = '30d'): Promise<AuditStats> {
+  const rng = mulberry32(20260923);
+  const totalDays = 60;
+  const volumes = generateDailyVolume(totalDays, rng);
+
+  const today = new Date();
+  const dayLabel = (daysAgo: number) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - daysAgo);
+    return d.toISOString().slice(0, 10);
+  };
+
+  // volumes[totalDays - 1] is today, volumes[0] is 59 days ago.
+  const perDay: AuditDailyCount[] = volumes.slice(30).map((count, i) => ({
+    day: dayLabel(29 - i),
+    count,
+  }));
+
+  const last7d = volumes.slice(53, 60);
+  const prior7d = volumes.slice(46, 53);
+  const last30d = volumes.slice(30, 60);
+
+  const recordsToday = volumes[59];
+  const recordsYesterday = volumes[58];
+  const last7Total = sum(last7d);
+  const last30Total = sum(last30d);
+
+  // Distinct actors / entity types touched — pool sizes picked to read like a
+  // real multi-tenant console, not simulated at the individual-event level.
+  const actorPoolSize = 340;
+  const distinctActors30 = Math.round(actorPoolSize * (0.58 + rng() * 0.08));
+  const distinctActorsPrior30 = Math.round(actorPoolSize * (0.52 + rng() * 0.08));
+  const entityTypes30 = STATS_ENTITY_TYPES.length;
+  const entityTypesPrior30 = STATS_ENTITY_TYPES.length - 1;
+
+  const actionWeights = [0.24, 0.19, 0.14, 0.11, 0.09, 0.08, 0.06, 0.05, 0.03, 0.01];
+  const topActions: AuditActionCount[] = STATS_ACTIONS.map((action, i) => {
+    const count = Math.round(last7Total * actionWeights[i]);
+    const actors = Math.max(1, Math.round(count / (6 + rng() * 10)));
+    return { action, count, actors };
+  }).sort((a, b) => b.count - a.count);
+
+  const topActors: AuditActorCount[] = [
+    { actor: 'svc_reconciler', count: Math.round(last7Total * 0.12) },
+    { actor: 'jane@acme.test', count: Math.round(last7Total * 0.07) },
+    { actor: 'admin@globex.test', count: Math.round(last7Total * 0.06) },
+    { actor: 'svc_notifier', count: Math.round(last7Total * 0.05) },
+    { actor: 'ops@meridian.test', count: Math.round(last7Total * 0.04) },
+  ];
+
+  const perTenant: AuditTenantCount[] = [
+    { tenantId: 'tenant_acme', count: Math.round(last30Total * 0.38) },
+    { tenantId: 'tenant_globex', count: Math.round(last30Total * 0.27) },
+    { tenantId: 'tenant_meridian', count: Math.round(last30Total * 0.19) },
+    { tenantId: null, count: Math.round(last30Total * 0.16) },
+  ];
 
   return {
     window,
-    perDay: [...byDay.entries()].map(([day, count]) => ({ day, count })).sort((a, b) => a.day.localeCompare(b.day)),
-    topActions: [...byAction.entries()].map(([action, count]) => ({ action, count })).sort((a, b) => b.count - a.count),
-    topActors: [...byActor.entries()].map(([actor, count]) => ({ actor, count })).sort((a, b) => b.count - a.count),
-    perTenant: [...byTenant.entries()].map(([tenantId, count]) => ({ tenantId, count })).sort((a, b) => b.count - a.count),
+    perDay,
+    topActions,
+    topActors,
+    perTenant,
+    kpis: {
+      recordsToday: { value: recordsToday, deltaPct: pctDelta(recordsToday, recordsYesterday) },
+      records7d: { value: last7Total, deltaPct: pctDelta(last7Total, sum(prior7d)) },
+      distinctActors30d: { value: distinctActors30, deltaPct: pctDelta(distinctActors30, distinctActorsPrior30) },
+      entityTypes30d: { value: entityTypes30, deltaPct: pctDelta(entityTypes30, entityTypesPrior30) },
+    },
   };
 }
 
