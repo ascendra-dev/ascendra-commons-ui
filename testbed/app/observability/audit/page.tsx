@@ -12,12 +12,19 @@ import {
   CardHeaderTitle,
   CardPanel,
   DashboardContent,
+  DataTableEmptyBody,
+  DataTableErrorBody,
+  DataTableLoadingBody,
   Empty,
-  EmptyBody,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
+  KpiCaption,
+  KpiLabel,
+  KpiTile,
+  KpiTrend,
+  KpiValue,
   PageHeader,
   PageHeaderAction,
   PageHeaderGroup,
@@ -41,12 +48,7 @@ import {
   type ChartConfig,
 } from "@/ascendra-ui/shadcn";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import {
-  LuDatabase,
-  LuLoader,
-  LuTrendingDown,
-  LuTrendingUp,
-} from "react-icons/lu";
+import { LuCircleAlert, LuDatabase } from "react-icons/lu";
 import { auditLogLinks } from "@/ascendra-commons-ui/audit-logging.ui/links";
 import {
   mockOverviewStats,
@@ -104,7 +106,10 @@ function formatDelta(kpi: AuditKpiValue): string {
 
 /** Shared by both the real and placeholder chart's XAxis, so tick formatting never changes when the data swaps in. */
 function formatAxisDay(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function formatDateRange(perDay: AuditOverviewStats["perDay"]): string {
@@ -189,157 +194,186 @@ export default function AuditOverviewPage() {
           are ALWAYS mounted; only the value+badge and the chart body swap
           between a skeleton and real content. This is deliberate — gating
           the whole block behind `overview.data &&` is what used to cause
-          the entire section to pop into existence at once. Error handling
-          is deferred (falls through to the skeleton state for now).
+          the entire section to pop into existence at once. KPIs and the
+          chart share one query, so a single error card replaces both
+          rather than duplicating the error 5 times across tiles — no
+          "empty" state here, since a KPI showing 0 or a chart with flat
+          data isn't a broken/empty state the way a zero-row table is.
         */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {KPI_DEFS.map((def) => {
-            const kpi = overview.data?.kpis[def.key];
-            const up = kpi ? kpi.deltaPct >= 0 : true;
-            return (
-              <Card key={def.key} className="h-full">
-                <CardPanel>
-                  <div className="flex flex-1 flex-col p-5">
-                    <p className="text-muted-foreground text-xs">{def.label}</p>
-                    <div className="mt-auto flex flex-col items-start gap-1 pt-4 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-2 lg:flex-col lg:items-start lg:gap-1 xl:flex-row xl:items-center xl:justify-between xl:gap-2">
-                      {kpi ? (
-                        <>
-                          <span className="text-2xl font-semibold tracking-tight">
-                            {formatCount(kpi.value)}
-                          </span>
-                          <SimpleBadge variant={up ? "green" : "red"}>
-                            {up ? (
-                              <LuTrendingUp className="size-3" />
-                            ) : (
-                              <LuTrendingDown className="size-3" />
-                            )}
-                            {formatDelta(kpi)}
-                          </SimpleBadge>
-                        </>
-                      ) : (
-                        <Skeleton className="h-8 w-20" />
-                      )}
-                    </div>
-                    <p className="text-muted-foreground/60 mt-1 text-[0.6875rem]">
-                      {def.comparedTo}
-                    </p>
-                  </div>
-                </CardPanel>
-              </Card>
-            );
-          })}
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardHeaderTitle>Volume by day</CardHeaderTitle>
-            <CardHeaderSubtitle>
-              Past 30 days
-              {overview.data
-                ? ` · ${formatDateRange(overview.data.perDay)}`
-                : ""}
-            </CardHeaderSubtitle>
-          </CardHeader>
-          <CardPanel>
-            <div className="p-5">
-              {overview.data ? (
-                <ChartContainer config={chartConfig} className="h-56 w-full">
-                  <BarChart
-                    data={overview.data.perDay}
-                    margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid
-                      vertical={false}
-                      stroke="var(--border)"
-                      strokeOpacity={0.6}
-                      strokeWidth={0.5}
-                    />
-                    <XAxis
-                      dataKey="day"
-                      tickLine={false}
-                      axisLine={false}
-                      tick={{ fontSize: 11 }}
-                      interval={4}
-                      tickFormatter={formatAxisDay}
-                    />
-                    <YAxis
-                      tickLine={false}
-                      axisLine={false}
-                      tick={{ fontSize: 11 }}
-                      width={40}
-                      allowDecimals={false}
-                      tickFormatter={(v: number) => formatCount(v)}
-                    />
-                    <ChartTooltip
-                      content={
-                        <ChartTooltipContent
-                          formatter={(v) => [formatCount(Number(v)), "Records"]}
-                        />
-                      }
-                    />
-                    <Bar
-                      dataKey="count"
-                      fill="var(--color-count)"
-                      radius={[3, 3, 0, 0]}
-                    />
-                  </BarChart>
-                </ChartContainer>
-              ) : (
-                <ChartContainer
-                  config={chartConfig}
-                  className="h-56 w-full animate-pulse"
+        {overview.isError ? (
+          <Card>
+            <CardPanel>
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <LuCircleAlert strokeWidth={2} />
+                  </EmptyMedia>
+                  <EmptyTitle>Failed to load overview</EmptyTitle>
+                  <EmptyDescription>
+                    {overview.error?.message ?? "Something went wrong."}
+                  </EmptyDescription>
+                </EmptyHeader>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => overview.refetch()}
                 >
-                  <BarChart
-                    data={placeholderPerDay}
-                    margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid
-                      vertical={false}
-                      stroke="var(--border)"
-                      strokeOpacity={0.6}
-                      strokeWidth={0.5}
-                    />
-                    <XAxis
-                      dataKey="day"
-                      tickLine={false}
-                      axisLine={false}
-                      tick={{ fontSize: 11 }}
-                      interval={4}
-                      tickFormatter={formatAxisDay}
-                    />
-                    <YAxis
-                      tickLine={false}
-                      axisLine={false}
-                      tick={false}
-                      width={40}
-                    />
-                    <Bar
-                      dataKey="count"
-                      fill="var(--muted)"
-                      radius={[3, 3, 0, 0]}
-                    />
-                  </BarChart>
-                </ChartContainer>
-              )}
+                  Retry
+                </Button>
+              </Empty>
+            </CardPanel>
+          </Card>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {KPI_DEFS.map((def) => {
+                const kpi = overview.data?.kpis[def.key];
+                const up = kpi ? kpi.deltaPct >= 0 : true;
+                return (
+                  <Card key={def.key} className="h-full">
+                    <CardPanel>
+                      <KpiTile>
+                        <KpiLabel>{def.label}</KpiLabel>
+                        <div className="mt-auto flex flex-col items-start gap-1 pt-4 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-2 lg:flex-col lg:items-start lg:gap-1 xl:flex-row xl:items-center xl:justify-between xl:gap-2">
+                          {kpi ? (
+                            <>
+                              <KpiValue>{formatCount(kpi.value)}</KpiValue>
+                              <KpiTrend direction={up ? "up" : "down"}>
+                                {formatDelta(kpi)}
+                              </KpiTrend>
+                            </>
+                          ) : (
+                            <Skeleton className="h-8 w-20" />
+                          )}
+                        </div>
+                        <KpiCaption className="mt-1 text-[0.6875rem] text-muted-foreground/60">
+                          {def.comparedTo}
+                        </KpiCaption>
+                      </KpiTile>
+                    </CardPanel>
+                  </Card>
+                );
+              })}
             </div>
-          </CardPanel>
-        </Card>
+
+            <Card>
+              <CardHeader>
+                <CardHeaderTitle>Volume by day</CardHeaderTitle>
+                <CardHeaderSubtitle>
+                  Past 30 days
+                  {overview.data
+                    ? ` · ${formatDateRange(overview.data.perDay)}`
+                    : ""}
+                </CardHeaderSubtitle>
+              </CardHeader>
+              <CardPanel>
+                <div className="p-5">
+                  {overview.data ? (
+                    <ChartContainer
+                      config={chartConfig}
+                      className="h-56 w-full"
+                    >
+                      <BarChart
+                        data={overview.data.perDay}
+                        margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid
+                          vertical={false}
+                          stroke="var(--border)"
+                          strokeOpacity={0.6}
+                          strokeWidth={0.5}
+                        />
+                        <XAxis
+                          dataKey="day"
+                          tickLine={false}
+                          axisLine={false}
+                          tick={{ fontSize: 11 }}
+                          interval={4}
+                          tickFormatter={formatAxisDay}
+                        />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          tick={{ fontSize: 11 }}
+                          width={40}
+                          allowDecimals={false}
+                          tickFormatter={(v: number) => formatCount(v)}
+                        />
+                        <ChartTooltip
+                          content={
+                            <ChartTooltipContent
+                              formatter={(v) => [
+                                formatCount(Number(v)),
+                                "Records",
+                              ]}
+                            />
+                          }
+                        />
+                        <Bar
+                          dataKey="count"
+                          fill="var(--color-count)"
+                          radius={[3, 3, 0, 0]}
+                        />
+                      </BarChart>
+                    </ChartContainer>
+                  ) : (
+                    <ChartContainer
+                      config={chartConfig}
+                      className="h-56 w-full animate-pulse"
+                    >
+                      <BarChart
+                        data={placeholderPerDay}
+                        margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid
+                          vertical={false}
+                          stroke="var(--border)"
+                          strokeOpacity={0.6}
+                          strokeWidth={0.5}
+                        />
+                        <XAxis
+                          dataKey="day"
+                          tickLine={false}
+                          axisLine={false}
+                          tick={{ fontSize: 11 }}
+                          interval={4}
+                          tickFormatter={formatAxisDay}
+                        />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          tick={false}
+                          width={40}
+                        />
+                        <Bar
+                          dataKey="count"
+                          fill="var(--muted)"
+                          radius={[3, 3, 0, 0]}
+                        />
+                      </BarChart>
+                    </ChartContainer>
+                  )}
+                </div>
+              </CardPanel>
+            </Card>
+          </>
+        )}
 
         {/*
           Top actions — audit-top-actions, independent of the section above.
           Real CardHeader + real TableHeader (static "Action/Count/Actors"
           labels) stay mounted throughout; only the body area swaps between
-          this loading block and real rows — same mechanism ascendra-ui's
-          own DataTableLoadingBody uses (EmptyBody wrapping Empty/EmptyMedia/
-          EmptyTitle/EmptyDescription with a spinning LuLoader), reused
-          directly here rather than via DataTableLoadingBody itself, since
-          that component requires a DataTableProvider this simple table
-          intentionally doesn't have. EmptyBody (not a plain div) matters —
-          it's what gives the block its neutral bg-background surface via
-          the same before:-pseudo-element trick a real populated TableBody
-          uses, instead of it showing through to TableWrapper's bg-muted
-          backdrop. Pinned to the same 300px the real Table caps at, so the
-          swap is an exact height match, not an incidental one.
+          real rows and one of DataTableLoadingBody/DataTableErrorBody/
+          DataTableEmptyBody — the real ascendra-ui components, used
+          standalone via their prop overrides (isLoading/isError/error/
+          onRetry/isEmpty) rather than DataTableProvider context, since this
+          is deliberately a simple useQuery-driven table, not the full
+          DataTable system. className="h-65" nets out to the same ~300px
+          as the loaded state once the real TableHeader's own ~40px sitting
+          above it is accounted for — EmptyBody isn't inside the Table's
+          own height={300} scroll wrapper, so its height has to be set
+          independently; same arithmetic as the hand-rolled version this
+          replaced.
         */}
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12">
@@ -358,7 +392,7 @@ export default function AuditOverviewPage() {
                     <TableHead className="whitespace-nowrap">Actors</TableHead>
                   </TableHeaderRow>
                 </TableHeader>
-                {topActions.data && (
+                {topActions.data && topActions.data.topActions.length > 0 && (
                   <TableBody>
                     {topActions.data.topActions.map((row) => (
                       <TableRow key={row.action}>
@@ -376,21 +410,25 @@ export default function AuditOverviewPage() {
                   </TableBody>
                 )}
               </Table>
-              {!topActions.data && (
-                <EmptyBody className="h-65">
-                  <Empty className="h-full">
-                    <EmptyHeader>
-                      <EmptyMedia variant="icon">
-                        <LuLoader className="animate-spin" strokeWidth={2} />
-                      </EmptyMedia>
-                      <EmptyTitle>Loading ...</EmptyTitle>
-                      <EmptyDescription>
-                        Please wait while data is being fetched.
-                      </EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
-                </EmptyBody>
-              )}
+              <DataTableLoadingBody
+                isLoading={topActions.isLoading}
+                className="h-65"
+              />
+              <DataTableErrorBody
+                isError={topActions.isError}
+                error={topActions.error}
+                onRetry={() => topActions.refetch()}
+                className="h-65"
+              />
+              <DataTableEmptyBody
+                isLoading={topActions.isLoading}
+                isEmpty={
+                  !!topActions.data && topActions.data.topActions.length === 0
+                }
+                title="No actions recorded"
+                description="No audit activity in the past 7 days."
+                className="h-65"
+              />
               <CardFooter className="border-t-0 pt-0"></CardFooter>
             </TableWrapper>
           </div>
