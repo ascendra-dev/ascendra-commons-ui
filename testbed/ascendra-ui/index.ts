@@ -2,6 +2,7 @@
 export * from './components/common-ui/anchor';
 export * from './components/common-ui/bubble-badge';
 export * from './components/common-ui/drop-down-chevron';
+export * from './components/common-ui/kpi-tile';
 export * from './components/common-ui/name-avatar';
 export * from './components/common-ui/pagination-button';
 export * from './components/common-ui/pro-badge';
