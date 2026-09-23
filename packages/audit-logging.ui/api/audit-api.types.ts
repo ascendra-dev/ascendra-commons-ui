@@ -87,7 +87,27 @@ export interface AuditKpiValue {
   deltaPct: number;
 }
 
-/** GET /audit/stats — the Overview screen. */
+export interface AuditStatsKpis {
+  /** vs. yesterday */
+  recordsToday: AuditKpiValue;
+  /** vs. prior 7 days */
+  records7d: AuditKpiValue;
+  /** vs. prior 30 days */
+  distinctActors30d: AuditKpiValue;
+  /** vs. prior 30 days */
+  entityTypes30d: AuditKpiValue;
+}
+
+/**
+ * GET /audit/stats — the Overview screen's full aggregate, as currently
+ * proposed as ONE endpoint in audit-logging.api/mocks.html. The mock layer
+ * (mocks/audit-events.mock.ts) currently splits delivery into two narrower
+ * calls instead — AuditOverviewStats and AuditTopActionsStats — so the
+ * dashboard's KPI/chart section and its table can load independently. This
+ * type stays as the real API's still-current single-endpoint shape until
+ * ascendra-commons's own API is actually redesigned to match the split;
+ * update both together when that happens.
+ */
 export interface AuditStats {
   /** Normalized window label, e.g. '30d'. */
   window: string;
@@ -97,16 +117,21 @@ export interface AuditStats {
   /** Kept for other consumers (e.g. an actor-focused screen); the Overview screen no longer renders this as its own table. */
   topActors: AuditActorCount[];
   perTenant: AuditTenantCount[];
-  kpis: {
-    /** vs. yesterday */
-    recordsToday: AuditKpiValue;
-    /** vs. prior 7 days */
-    records7d: AuditKpiValue;
-    /** vs. prior 30 days */
-    distinctActors30d: AuditKpiValue;
-    /** vs. prior 30 days */
-    entityTypes30d: AuditKpiValue;
-  };
+  kpis: AuditStatsKpis;
+}
+
+/** Mock-only narrower slice of AuditStats — the Overview dashboard's KPI row + volume chart. See AuditStats's own doc comment. */
+export interface AuditOverviewStats {
+  window: string;
+  /** Oldest first. */
+  perDay: AuditDailyCount[];
+  kpis: AuditStatsKpis;
+}
+
+/** Mock-only narrower slice of AuditStats — the Overview dashboard's Top Actions table. See AuditStats's own doc comment. */
+export interface AuditTopActionsStats {
+  window: string;
+  topActions: AuditActionCount[];
 }
 
 export interface ActorActionCount {

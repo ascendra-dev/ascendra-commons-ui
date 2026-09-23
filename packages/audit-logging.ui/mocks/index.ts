@@ -4,7 +4,8 @@ export {
   mockGetEvent,
   mockEntityHistory,
   mockTrace,
-  mockStats,
+  mockOverviewStats,
+  mockTopActionsStats,
   mockActorActivity,
   mockDownloadCsv,
 } from './audit-events.mock';

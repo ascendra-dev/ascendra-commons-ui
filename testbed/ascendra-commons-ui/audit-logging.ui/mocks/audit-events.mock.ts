@@ -6,9 +6,11 @@ import type {
   AuditDailyCount,
   AuditEvent,
   AuditEventDetail,
+  AuditOverviewStats,
   AuditQueryResult,
   AuditStats,
   AuditTenantCount,
+  AuditTopActionsStats,
   FieldDiffEntry,
 } from '../api/audit-api.types';
 
@@ -314,7 +316,19 @@ function pctDelta(current: number, prior: number): number {
 
 const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);
 
-export async function mockStats(window = '30d'): Promise<AuditStats> {
+/** Simulated network/DB round trip — a real aggregation query is not instant. */
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Computes the full synthetic dataset once. `mockOverviewStats` and
+ * `mockTopActionsStats` each call this and slice what they need — the
+ * underlying data is shared so the two independently-loading sections still
+ * agree with each other, but each function applies its own simulated delay,
+ * so they resolve (and error, if ever wired to) independently. This is a
+ * mock-layer-only split — see AuditOverviewStats/AuditTopActionsStats's own
+ * doc comments in audit-api.types.ts for why AuditStats itself is unchanged.
+ */
+function buildSyntheticStats(window: string): AuditStats {
   const rng = mulberry32(20260923);
   const totalDays = 60;
   const volumes = generateDailyVolume(totalDays, rng);
@@ -384,6 +398,20 @@ export async function mockStats(window = '30d'): Promise<AuditStats> {
       entityTypes30d: { value: entityTypes30, deltaPct: pctDelta(entityTypes30, entityTypesPrior30) },
     },
   };
+}
+
+/** KPI row + volume chart — a lighter daily-rollup aggregation, so it resolves first. */
+export async function mockOverviewStats(window = '30d'): Promise<AuditOverviewStats> {
+  await delay(3000);
+  const { perDay, kpis } = buildSyntheticStats(window);
+  return { window, perDay, kpis };
+}
+
+/** Top actions table — a heavier `GROUP BY action` aggregation, so it resolves after the overview section, independently. */
+export async function mockTopActionsStats(window = '7d'): Promise<AuditTopActionsStats> {
+  await delay(4000);
+  const { topActions } = buildSyntheticStats(window);
+  return { window, topActions };
 }
 
 export async function mockActorActivity(actor: string): Promise<ActorActivitySummary> {

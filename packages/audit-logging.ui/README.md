@@ -5,13 +5,21 @@ Admin/observability UI for `ascendra-commons`' `audit-logging.api`.
 ## Shipped
 
 - **`AuditOverviewScreen`** — the one nav.ts entry, the module's landing
-  page (`GET /audit/stats`). Four KPI tiles (each with a `SimpleBadge`
-  trend/delta vs. its prior equivalent period — today vs. yesterday, the
-  7d/30d tiles vs. their own prior window), a volume-by-day chart (past 30
-  days, explicit date range in the subtitle), and one merged "Top actions"
-  table (`Action | Count | Actors`, matching `audit-logging.api/mocks.html`'s
-  Overview section exactly rather than splitting actions and actors into two
-  tables) — with buttons into the Audit Log list and Retention & Volume.
+  page. Four KPI tiles (each with a `SimpleBadge` trend/delta vs. its prior
+  equivalent period — today vs. yesterday, the 7d/30d tiles vs. their own
+  prior window), a volume-by-day chart (past 30 days, explicit date range in
+  the subtitle), and one merged "Top actions" table (`Action | Count |
+  Actors`, matching `audit-logging.api/mocks.html`'s Overview section
+  exactly rather than splitting actions and actors into two tables) — with
+  buttons into the Audit Log list and Retention & Volume. Loads as **two
+  independent queries**, not one: `mockOverviewStats()` (KPI row + volume
+  chart) and `mockTopActionsStats()` (the table), each with its own
+  simulated delay, so a slow table never blocks the fast KPIs from showing
+  and vice versa. The real API is still proposed as one `GET /audit/stats`
+  endpoint (`audit-logging.api/mocks.html`) — this split is mock-layer-only
+  for now; see `AuditOverviewStats`/`AuditTopActionsStats`'s doc comments in
+  `api/audit-api.types.ts` for what changes when `ascendra-commons` is
+  updated to match.
 - **`AuditLogListScreen`** — the primary filterable feed (`GET /audit/events`).
   Two data-table-lab query scenarios: `Recent` (no filters) and `Advanced
   Filter` (every `AuditQuery` field combinable at once, not five

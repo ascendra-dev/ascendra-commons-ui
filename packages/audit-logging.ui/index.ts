@@ -6,9 +6,11 @@ export type {
   AuditEvent,
   AuditEventDetail,
   AuditKpiValue,
+  AuditOverviewStats,
   AuditQuery,
   AuditQueryResult,
   AuditStats,
+  AuditTopActionsStats,
   FieldDiffEntry,
 } from './api';
 export { auditEventColumns, auditQueryDefs, auditQueryFunctions } from './queries';
