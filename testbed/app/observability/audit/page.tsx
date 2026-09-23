@@ -55,10 +55,15 @@ import {
   mockTopActionsStats,
 } from "@/ascendra-commons-ui/audit-logging.ui/mocks";
 import type {
-  AuditKpiValue,
   AuditOverviewStats,
   AuditStatsKpis,
 } from "@/ascendra-commons-ui/audit-logging.ui/api";
+import {
+  formatCount,
+  formatDateRange,
+  formatShortDate,
+  formatSignedPercent,
+} from "@/ascendra-ui/utils/common.util";
 
 const chartConfig: ChartConfig = {
   count: { label: "Records", color: "var(--chart-1)" },
@@ -87,41 +92,6 @@ const KPI_DEFS = [
   label: string;
   comparedTo: string;
 }>;
-
-/** Thousands separator under 10,000; compact K/M above — same per-page local-helper convention as ascendra-ui's own dashboards (e.g. `fmtMrr` in saas-revenue/page.tsx). */
-function formatCount(value: number): string {
-  if (value >= 10_000) {
-    return new Intl.NumberFormat("en-US", {
-      notation: "compact",
-      maximumFractionDigits: 1,
-    }).format(value);
-  }
-  return value.toLocaleString("en-US");
-}
-
-function formatDelta(kpi: AuditKpiValue): string {
-  const sign = kpi.deltaPct >= 0 ? "+" : "";
-  return `${sign}${kpi.deltaPct.toFixed(1)}%`;
-}
-
-/** Shared by both the real and placeholder chart's XAxis, so tick formatting never changes when the data swaps in. */
-function formatAxisDay(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function formatDateRange(perDay: AuditOverviewStats["perDay"]): string {
-  if (perDay.length === 0) return "";
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  return `${fmt(perDay[0].day)} – ${fmt(perDay[perDay.length - 1].day)}`;
-}
 
 /**
  * The volume chart's loading-state data — real day labels (the "past 30
@@ -239,7 +209,7 @@ export default function AuditOverviewPage() {
                             <>
                               <KpiValue>{formatCount(kpi.value)}</KpiValue>
                               <KpiTrend direction={up ? "up" : "down"}>
-                                {formatDelta(kpi)}
+                                {formatSignedPercent(kpi.deltaPct)}
                               </KpiTrend>
                             </>
                           ) : (
@@ -262,7 +232,11 @@ export default function AuditOverviewPage() {
                 <CardHeaderSubtitle>
                   Past 30 days
                   {overview.data
-                    ? ` · ${formatDateRange(overview.data.perDay)}`
+                    ? ` · ${formatDateRange(
+                        overview.data.perDay[0].day,
+                        overview.data.perDay[overview.data.perDay.length - 1]
+                          .day,
+                      )}`
                     : ""}
                 </CardHeaderSubtitle>
               </CardHeader>
@@ -289,7 +263,7 @@ export default function AuditOverviewPage() {
                           axisLine={false}
                           tick={{ fontSize: 11 }}
                           interval={4}
-                          tickFormatter={formatAxisDay}
+                          tickFormatter={formatShortDate}
                         />
                         <YAxis
                           tickLine={false}
@@ -304,7 +278,7 @@ export default function AuditOverviewPage() {
                             <ChartTooltipContent
                               formatter={(v) => [
                                 formatCount(Number(v)),
-                                "Records",
+                                " Records",
                               ]}
                             />
                           }
@@ -337,7 +311,7 @@ export default function AuditOverviewPage() {
                           axisLine={false}
                           tick={{ fontSize: 11 }}
                           interval={4}
-                          tickFormatter={formatAxisDay}
+                          tickFormatter={formatShortDate}
                         />
                         <YAxis
                           tickLine={false}
