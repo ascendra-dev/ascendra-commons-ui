@@ -220,6 +220,10 @@ export function useDataTableData(): DataTableDataContextValue {
   return ctx;
 }
 
+export function useOptionalDataTableData(): DataTableDataContextValue | null {
+  return useContext(DataTableDataContext);
+}
+
 export function useDataTableSelection(): DataTableSelectionContextValue {
   const ctx = useContext(DataTableSelectionContext);
   if (!ctx) throw new Error('useDataTableSelection must be used within DataTableProvider');

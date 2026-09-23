@@ -8,11 +8,17 @@ import {
   EmptyTitle,
 } from '@/ascendra-ui/components/ui/empty';
 import { EmptyBody } from '@/ascendra-ui/components/ui/table';
-import { useDataTableData } from '@/ascendra-ui/providers/data-table/data-table.provider';
+import { useOptionalDataTableData } from '@/ascendra-ui/providers/data-table/data-table.provider';
 import { LuLoader } from 'react-icons/lu';
 
-export function DataTableLoadingBody() {
-  const { isLoading } = useDataTableData();
+interface DataTableLoadingBodyProps {
+  /** Overrides the DataTableProvider's own isLoading — required when used without a DataTableProvider ancestor. */
+  isLoading?: boolean;
+}
+
+export function DataTableLoadingBody({ isLoading: isLoadingProp }: DataTableLoadingBodyProps = {}) {
+  const ctx = useOptionalDataTableData();
+  const isLoading = isLoadingProp ?? ctx?.isLoading ?? false;
 
   if (!isLoading) return null;
 

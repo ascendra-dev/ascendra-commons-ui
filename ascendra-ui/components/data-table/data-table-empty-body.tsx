@@ -11,22 +11,30 @@ import {
   EmptyTitle,
 } from '@/ascendra-ui/components/ui/empty';
 import { EmptyBody } from '@/ascendra-ui/components/ui/table';
-import { useDataTableData } from '@/ascendra-ui/providers/data-table/data-table.provider';
+import { useOptionalDataTableData } from '@/ascendra-ui/providers/data-table/data-table.provider';
 
 interface DataTableEmptyBodyProps {
   icon?: React.ReactNode;
   title?: string;
   description?: string;
+  /** Overrides the DataTableProvider's own isLoading — required when used without a DataTableProvider ancestor. */
+  isLoading?: boolean;
+  /** Overrides the DataTableProvider's own pagedData.length === 0 check — required when used without a DataTableProvider ancestor. */
+  isEmpty?: boolean;
 }
 
 export function DataTableEmptyBody({
   icon = <LuTextSearch strokeWidth={2} />,
   title = 'No results found',
   description = 'There are no items to display right now.',
+  isLoading: isLoadingProp,
+  isEmpty: isEmptyProp,
 }: DataTableEmptyBodyProps) {
-  const { isLoading, pagedData } = useDataTableData();
+  const ctx = useOptionalDataTableData();
+  const isLoading = isLoadingProp ?? ctx?.isLoading ?? false;
+  const isEmpty = isEmptyProp ?? (ctx ? ctx.pagedData.length === 0 : false);
 
-  if (isLoading || pagedData.length > 0) return null;
+  if (isLoading || !isEmpty) return null;
 
   return (
     <EmptyBody>

@@ -142,6 +142,7 @@ export * from './components/side-bar/side-bar-menu-item-group';
 export * from './components/side-bar/side-bar-menu-set';
 export * from './components/side-bar/side-bar-menu-set-title';
 export * from './components/side-bar/side-bar-overlay';
+export * from './components/side-bar/side-bar-search';
 export * from './components/side-bar/side-bar-toggle';
 
 // Utility
