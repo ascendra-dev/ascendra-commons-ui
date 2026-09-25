@@ -135,6 +135,18 @@ export default function AuditOverviewPage() {
     queryFn: () => fetchTopActions("7d"),
   });
 
+  const kpiRows = KPI_DEFS.map((def) => {
+    const kpi = overview.data?.kpis[def.key];
+    return { ...def, kpi, up: kpi ? kpi.deltaPct >= 0 : true };
+  });
+
+  const volumeSubtitle = overview.data
+    ? `Past 30 days · ${formatDateRange(
+        overview.data.perDay[0].day,
+        overview.data.perDay[overview.data.perDay.length - 1].day,
+      )}`
+    : "Past 30 days";
+
   return (
     <>
       <PageHeader variant="dashboard">
@@ -205,52 +217,39 @@ export default function AuditOverviewPage() {
           </ErrorState>
           <NormalState if={!overview.isError}>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {KPI_DEFS.map((def) => {
-                const kpi = overview.data?.kpis[def.key];
-                const up = kpi ? kpi.deltaPct >= 0 : true;
-                return (
-                  <Card key={def.key} className="h-full">
-                    <CardPanel>
-                      <KpiTile>
-                        <KpiLabel>{def.label}</KpiLabel>
-                        <div className="mt-auto flex flex-col items-start gap-1 pt-4 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-2 lg:flex-col lg:items-start lg:gap-1 xl:flex-row xl:items-center xl:justify-between xl:gap-2">
-                          <WithSkeleton>
-                            <SkeletonState if={!kpi}>
-                              <Skeleton className="h-8 w-20" />
-                            </SkeletonState>
-                            <NormalState if={!!kpi}>
-                              <KpiValue>
-                                {formatCount(kpi?.value ?? 0)}
-                              </KpiValue>
-                              <KpiTrend direction={up ? "up" : "down"}>
-                                {formatSignedPercent(kpi?.deltaPct ?? 0)}
-                              </KpiTrend>
-                            </NormalState>
-                          </WithSkeleton>
-                        </div>
-                        <KpiCaption className="mt-1 text-[0.6875rem] text-muted-foreground/60">
-                          {def.comparedTo}
-                        </KpiCaption>
-                      </KpiTile>
-                    </CardPanel>
-                  </Card>
-                );
-              })}
+              {kpiRows.map((row) => (
+                <Card key={row.key} className="h-full">
+                  <CardPanel>
+                    <KpiTile>
+                      <KpiLabel>{row.label}</KpiLabel>
+                      <div className="mt-auto flex flex-col items-start gap-1 pt-4 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-2 lg:flex-col lg:items-start lg:gap-1 xl:flex-row xl:items-center xl:justify-between xl:gap-2">
+                        <WithSkeleton>
+                          <SkeletonState if={!row.kpi}>
+                            <Skeleton className="h-8 w-20" />
+                          </SkeletonState>
+                          <NormalState if={!!row.kpi}>
+                            <KpiValue>
+                              {formatCount(row.kpi?.value ?? 0)}
+                            </KpiValue>
+                            <KpiTrend direction={row.up ? "up" : "down"}>
+                              {formatSignedPercent(row.kpi?.deltaPct ?? 0)}
+                            </KpiTrend>
+                          </NormalState>
+                        </WithSkeleton>
+                      </div>
+                      <KpiCaption className="mt-1 text-[0.6875rem] text-muted-foreground/60">
+                        {row.comparedTo}
+                      </KpiCaption>
+                    </KpiTile>
+                  </CardPanel>
+                </Card>
+              ))}
             </div>
 
             <Card>
               <CardHeader>
                 <CardHeaderTitle>Volume by day</CardHeaderTitle>
-                <CardHeaderSubtitle>
-                  Past 30 days
-                  {overview.data
-                    ? ` · ${formatDateRange(
-                        overview.data.perDay[0].day,
-                        overview.data.perDay[overview.data.perDay.length - 1]
-                          .day,
-                      )}`
-                    : ""}
-                </CardHeaderSubtitle>
+                <CardHeaderSubtitle>{volumeSubtitle}</CardHeaderSubtitle>
               </CardHeader>
               <CardPanel>
                 <div className="p-5">
