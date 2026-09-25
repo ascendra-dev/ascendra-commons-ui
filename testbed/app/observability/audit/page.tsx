@@ -179,7 +179,7 @@ export default function AuditOverviewPage() {
         <WithError>
           <ErrorState
             if={overview.isError}
-            className="min-h-56"
+            className="bg-muted min-h-56 rounded-xl"
             title="Failed to load overview"
             error={overview.error}
             onRetry={() => overview.refetch()}
