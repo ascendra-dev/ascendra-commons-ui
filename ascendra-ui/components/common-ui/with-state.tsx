@@ -42,17 +42,44 @@ interface StateProps {
   children?: React.ReactNode;
 }
 
-export function LoadingState({
-  if: condition,
-  children,
+type MessageProps = Omit<StateProps, 'if' | 'children'> &
+  React.ComponentProps<typeof Empty>;
+
+export function LoadingMessage({
   title = 'Loading…',
   description = 'Please wait while we load your data.',
   icon = <LuLoaderCircle className="animate-spin" strokeWidth={2} />,
   className,
   ...props
+}: MessageProps) {
+  return (
+    <Empty className={cn('h-full', className)} {...props}>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">{icon}</EmptyMedia>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
+}
+
+export function LoadingState({
+  if: condition,
+  children,
+  ...rest
 }: React.ComponentProps<typeof Empty> & StateProps) {
   if (!condition) return null;
   if (children) return <>{children}</>;
+  return <LoadingMessage {...rest} />;
+}
+
+export function EmptyMessage({
+  title = 'No results found',
+  description = 'There are no items to display right now.',
+  icon = <LuTextSearch strokeWidth={2} />,
+  className,
+  ...props
+}: MessageProps) {
   return (
     <Empty className={cn('h-full', className)} {...props}>
       <EmptyHeader>
@@ -67,28 +94,19 @@ export function LoadingState({
 export function EmptyState({
   if: condition,
   children,
-  title = 'No results found',
-  description = 'There are no items to display right now.',
-  icon = <LuTextSearch strokeWidth={2} />,
-  className,
-  ...props
+  ...rest
 }: React.ComponentProps<typeof Empty> & StateProps) {
   if (!condition) return null;
   if (children) return <>{children}</>;
-  return (
-    <Empty className={cn('h-full', className)} {...props}>
-      <EmptyHeader>
-        <EmptyMedia variant="icon">{icon}</EmptyMedia>
-        <EmptyTitle>{title}</EmptyTitle>
-        <EmptyDescription>{description}</EmptyDescription>
-      </EmptyHeader>
-    </Empty>
-  );
+  return <EmptyMessage {...rest} />;
 }
 
-export function ErrorState({
-  if: condition,
-  children,
+type ErrorMessageProps = MessageProps & {
+  error?: Error | null;
+  onRetry?: () => void;
+};
+
+export function ErrorMessage({
   error,
   title = 'Failed to load data',
   description = error?.message ?? 'Something went wrong.',
@@ -96,10 +114,7 @@ export function ErrorState({
   onRetry,
   className,
   ...props
-}: React.ComponentProps<typeof Empty> &
-  StateProps & { error?: Error | null; onRetry?: () => void }) {
-  if (!condition) return null;
-  if (children) return <>{children}</>;
+}: ErrorMessageProps) {
   return (
     <Empty className={cn('h-full', className)} {...props}>
       <EmptyHeader>
@@ -114,4 +129,15 @@ export function ErrorState({
       )}
     </Empty>
   );
+}
+
+export function ErrorState({
+  if: condition,
+  children,
+  ...rest
+}: React.ComponentProps<typeof Empty> &
+  StateProps & { error?: Error | null; onRetry?: () => void }) {
+  if (!condition) return null;
+  if (children) return <>{children}</>;
+  return <ErrorMessage {...rest} />;
 }
