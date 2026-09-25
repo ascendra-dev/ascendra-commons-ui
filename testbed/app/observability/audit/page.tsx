@@ -15,6 +15,11 @@ import {
   DataTableEmptyBody,
   DataTableErrorBody,
   DataTableLoadingBody,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
   ErrorState,
   KpiCaption,
   KpiLabel,
@@ -48,7 +53,7 @@ import {
   type ChartConfig,
 } from "@/ascendra-ui/shadcn";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { LuDatabase } from "react-icons/lu";
+import { LuCircleAlert, LuDatabase } from "react-icons/lu";
 import { auditLogLinks } from "@/ascendra-commons-ui/audit-logging.ui/links";
 import {
   mockOverviewStats,
@@ -175,15 +180,41 @@ export default function AuditOverviewPage() {
           required, not stylistic — those children are constructed eagerly
           regardless of NormalState's own `if`, so a non-null assertion here
           would throw during the exact loading state it's meant to skip.
+
+          ErrorState is given explicit Card/CardPanel/Empty children here
+          rather than relying on its own default title/description/icon
+          props: Empty's own `border-dashed` class has no effect on its own
+          (Tailwind's preflight zeroes border-width, and Empty never pairs
+          `border-dashed` with a `border` width utility), so ErrorState's
+          auto-generated default renders with no visible boundary at all.
+          Wrapping our own content in Card/CardPanel (bg-muted, matching
+          every other Card on this page) sidesteps that bug entirely.
         */}
         <WithError>
-          <ErrorState
-            if={overview.isError}
-            className="bg-muted min-h-56 rounded-xl"
-            title="Failed to load overview"
-            error={overview.error}
-            onRetry={() => overview.refetch()}
-          />
+          <ErrorState if={overview.isError}>
+            <Card>
+              <CardPanel>
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <LuCircleAlert strokeWidth={2} />
+                    </EmptyMedia>
+                    <EmptyTitle>Failed to load overview</EmptyTitle>
+                    <EmptyDescription>
+                      {overview.error?.message ?? "Something went wrong."}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => overview.refetch()}
+                  >
+                    Retry
+                  </Button>
+                </Empty>
+              </CardPanel>
+            </Card>
+          </ErrorState>
           <NormalState if={!overview.isError}>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               {KPI_DEFS.map((def) => {
