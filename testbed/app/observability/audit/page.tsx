@@ -15,22 +15,20 @@ import {
   DataTableEmptyBody,
   DataTableErrorBody,
   DataTableLoadingBody,
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
+  ErrorState,
   KpiCaption,
   KpiLabel,
   KpiTile,
   KpiTrend,
   KpiValue,
+  NormalState,
   PageHeader,
   PageHeaderAction,
   PageHeaderGroup,
   PageSubtitle,
   PageTitle,
   Skeleton,
+  SkeletonState,
   SimpleBadge,
   Table,
   TableBody,
@@ -40,6 +38,8 @@ import {
   TableHeaderRow,
   TableRow,
   TableWrapper,
+  WithError,
+  WithSkeleton,
 } from "@/ascendra-ui";
 import {
   ChartContainer,
@@ -48,7 +48,7 @@ import {
   type ChartConfig,
 } from "@/ascendra-ui/shadcn";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { LuCircleAlert, LuDatabase } from "react-icons/lu";
+import { LuDatabase } from "react-icons/lu";
 import { auditLogLinks } from "@/ascendra-commons-ui/audit-logging.ui/links";
 import {
   mockOverviewStats,
@@ -159,42 +159,32 @@ export default function AuditOverviewPage() {
       </PageHeader>
       <DashboardContent>
         {/*
-          KPI row + volume chart — audit-overview-stats. The shells below
-          (Card/CardHeader/CardPanel, the real static label/caption text)
-          are ALWAYS mounted; only the value+badge and the chart body swap
-          between a skeleton and real content. This is deliberate — gating
-          the whole block behind `overview.data &&` is what used to cause
-          the entire section to pop into existence at once. KPIs and the
-          chart share one query, so a single error card replaces both
-          rather than duplicating the error 5 times across tiles — no
-          "empty" state here, since a KPI showing 0 or a chart with flat
-          data isn't a broken/empty state the way a zero-row table is.
+          KPI row + volume chart — audit-overview-stats. WithError gates the
+          whole section on overview.isError vs. everything else, since KPIs
+          and the chart share one query — a single ErrorState replaces both
+          rather than duplicating the error 5 times across tiles. No "empty"
+          state here, since a KPI showing 0 or a chart with flat data isn't a
+          broken/empty state the way a zero-row table is. Inside NormalState,
+          the shells (Card/CardHeader/CardPanel, the real static label/
+          caption text) are ALWAYS mounted; only the value+badge (per tile)
+          and the chart body (via nested WithSkeleton blocks) swap between a
+          skeleton and real content — gating the whole block on `overview.data`
+          instead is what used to cause the entire section to pop into
+          existence at once. `kpi?.value ?? 0`/`overview.data?.perDay ?? []`
+          (not `kpi!`/`overview.data!`) inside NormalState's children is
+          required, not stylistic — those children are constructed eagerly
+          regardless of NormalState's own `if`, so a non-null assertion here
+          would throw during the exact loading state it's meant to skip.
         */}
-        {overview.isError ? (
-          <Card>
-            <CardPanel>
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <LuCircleAlert strokeWidth={2} />
-                  </EmptyMedia>
-                  <EmptyTitle>Failed to load overview</EmptyTitle>
-                  <EmptyDescription>
-                    {overview.error?.message ?? "Something went wrong."}
-                  </EmptyDescription>
-                </EmptyHeader>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => overview.refetch()}
-                >
-                  Retry
-                </Button>
-              </Empty>
-            </CardPanel>
-          </Card>
-        ) : (
-          <>
+        <WithError>
+          <ErrorState
+            if={overview.isError}
+            className="min-h-56"
+            title="Failed to load overview"
+            error={overview.error}
+            onRetry={() => overview.refetch()}
+          />
+          <NormalState if={!overview.isError}>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               {KPI_DEFS.map((def) => {
                 const kpi = overview.data?.kpis[def.key];
@@ -205,16 +195,19 @@ export default function AuditOverviewPage() {
                       <KpiTile>
                         <KpiLabel>{def.label}</KpiLabel>
                         <div className="mt-auto flex flex-col items-start gap-1 pt-4 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-2 lg:flex-col lg:items-start lg:gap-1 xl:flex-row xl:items-center xl:justify-between xl:gap-2">
-                          {kpi ? (
-                            <>
-                              <KpiValue>{formatCount(kpi.value)}</KpiValue>
+                          <WithSkeleton>
+                            <SkeletonState if={!kpi}>
+                              <Skeleton className="h-8 w-20" />
+                            </SkeletonState>
+                            <NormalState if={!!kpi}>
+                              <KpiValue>
+                                {formatCount(kpi?.value ?? 0)}
+                              </KpiValue>
                               <KpiTrend direction={up ? "up" : "down"}>
-                                {formatSignedPercent(kpi.deltaPct)}
+                                {formatSignedPercent(kpi?.deltaPct ?? 0)}
                               </KpiTrend>
-                            </>
-                          ) : (
-                            <Skeleton className="h-8 w-20" />
-                          )}
+                            </NormalState>
+                          </WithSkeleton>
                         </div>
                         <KpiCaption className="mt-1 text-[0.6875rem] text-muted-foreground/60">
                           {def.comparedTo}
@@ -242,96 +235,99 @@ export default function AuditOverviewPage() {
               </CardHeader>
               <CardPanel>
                 <div className="p-5">
-                  {overview.data ? (
-                    <ChartContainer
-                      config={chartConfig}
-                      className="h-56 w-full"
-                    >
-                      <BarChart
-                        data={overview.data.perDay}
-                        margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
+                  <WithSkeleton>
+                    <SkeletonState if={!overview.data}>
+                      <ChartContainer
+                        config={chartConfig}
+                        className="h-56 w-full animate-pulse"
                       >
-                        <CartesianGrid
-                          vertical={false}
-                          stroke="var(--border)"
-                          strokeOpacity={0.6}
-                          strokeWidth={0.5}
-                        />
-                        <XAxis
-                          dataKey="day"
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{ fontSize: 11 }}
-                          interval={4}
-                          tickFormatter={formatShortDate}
-                        />
-                        <YAxis
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{ fontSize: 11 }}
-                          width={40}
-                          allowDecimals={false}
-                          tickFormatter={(v: number) => formatCount(v)}
-                        />
-                        <ChartTooltip
-                          content={
-                            <ChartTooltipContent
-                              formatter={(v) => [
-                                formatCount(Number(v)),
-                                " Records",
-                              ]}
-                            />
-                          }
-                        />
-                        <Bar
-                          dataKey="count"
-                          fill="var(--color-count)"
-                          radius={[3, 3, 0, 0]}
-                        />
-                      </BarChart>
-                    </ChartContainer>
-                  ) : (
-                    <ChartContainer
-                      config={chartConfig}
-                      className="h-56 w-full animate-pulse"
-                    >
-                      <BarChart
-                        data={placeholderPerDay}
-                        margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
+                        <BarChart
+                          data={placeholderPerDay}
+                          margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
+                        >
+                          <CartesianGrid
+                            vertical={false}
+                            stroke="var(--border)"
+                            strokeOpacity={0.6}
+                            strokeWidth={0.5}
+                          />
+                          <XAxis
+                            dataKey="day"
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fontSize: 11 }}
+                            interval={4}
+                            tickFormatter={formatShortDate}
+                          />
+                          <YAxis
+                            tickLine={false}
+                            axisLine={false}
+                            tick={false}
+                            width={40}
+                          />
+                          <Bar
+                            dataKey="count"
+                            fill="var(--muted)"
+                            radius={[3, 3, 0, 0]}
+                          />
+                        </BarChart>
+                      </ChartContainer>
+                    </SkeletonState>
+                    <NormalState if={!!overview.data}>
+                      <ChartContainer
+                        config={chartConfig}
+                        className="h-56 w-full"
                       >
-                        <CartesianGrid
-                          vertical={false}
-                          stroke="var(--border)"
-                          strokeOpacity={0.6}
-                          strokeWidth={0.5}
-                        />
-                        <XAxis
-                          dataKey="day"
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{ fontSize: 11 }}
-                          interval={4}
-                          tickFormatter={formatShortDate}
-                        />
-                        <YAxis
-                          tickLine={false}
-                          axisLine={false}
-                          tick={false}
-                          width={40}
-                        />
-                        <Bar
-                          dataKey="count"
-                          fill="var(--muted)"
-                          radius={[3, 3, 0, 0]}
-                        />
-                      </BarChart>
-                    </ChartContainer>
-                  )}
+                        <BarChart
+                          data={overview.data?.perDay ?? []}
+                          margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
+                        >
+                          <CartesianGrid
+                            vertical={false}
+                            stroke="var(--border)"
+                            strokeOpacity={0.6}
+                            strokeWidth={0.5}
+                          />
+                          <XAxis
+                            dataKey="day"
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fontSize: 11 }}
+                            interval={4}
+                            tickFormatter={formatShortDate}
+                          />
+                          <YAxis
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fontSize: 11 }}
+                            width={40}
+                            allowDecimals={false}
+                            tickFormatter={(v: number) => formatCount(v)}
+                          />
+                          <ChartTooltip
+                            content={
+                              <ChartTooltipContent
+                                formatter={(v) => [
+                                  formatCount(Number(v)),
+                                  " Records",
+                                ]}
+                              />
+                            }
+                          />
+                          <Bar
+                            dataKey="count"
+                            fill="var(--color-count)"
+                            radius={[3, 3, 0, 0]}
+                          />
+                        </BarChart>
+                      </ChartContainer>
+                    </NormalState>
+                  </WithSkeleton>
                 </div>
               </CardPanel>
             </Card>
-          </>
-        )}
+          </NormalState>
+        </WithError>
 
         {/*
           Top actions — audit-top-actions, independent of the section above.
