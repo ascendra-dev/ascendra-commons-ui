@@ -15,11 +15,7 @@ import {
   DataTableEmptyBody,
   DataTableErrorBody,
   DataTableLoadingBody,
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
+  ErrorMessage,
   ErrorState,
   KpiCaption,
   KpiLabel,
@@ -53,7 +49,7 @@ import {
   type ChartConfig,
 } from "@/ascendra-ui/shadcn";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { LuCircleAlert, LuDatabase } from "react-icons/lu";
+import { LuDatabase } from "react-icons/lu";
 import { auditLogLinks } from "@/ascendra-commons-ui/audit-logging.ui/links";
 import {
   mockOverviewStats,
@@ -181,37 +177,29 @@ export default function AuditOverviewPage() {
           regardless of NormalState's own `if`, so a non-null assertion here
           would throw during the exact loading state it's meant to skip.
 
-          ErrorState is given explicit Card/CardPanel/Empty children here
+          ErrorState is given Card/CardPanel/ErrorMessage children here
           rather than relying on its own default title/description/icon
-          props: Empty's own `border-dashed` class has no effect on its own
-          (Tailwind's preflight zeroes border-width, and Empty never pairs
-          `border-dashed` with a `border` width utility), so ErrorState's
-          auto-generated default renders with no visible boundary at all.
-          Wrapping our own content in Card/CardPanel (bg-muted, matching
-          every other Card on this page) sidesteps that bug entirely.
+          props, for two reasons: Empty's own `border-dashed` class has no
+          effect on its own (Tailwind's preflight zeroes border-width, and
+          Empty never pairs `border-dashed` with a `border` width utility),
+          so ErrorState's auto-generated default renders with no visible
+          boundary at all; and this page wants that default content wrapped
+          in Card/CardPanel (bg-muted, matching every other Card here)
+          rather than bare. ErrorMessage is the gate-free default content
+          ErrorState renders internally — using it directly here, instead of
+          nesting a second `if`-bearing ErrorState inside the first just to
+          reach the same default markup, keeps ErrorState's `if` as the only
+          gate in this tree.
         */}
         <WithError>
           <ErrorState if={overview.isError}>
             <Card>
               <CardPanel>
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <LuCircleAlert strokeWidth={2} />
-                    </EmptyMedia>
-                    <EmptyTitle>Failed to load overview</EmptyTitle>
-                    <EmptyDescription>
-                      {overview.error?.message ?? "Something went wrong."}
-                    </EmptyDescription>
-                  </EmptyHeader>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => overview.refetch()}
-                  >
-                    Retry
-                  </Button>
-                </Empty>
+                <ErrorMessage
+                  title="Failed to load overview"
+                  error={overview.error}
+                  onRetry={() => overview.refetch()}
+                />
               </CardPanel>
             </Card>
           </ErrorState>
