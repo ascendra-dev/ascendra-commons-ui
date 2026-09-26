@@ -117,25 +117,25 @@ export default function AuditLogListPage() {
             <DataTable scrollable horizontal height={480}>
               <DataTableHeader>
                 <DataTableHeaderRow>
-                  <DataTableHead column="occurredAt" className="whitespace-nowrap">
+                  <DataTableHead column="occurredAt">
                     Occurred at
                   </DataTableHead>
-                  <DataTableHead column="actor" className="whitespace-nowrap">
+                  <DataTableHead column="actor">
                     Actor
                   </DataTableHead>
-                  <DataTableHead column="action" className="whitespace-nowrap">
+                  <DataTableHead column="action">
                     Action
                   </DataTableHead>
-                  <DataTableHead column="entityType" className="whitespace-nowrap">
+                  <DataTableHead column="entityType">
                     Entity
                   </DataTableHead>
-                  <DataTableHead column="tenantId" className="whitespace-nowrap">
+                  <DataTableHead column="tenantId">
                     Tenant
                   </DataTableHead>
-                  <DataTableHead column="reason" className="whitespace-nowrap">
+                  <DataTableHead column="reason">
                     Reason
                   </DataTableHead>
-                  <DataTableHead column="correlationId" className="whitespace-nowrap">
+                  <DataTableHead column="correlationId">
                     Correlation
                   </DataTableHead>
                 </DataTableHeaderRow>

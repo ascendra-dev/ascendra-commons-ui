@@ -375,9 +375,9 @@ export default function AuditOverviewPage() {
               <Table scrollable horizontal vertical height={300}>
                 <TableHeader>
                   <TableHeaderRow>
-                    <TableHead className="whitespace-nowrap">Action</TableHead>
-                    <TableHead className="whitespace-nowrap">Count</TableHead>
-                    <TableHead className="whitespace-nowrap">Actors</TableHead>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Count</TableHead>
+                    <TableHead>Actors</TableHead>
                   </TableHeaderRow>
                 </TableHeader>
                 {topActions.data && topActions.data.topActions.length > 0 && (

@@ -129,8 +129,8 @@ export default function AuditOverviewPage() {
                     <Table>
                       <TableHeader>
                         <TableHeaderRow>
-                          <TableHead className="whitespace-nowrap">Action</TableHead>
-                          <TableHead className="whitespace-nowrap">Count</TableHead>
+                          <TableHead>Action</TableHead>
+                          <TableHead>Count</TableHead>
                         </TableHeaderRow>
                       </TableHeader>
                       <TableBody>
@@ -157,8 +157,8 @@ export default function AuditOverviewPage() {
                     <Table>
                       <TableHeader>
                         <TableHeaderRow>
-                          <TableHead className="whitespace-nowrap">Actor</TableHead>
-                          <TableHead className="whitespace-nowrap">Count</TableHead>
+                          <TableHead>Actor</TableHead>
+                          <TableHead>Count</TableHead>
                         </TableHeaderRow>
                       </TableHeader>
                       <TableBody>

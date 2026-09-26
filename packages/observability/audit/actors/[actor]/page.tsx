@@ -98,9 +98,9 @@ export default function AuditActorActivityPage() {
                   <Table>
                     <TableHeader>
                       <TableHeaderRow>
-                        <TableHead className="whitespace-nowrap">Action</TableHead>
-                        <TableHead className="whitespace-nowrap">Count</TableHead>
-                        <TableHead className="whitespace-nowrap">Last</TableHead>
+                        <TableHead>Action</TableHead>
+                        <TableHead>Count</TableHead>
+                        <TableHead>Last</TableHead>
                       </TableHeaderRow>
                     </TableHeader>
                     <TableBody>
