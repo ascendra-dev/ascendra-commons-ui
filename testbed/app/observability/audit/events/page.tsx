@@ -38,9 +38,15 @@ import {
   useQueryContext,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
-import { auditEventColumns, auditQueryDefs } from '@/ascendra-commons-ui/audit-logging.ui/queries';
+import {
+  auditEventColumns,
+  auditQueryDefs,
+} from '@/ascendra-commons-ui/audit-logging.ui/queries';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
-import { mockAuditQueryFunctions, mockDownloadCsv } from '@/ascendra-commons-ui/audit-logging.ui/mocks';
+import {
+  mockAuditQueryFunctions,
+  mockDownloadCsv,
+} from '@/ascendra-commons-ui/audit-logging.ui/mocks';
 import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 
 /** testbed has no live backend — using mock fetchers (see page.tsx's own comment upstream). */
@@ -53,8 +59,10 @@ function ExportCsvButton() {
 
   const handleExport = async () => {
     const params = confirmedParams ?? {};
-    const toStr = (v: unknown) => (typeof v === 'string' && v.length > 0 ? v : undefined);
-    const toISO = (v: unknown) => (v instanceof Date ? v.toISOString() : undefined);
+    const toStr = (v: unknown) =>
+      typeof v === 'string' && v.length > 0 ? v : undefined;
+    const toISO = (v: unknown) =>
+      v instanceof Date ? v.toISOString() : undefined;
     const blob = await downloadCsv({
       entityType: toStr(params.entityType),
       action: toStr(params.action),
@@ -88,7 +96,9 @@ export default function AuditLogListPage() {
       <PageHeader>
         <PageHeaderGroup>
           <PageTitle>Audit Log</PageTitle>
-          <PageSubtitle>Every recorded change, who made it, and when.</PageSubtitle>
+          <PageSubtitle>
+            Every recorded change, who made it, and when.
+          </PageSubtitle>
         </PageHeaderGroup>
       </PageHeader>
       <PageMain>
@@ -123,21 +133,13 @@ export default function AuditLogListPage() {
                         <DataTableHead column="occurredAt">
                           Occurred at
                         </DataTableHead>
-                        <DataTableHead column="actor">
-                          Actor
-                        </DataTableHead>
-                        <DataTableHead column="action">
-                          Action
-                        </DataTableHead>
+                        <DataTableHead column="actor">Actor</DataTableHead>
+                        <DataTableHead column="action">Action</DataTableHead>
                         <DataTableHead column="entityType">
                           Entity
                         </DataTableHead>
-                        <DataTableHead column="tenantId">
-                          Tenant
-                        </DataTableHead>
-                        <DataTableHead column="reason">
-                          Reason
-                        </DataTableHead>
+                        <DataTableHead column="tenantId">Tenant</DataTableHead>
+                        <DataTableHead column="reason">Reason</DataTableHead>
                         <DataTableHead column="correlationId">
                           Correlation
                         </DataTableHead>
@@ -148,11 +150,18 @@ export default function AuditLogListPage() {
                         <DataTableRow
                           key={row.id}
                           className="cursor-pointer"
-                          onClick={() => router.push(auditLogLinks.eventDetail(row.id))}
+                          onClick={() =>
+                            router.push(auditLogLinks.eventDetail(row.id))
+                          }
                         >
-                          <DataTableCell column="occurredAt" className="whitespace-nowrap">
+                          <DataTableCell
+                            column="occurredAt"
+                            className="whitespace-nowrap"
+                          >
                             <DataTableHighlight
-                              text={formatDateTime(row.occurredAt, { time: true })}
+                              text={formatDateTime(row.occurredAt, {
+                                time: true,
+                              })}
                               item={row}
                               itemKey="occurredAt"
                             />
@@ -163,10 +172,16 @@ export default function AuditLogListPage() {
                               role="link"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                router.push(auditLogLinks.actorActivity(row.actor));
+                                router.push(
+                                  auditLogLinks.actorActivity(row.actor),
+                                );
                               }}
                             >
-                              <DataTableHighlight text={row.actor} item={row} itemKey="actor" />
+                              <DataTableHighlight
+                                text={row.actor}
+                                item={row}
+                                itemKey="actor"
+                              />
                             </span>
                           </DataTableCell>
                           <DataTableCell column="action">
@@ -177,10 +192,18 @@ export default function AuditLogListPage() {
                               className="flex flex-col gap-0.5"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                router.push(auditLogLinks.entityHistory(row.entityType, row.entityId));
+                                router.push(
+                                  auditLogLinks.entityHistory(
+                                    row.entityType,
+                                    row.entityId,
+                                  ),
+                                );
                               }}
                             >
-                              <SimpleBadge variant="secondary" className="w-fit cursor-pointer">
+                              <SimpleBadge
+                                variant="secondary"
+                                className="w-fit cursor-pointer"
+                              >
                                 {row.entityType}
                               </SimpleBadge>
                               <span className="font-mono text-muted-foreground cursor-pointer text-xs hover:underline">
@@ -189,19 +212,40 @@ export default function AuditLogListPage() {
                             </div>
                           </DataTableCell>
                           <DataTableCell column="tenantId">
-                            {row.tenantId ?? <SimpleBadge variant="info">platform</SimpleBadge>}
+                            {row.tenantId ?? (
+                              <SimpleBadge variant="info">platform</SimpleBadge>
+                            )}
                           </DataTableCell>
                           <DataTableCell column="reason">
-                            {row.reason ? <DataTableHighlight text={row.reason} item={row} itemKey="reason" /> : '—'}
+                            {row.reason ? (
+                              <DataTableHighlight
+                                text={row.reason}
+                                item={row}
+                                itemKey="reason"
+                              />
+                            ) : (
+                              '—'
+                            )}
                           </DataTableCell>
                           <DataTableCell column="correlationId">
-                            <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                              <CopyText value={row.correlationId} className="font-mono text-xs" showTooltip />
+                            <div
+                              className="flex items-center gap-1.5"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <CopyText
+                                value={row.correlationId}
+                                className="font-mono text-xs"
+                                showTooltip
+                              />
                               <button
                                 type="button"
                                 title="View trace"
                                 className="text-muted-foreground hover:text-foreground"
-                                onClick={() => router.push(auditLogLinks.trace(row.correlationId))}
+                                onClick={() =>
+                                  router.push(
+                                    auditLogLinks.trace(row.correlationId),
+                                  )
+                                }
                               >
                                 <LuArrowUpRight className="size-3.5" />
                               </button>
