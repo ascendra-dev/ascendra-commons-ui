@@ -149,10 +149,11 @@ export * from './components/side-bar/side-bar-search';
 export * from './components/side-bar/side-bar-toggle';
 
 // Utility
-export * from './components/util/copy-text';
 export * from './components/util/date-time';
 export * from './components/util/scroll-to-top';
 export * from './components/util/theme-toggle';
+export * from './components/util/with-copy-text';
+export * from './components/util/with-tooltip';
 
 // Stepper
 export * from './components/stepper/stepper-navigator';

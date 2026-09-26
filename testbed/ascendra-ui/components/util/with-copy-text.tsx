@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { cn, Tooltip, TooltipContent, TooltipTrigger } from '@/ascendra-ui/shadcn';
 import { LuCopy, LuCheck, LuCopyCheck } from 'react-icons/lu';
 
-type CopyTextProps = {
+type WithCopyTextProps = {
   value?: string;
   opaque?: boolean;
   timeout?: number;
@@ -14,7 +14,7 @@ type CopyTextProps = {
   ) => void | Promise<string>;
 };
 
-export function CopyText({
+export function WithCopyText({
   value,
   opaque = false,
   timeout = 1200,
@@ -23,7 +23,7 @@ export function CopyText({
   className,
   children,
   ...props
-}: Omit<React.ComponentPropsWithoutRef<'span'>, 'onClick'> & CopyTextProps) {
+}: Omit<React.ComponentPropsWithoutRef<'span'>, 'onClick'> & WithCopyTextProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
