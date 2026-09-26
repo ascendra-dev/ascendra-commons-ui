@@ -17,6 +17,16 @@ export interface ColumnDef<T> {
   active?: boolean;
   /** Whether the column appears in the filter picker. Defaults to false. */
   filter?: boolean;
+  /**
+   * Overrides how this column's value becomes a searchable string — used for
+   * both filtering (fuzzy and plain) and for computing highlight ranges.
+   * Defaults to a built-in per-`type` formatter. Set this whenever the cell
+   * displays a custom-formatted string (e.g. a shared `formatDateTime`
+   * helper), and return the *exact same string* the cell renders via
+   * `DataTableHighlight`'s `text` prop — that's what keeps search and
+   * highlighting in agreement with what's actually on screen.
+   */
+  searchValue?: (value: T[keyof T], row: T) => string;
 }
 
 export interface SortConfig<T> {

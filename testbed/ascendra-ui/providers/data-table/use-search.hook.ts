@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
 import type { ColumnDef, ColumnType } from './data-table.types';
 
-function searchValue(val: unknown, type: ColumnType): string {
+function defaultSearchValue(val: unknown, type: ColumnType): string {
   if (type === 'date') {
     return new Date(val as string).toLocaleDateString('en-GB', {
       day: '2-digit',
@@ -14,6 +14,17 @@ function searchValue(val: unknown, type: ColumnType): string {
   }
   if (type === 'number') return (val as number).toLocaleString();
   return String(val ?? '');
+}
+
+/**
+ * A column's own `searchValue` takes priority (so search/highlight agree
+ * with a custom-formatted cell); otherwise falls back to the built-in
+ * per-type formatter, unchanged from before this override existed.
+ */
+function resolveSearchValue<T extends object>(item: T, key: keyof T, columns?: ColumnDef<T>[]): string {
+  const col = columns?.find((c) => c.key === key);
+  if (col?.searchValue) return col.searchValue(item[key], item);
+  return defaultSearchValue(item[key], col?.type ?? 'string');
 }
 
 export function useSearch<T extends object>(
@@ -34,13 +45,20 @@ export function useSearch<T extends object>(
   const fuse = useMemo(() => {
     if (!fuzzy || !fuseKeys.length) return null;
     return new Fuse(data, {
-      keys: fuseKeys,
+      // A per-key getFn, not a raw property name, so a column with its own
+      // `searchValue` gets indexed on that (e.g. a formatted date string)
+      // instead of the raw field value — keeping fuzzy match/highlight
+      // ranges aligned with what a custom-formatted cell actually displays.
+      keys: fuseKeys.map((key) => ({
+        name: key,
+        getFn: (obj: T) => resolveSearchValue(obj, key as keyof T, columns),
+      })),
       includeMatches: true,
       threshold: 0.4,
       ignoreLocation: true,
       minMatchCharLength: 1,
     });
-  }, [data, fuseKeys, fuzzy]);
+  }, [data, fuseKeys, fuzzy, columns]);
 
   const { filteredData, rangesMap } = useMemo(() => {
     const term = searchTerm.trim();
@@ -64,10 +82,7 @@ export function useSearch<T extends object>(
     const termLower = term.toLowerCase();
     const filtered = data.filter((item) => {
       const searchKeys = keys ?? columns?.map((c) => c.key) ?? (Object.keys(item) as (keyof T)[]);
-      return searchKeys.some((key) => {
-        const type = columns?.find((c) => c.key === key)?.type ?? 'string';
-        return searchValue(item[key], type).toLowerCase().includes(termLower);
-      });
+      return searchKeys.some((key) => resolveSearchValue(item, key, columns).toLowerCase().includes(termLower));
     });
     return { filteredData: filtered, rangesMap: null };
   }, [data, columns, keys, searchTerm, fuzzy, fuse]);
