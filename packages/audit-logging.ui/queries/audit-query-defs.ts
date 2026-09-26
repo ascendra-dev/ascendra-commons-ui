@@ -1,21 +1,32 @@
 import type { ColumnDef, QueryDef } from '@/ascendra-ui';
+import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import type { AuditEvent } from '../api/audit-api.types';
 
 /**
- * Column labels are sentence case ("Occurred at", not "Occurred At") and
- * DataTableHead/TableHead usages carry `whitespace-nowrap` as an interim
- * fix — see reference/ascendra-ui/hard-instructions.md AUI-001/AUI-002 in
- * this repo for why (a DataTableHead default fix is suggested upstream via
- * ascendra-ui's own BACKLOG.md, not applied directly here).
+ * Column labels are sentence case ("Occurred at", not "Occurred At") —
+ * `DataTableHead` defaults to `whitespace-nowrap` itself now (AUI-024 in
+ * reference/ascendra-ui/hard-instructions.md), no per-usage className needed.
  *
  * entityType/entityId are merged into one "Entity" column in the screen
  * (badge + id) rather than two columns, matching audit-logging.api/mocks.html;
  * `key` stays entityType since filtering by entity *type* is the useful case
  * (filtering by the exact entityId belongs to the dedicated Entity History
  * screen, not this list).
+ *
+ * `occurredAt`'s `searchValue` mirrors exactly what the cell renders
+ * (`formatDateTime(row.occurredAt, { time: true })` in the screen's
+ * `DataTableHighlight`) — see AUI-034/the searchValue addition to ColumnDef —
+ * so searching/highlighting agree with the displayed, time-inclusive string
+ * instead of the library's fixed no-time date format.
  */
 export const auditEventColumns: ColumnDef<AuditEvent>[] = [
-  { key: 'occurredAt', label: 'Occurred at', type: 'date', freeze: true },
+  {
+    key: 'occurredAt',
+    label: 'Occurred at',
+    type: 'date',
+    freeze: true,
+    searchValue: (value) => formatDateTime(value as string, { time: true }),
+  },
   { key: 'actor', label: 'Actor', filter: true },
   { key: 'action', label: 'Action', filter: true },
   { key: 'entityType', label: 'Entity', filter: true, sortable: false },
