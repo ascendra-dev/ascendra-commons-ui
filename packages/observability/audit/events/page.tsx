@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { LuArrowUpRight, LuDownload } from 'react-icons/lu';
 import {
   Button,
-  CopyText,
   DataTable,
   DataTableBar,
   DataTableBarAction,
@@ -36,6 +35,7 @@ import {
   QueryParamPanel,
   SimpleBadge,
   useQueryContext,
+  WithCopyText,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { auditApi } from '@/ascendra-commons-ui/audit-logging.ui/api';
@@ -200,7 +200,7 @@ export default function AuditLogListPage() {
                           </DataTableCell>
                           <DataTableCell column="correlationId">
                             <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                              <CopyText value={row.correlationId} className="font-mono text-xs" showTooltip />
+                              <WithCopyText value={row.correlationId} className="font-mono text-xs" showTooltip />
                               <button
                                 type="button"
                                 title="View trace"

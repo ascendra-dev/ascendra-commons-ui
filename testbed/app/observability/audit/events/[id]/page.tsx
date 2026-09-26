@@ -3,7 +3,6 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
-  CopyText,
   Sheet,
   SheetBody,
   SheetContent,
@@ -17,6 +16,7 @@ import {
   SheetValue,
   SimpleAlert,
   SimpleBadge,
+  WithCopyText,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
@@ -63,9 +63,9 @@ export default function AuditEventDetailPage() {
                 <SheetProperties>
                   <SheetKey>Record id</SheetKey>
                   <SheetValue className="font-mono">
-                    <CopyText value={data.id} showTooltip>
+                    <WithCopyText value={data.id} showTooltip>
                       {data.id}
-                    </CopyText>
+                    </WithCopyText>
                   </SheetValue>
 
                   <SheetKey>Occurred at</SheetKey>
@@ -102,9 +102,9 @@ export default function AuditEventDetailPage() {
 
                   <SheetKey>Correlation</SheetKey>
                   <SheetValue className="flex items-center gap-1.5 font-mono">
-                    <CopyText value={data.correlationId} showTooltip>
+                    <WithCopyText value={data.correlationId} showTooltip>
                       {data.correlationId}
-                    </CopyText>
+                    </WithCopyText>
                     <a
                       className="text-muted-foreground hover:text-foreground cursor-pointer"
                       onClick={() => router.push(auditLogLinks.trace(data.correlationId))}
