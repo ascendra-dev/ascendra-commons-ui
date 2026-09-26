@@ -79,10 +79,15 @@ export function useSearch<T extends object>(
       return { filteredData: results.map((r) => r.item), rangesMap: map };
     }
 
-    const termLower = term.toLowerCase();
+    // Each whitespace-separated word must appear somewhere across the row's
+    // searchable columns (not necessarily the same one, and not necessarily
+    // contiguous) - "sep 2" matches a date column showing "Sep 04, 2026"
+    // instead of requiring that literal 5-character phrase.
+    const words = term.toLowerCase().split(/\s+/).filter(Boolean);
     const filtered = data.filter((item) => {
       const searchKeys = keys ?? columns?.map((c) => c.key) ?? (Object.keys(item) as (keyof T)[]);
-      return searchKeys.some((key) => resolveSearchValue(item, key, columns).toLowerCase().includes(termLower));
+      const values = searchKeys.map((key) => resolveSearchValue(item, key, columns).toLowerCase());
+      return words.every((word) => values.some((value) => value.includes(word)));
     });
     return { filteredData: filtered, rangesMap: null };
   }, [data, columns, keys, searchTerm, fuzzy, fuse]);

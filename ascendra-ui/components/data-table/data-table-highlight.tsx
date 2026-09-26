@@ -41,10 +41,14 @@ export function DataTableHighlight({ text, item, itemKey }: DataTableHighlightPr
     );
   }
 
-  const term = searchTerm.trim();
-  if (!term) return <>{text}</>;
+  // Each whitespace-separated word highlights independently, matching the
+  // same word-by-word logic the plain (non-fuzzy) filter uses - "sep 2"
+  // highlights "Sep" and "2" separately rather than requiring that literal
+  // contiguous phrase to appear.
+  const words = searchTerm.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return <>{text}</>;
 
-  const regex = new RegExp(`(${escapeRegex(term)})`, 'i');
+  const regex = new RegExp(`(${words.map(escapeRegex).join('|')})`, 'i');
   const parts = text.split(regex);
 
   return (
