@@ -1,10 +1,19 @@
-import { PageHeader, PageHeaderGroup, PageMain, PageSubtitle, PageTitle } from '@/ascendra-ui';
+import {
+  MainContent,
+  PageContent,
+  PageHeader,
+  PageHeaderGroup,
+  PageMain,
+  PageSubtitle,
+  PageTitle,
+  PageWrapper,
+} from '@/ascendra-ui';
 
 /** The shell's own landing page — the mount root a vertical's one link points to. */
 export default function ObservabilityHomePage() {
   return (
     <>
-      <PageHeader variant="dashboard">
+      <PageHeader>
         <PageHeaderGroup>
           <PageTitle>Observability</PageTitle>
           <PageSubtitle>
@@ -13,7 +22,13 @@ export default function ObservabilityHomePage() {
           </PageSubtitle>
         </PageHeaderGroup>
       </PageHeader>
-      <PageMain>{/* module overviews are reached via the sidebar as they ship */}</PageMain>
+      <PageMain>
+        <PageWrapper>
+          <PageContent>
+            <MainContent>{/* module overviews are reached via the sidebar as they ship */}</MainContent>
+          </PageContent>
+        </PageWrapper>
+      </PageMain>
     </>
   );
 }
