@@ -23,7 +23,7 @@ export function DataTableHead({ column, children, className }: DataTableHeadProp
     <th
       data-slot="table-head"
       className={cn(
-        'py-3 pr-5 pl-5 first:pl-6',
+        'py-3 pr-5 pl-5 first:pl-6 whitespace-nowrap',
         sortable && 'group/sort cursor-pointer select-none',
         className
       )}

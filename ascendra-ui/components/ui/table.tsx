@@ -257,7 +257,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       data-slot="table-head"
-      className={cn("py-3 pr-5 pl-5 first:pl-6", className)}
+      className={cn("py-3 pr-5 pl-5 first:pl-6 whitespace-nowrap", className)}
       {...props}
     />
   );
