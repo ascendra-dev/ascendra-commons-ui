@@ -2,7 +2,18 @@
 
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { BackLink, MainContent, PageHeader, PageHeaderGroup, PageSubtitle, PageTitle, SimpleAlert } from '@/ascendra-ui';
+import {
+  BackLink,
+  MainContent,
+  PageContent,
+  PageHeader,
+  PageHeaderGroup,
+  PageMain,
+  PageSubtitle,
+  PageTitle,
+  PageWrapper,
+  SimpleAlert,
+} from '@/ascendra-ui';
 import { auditApi } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
 import { AuditEventTimeline } from '../../_audit-event-timeline';
@@ -24,23 +35,29 @@ export default function AuditTracePage() {
 
   return (
     <>
-      <PageHeader variant="dashboard">
+      <PageHeader>
         <PageHeaderGroup>
           <BackLink href={auditLogLinks.list()}>Back to Audit Log</BackLink>
           <PageTitle>Request / Job Trace</PageTitle>
           <PageSubtitle>{correlationId}</PageSubtitle>
         </PageHeaderGroup>
       </PageHeader>
-      <MainContent>
-        {isLoading && <p className="text-muted-foreground text-sm">Loading…</p>}
-        {isError && <SimpleAlert variant="destructive">Could not load this trace.</SimpleAlert>}
-        {data && (
-          <AuditEventTimeline
-            records={data.records}
-            emptyMessage="No audit events recorded under this correlation id."
-          />
-        )}
-      </MainContent>
+      <PageMain>
+        <PageWrapper>
+          <PageContent>
+            <MainContent>
+              {isLoading && <p className="text-muted-foreground text-sm">Loading…</p>}
+              {isError && <SimpleAlert variant="destructive">Could not load this trace.</SimpleAlert>}
+              {data && (
+                <AuditEventTimeline
+                  records={data.records}
+                  emptyMessage="No audit events recorded under this correlation id."
+                />
+              )}
+            </MainContent>
+          </PageContent>
+        </PageWrapper>
+      </PageMain>
     </>
   );
 }

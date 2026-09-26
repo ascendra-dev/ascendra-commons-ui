@@ -2,7 +2,18 @@
 
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { BackLink, MainContent, PageHeader, PageHeaderGroup, PageSubtitle, PageTitle, SimpleAlert } from '@/ascendra-ui';
+import {
+  BackLink,
+  MainContent,
+  PageContent,
+  PageHeader,
+  PageHeaderGroup,
+  PageMain,
+  PageSubtitle,
+  PageTitle,
+  PageWrapper,
+  SimpleAlert,
+} from '@/ascendra-ui';
 import { auditApi } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
 import { AuditEventTimeline } from '../../../_audit-event-timeline';
@@ -24,7 +35,7 @@ export default function AuditEntityHistoryPage() {
 
   return (
     <>
-      <PageHeader variant="dashboard">
+      <PageHeader>
         <PageHeaderGroup>
           <BackLink href={auditLogLinks.list()}>Back to Audit Log</BackLink>
           <PageTitle>Entity History</PageTitle>
@@ -33,16 +44,24 @@ export default function AuditEntityHistoryPage() {
           </PageSubtitle>
         </PageHeaderGroup>
       </PageHeader>
-      <MainContent>
-        {isLoading && <p className="text-muted-foreground text-sm">Loading…</p>}
-        {isError && <SimpleAlert variant="destructive">Could not load this entity's history.</SimpleAlert>}
-        {data && (
-          <AuditEventTimeline
-            records={data.records}
-            emptyMessage="Nothing has ever been recorded against this entity."
-          />
-        )}
-      </MainContent>
+      <PageMain>
+        <PageWrapper>
+          <PageContent>
+            <MainContent>
+              {isLoading && <p className="text-muted-foreground text-sm">Loading…</p>}
+              {isError && (
+                <SimpleAlert variant="destructive">Could not load this entity&apos;s history.</SimpleAlert>
+              )}
+              {data && (
+                <AuditEventTimeline
+                  records={data.records}
+                  emptyMessage="Nothing has ever been recorded against this entity."
+                />
+              )}
+            </MainContent>
+          </PageContent>
+        </PageWrapper>
+      </PageMain>
     </>
   );
 }
