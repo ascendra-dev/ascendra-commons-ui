@@ -13,6 +13,7 @@ import {
   SimpleAlert,
   SimpleBadge,
 } from '@/ascendra-ui';
+import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
 
 interface RetentionStats {
@@ -71,7 +72,7 @@ export default function AuditRetentionPage() {
                     <div>
                       <dt className="text-muted-foreground text-xs">Oldest record</dt>
                       <dd>
-                        {new Date(stats.oldestRecordAt).toLocaleDateString()} ({oldestDays} days)
+                        {formatDateTime(stats.oldestRecordAt)} ({oldestDays} days)
                       </dd>
                     </div>
                     <div>
@@ -86,7 +87,7 @@ export default function AuditRetentionPage() {
                       <dt className="text-muted-foreground text-xs">Retention job</dt>
                       <dd>
                         {stats.retentionJob ? (
-                          `keeps ${stats.retentionJob.keepForDays}d, last ran ${new Date(stats.retentionJob.lastRunAt).toLocaleString()}`
+                          `keeps ${stats.retentionJob.keepForDays}d, last ran ${formatDateTime(stats.retentionJob.lastRunAt, { style: 'relative' })}`
                         ) : (
                           <SimpleBadge variant="warning">none configured — table grows unbounded</SimpleBadge>
                         )}

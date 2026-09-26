@@ -37,6 +37,7 @@ import {
   SimpleBadge,
   useQueryContext,
 } from '@/ascendra-ui';
+import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { auditEventColumns, auditQueryDefs } from '@/ascendra-commons-ui/audit-logging.ui/queries';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
 import { mockAuditQueryFunctions, mockDownloadCsv } from '@/ascendra-commons-ui/audit-logging.ui/mocks';
@@ -151,7 +152,7 @@ export default function AuditLogListPage() {
                         >
                           <DataTableCell column="occurredAt" className="whitespace-nowrap">
                             <DataTableHighlight
-                              text={new Date(row.occurredAt).toLocaleString()}
+                              text={formatDateTime(row.occurredAt, { time: true })}
                               item={row}
                               itemKey="occurredAt"
                             />

@@ -18,6 +18,7 @@ import {
   SimpleAlert,
   SimpleBadge,
 } from '@/ascendra-ui';
+import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
 import { mockGetEvent } from '@/ascendra-commons-ui/audit-logging.ui/mocks';
 
@@ -68,7 +69,7 @@ export default function AuditEventDetailPage() {
                   </SheetValue>
 
                   <SheetKey>Occurred at</SheetKey>
-                  <SheetValue>{new Date(data.occurredAt).toLocaleString()}</SheetValue>
+                  <SheetValue>{formatDateTime(data.occurredAt, { time: true })}</SheetValue>
 
                   <SheetKey>Actor</SheetKey>
                   <SheetValue>

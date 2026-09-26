@@ -27,6 +27,7 @@ import {
   TableRow,
   TableWrapper,
 } from '@/ascendra-ui';
+import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
 import { mockActorActivity } from '@/ascendra-commons-ui/audit-logging.ui/mocks';
 
@@ -65,11 +66,13 @@ export default function AuditActorActivityPage() {
                       <dl className="grid grid-cols-2 gap-4 p-5 text-sm">
                         <div>
                           <dt className="text-muted-foreground text-xs">First seen</dt>
-                          <dd>{data.firstSeen ? new Date(data.firstSeen).toLocaleString() : '—'}</dd>
+                          <dd>
+                            {data.firstSeen ? formatDateTime(data.firstSeen, { style: 'relative' }) : '—'}
+                          </dd>
                         </div>
                         <div>
                           <dt className="text-muted-foreground text-xs">Last seen</dt>
-                          <dd>{data.lastSeen ? new Date(data.lastSeen).toLocaleString() : '—'}</dd>
+                          <dd>{data.lastSeen ? formatDateTime(data.lastSeen, { style: 'relative' }) : '—'}</dd>
                         </div>
                         <div>
                           <dt className="text-muted-foreground text-xs">Total records</dt>
@@ -115,7 +118,7 @@ export default function AuditActorActivityPage() {
                                 </TableCell>
                                 <TableCell>{row.count}</TableCell>
                                 <TableCell className="whitespace-nowrap">
-                                  {new Date(row.lastOccurredAt).toLocaleString()}
+                                  {formatDateTime(row.lastOccurredAt, { style: 'relative' })}
                                 </TableCell>
                               </TableRow>
                             ))}

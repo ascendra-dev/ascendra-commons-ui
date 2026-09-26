@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { SimpleBadge, StatusDot } from '@/ascendra-ui';
+import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { dotVariantForEntityType } from '@/ascendra-commons-ui/shared/timeline';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
 import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
@@ -28,7 +29,7 @@ export function AuditEventTimeline({ records, emptyMessage }: { records: AuditEv
             className="absolute top-1.5 -left-[1.6rem]"
           />
           <div className="text-muted-foreground text-xs tabular-nums">
-            {new Date(row.occurredAt).toLocaleString()}
+            {formatDateTime(row.occurredAt, { time: true })}
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-sm">
             <SimpleBadge>{row.action}</SimpleBadge>
