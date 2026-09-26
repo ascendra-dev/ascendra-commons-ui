@@ -21,7 +21,7 @@ See `packages/README.md` for the shape of a module package (`nav.ts`,
 `links.ts`, `api/`, `queries/`, `screens/`, `mocks/`) and the two conventions
 that keep "one dashboard link per module" real without becoming a hard rule.
 
-Currently vendored `ascendra-ui`: v1.4.0, commit `50a5d2ccbc1f08d586b08838e769970e8c95e0cb`.
+Currently vendored `ascendra-ui`: v1.4.0, commit `11b8d802d39ba70751514faa53371aa1971b5306`.
 Update this line by hand whenever `ascendra-ui/` (here and in `testbed/`) is
 manually re-synced.
 
