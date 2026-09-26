@@ -21,6 +21,20 @@ See `packages/README.md` for the shape of a module package (`nav.ts`,
 `links.ts`, `api/`, `queries/`, `screens/`, `mocks/`) and the two conventions
 that keep "one dashboard link per module" real without becoming a hard rule.
 
+**`packages/observability/` is a distribution mirror, not a second edit location.**
+Unlike `packages/<module>.ui/` (genuinely the source of truth, copied by hand into
+`testbed/ascendra-commons-ui/<module>.ui/`), `packages/observability/` — the shell
+(`layout.tsx`) and route-level screens (`page.tsx` for the dashboard, list, detail,
+trace, entity-history, actor-activity, retention screens) — exists only so a real
+vertical has something to copy out as its own `observability/` (or `app/observability/`)
+folder at distribution time. Day-to-day development edits `testbed/app/observability/`
+only — it's the one that's live on the dev server and actually testable. Hand-editing
+`packages/observability/` in lockstep on every change is unnecessary work and a real drift
+risk (it already happened once — a retrofit landed in `testbed/` and silently never made
+it into `packages/`, caught only by chance days later). Re-derive `packages/observability/`
+from `testbed/app/observability/` as a distribution step instead, not as part of normal
+development.
+
 Currently vendored `ascendra-ui`: v1.4.0, commit `11b8d802d39ba70751514faa53371aa1971b5306`.
 Update this line by hand whenever `ascendra-ui/` (here and in `testbed/`) is
 manually re-synced.
