@@ -70,14 +70,21 @@ export function useColumnPersistence<T>(
     columnSignature(fallbackColumns)
   );
 
-  // Hydrate from storage after mount (or when tableId changes).
+  // Hydrate from storage after mount (or when tableId changes). Skips
+  // setColumns entirely when the merged result doesn't actually differ from
+  // what's already rendered — avoids a redundant re-render (and the visible
+  // column-width flash that comes with it) when the saved preferences just
+  // happen to match the current defaults.
   useEffect(() => {
     if (!tableId) return;
     const stored = readTablePreferences(tableId);
     if (stored?.columns) {
       const merged = mergeColumnPreferences(fallbackRef.current, stored.columns);
-      setColumns(merged);
-      setSavedSignature(columnSignature(merged));
+      const mergedSignature = columnSignature(merged);
+      if (mergedSignature !== columnSignature(fallbackRef.current)) {
+        setColumns(merged);
+      }
+      setSavedSignature(mergedSignature);
     }
   }, [tableId, setColumns]);
 
