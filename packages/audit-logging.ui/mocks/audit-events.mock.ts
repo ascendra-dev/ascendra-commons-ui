@@ -1,5 +1,6 @@
 import type { DateRange } from 'react-day-picker';
 import type { QueryFn, QueryFunctionMap } from '@/ascendra-ui';
+import { diffFields } from '../api/audit-diff.util';
 import type {
   ActorActivitySummary,
   AuditActionCount,
@@ -12,7 +13,6 @@ import type {
   AuditStats,
   AuditTenantCount,
   AuditTopActionsStats,
-  FieldDiffEntry,
 } from '../api/audit-api.types';
 
 const NOW = Date.now();
@@ -28,7 +28,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     actor: 'jane@acme.test',
     action: 'invoice.created',
     before: null,
-    after: { status: 'draft', amount: 4200 },
+    after: { status: 'draft', amount: 4200, currency: 'USD' },
     occurredAt: hoursAgo(120),
     reason: null,
     correlationId: '5b9e1c04-2a71-4c3e-9f8a-d3b6e0c1a1a1',
@@ -40,8 +40,8 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     tenantId: 'tenant_acme',
     actor: 'jane@acme.test',
     action: 'invoice.issued',
-    before: { status: 'draft' },
-    after: { status: 'issued' },
+    before: { status: 'draft', amount: 4200, currency: 'USD' },
+    after: { status: 'issued', amount: 4200, currency: 'USD' },
     occurredAt: hoursAgo(119),
     reason: null,
     correlationId: '5b9e1c04-2a71-4c3e-9f8a-d3b6e0c1a1a1',
@@ -53,8 +53,8 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     tenantId: 'tenant_acme',
     actor: 'system',
     action: 'invoice.void',
-    before: { status: 'issued' },
-    after: { status: 'void' },
+    before: { status: 'issued', amount: 4200, currency: 'USD' },
+    after: { status: 'void', amount: 4200, currency: 'USD' },
     occurredAt: hoursAgo(96),
     reason: 'Duplicate invoice raised in error',
     correlationId: '71a29f6e-0c3d-4b8a-9e1f-2c5d6a7b8c02',
@@ -67,7 +67,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     actor: 'jane@acme.test',
     action: 'payment-link.created',
     before: null,
-    after: { amount: 1500, expiresAt: hoursAgo(-168) },
+    after: { amount: 1500, currency: 'USD', expiresAt: hoursAgo(-168) },
     occurredAt: hoursAgo(88),
     reason: null,
     correlationId: '3f10a2c7-4b8d-4e9a-9c1f-5d6e7a8b9c03',
@@ -79,8 +79,8 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     tenantId: 'tenant_acme',
     actor: 'customer_9021',
     action: 'payment-link.resolved',
-    before: { status: 'active' },
-    after: { status: 'resolved' },
+    before: { status: 'active', amount: 1500, currency: 'USD' },
+    after: { status: 'resolved', amount: 1500, currency: 'USD', resolvedAt: hoursAgo(87) },
     occurredAt: hoursAgo(87),
     reason: null,
     correlationId: '3f10a2c7-4b8d-4e9a-9c1f-5d6e7a8b9c03',
@@ -92,8 +92,8 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     tenantId: 'tenant_globex',
     actor: 'admin@globex.test',
     action: 'user.role_granted',
-    before: { roles: ['viewer'] },
-    after: { roles: ['viewer', 'billing_admin'] },
+    before: { roles: ['viewer'], mfaEnabled: true },
+    after: { roles: ['viewer', 'billing_admin'], mfaEnabled: true },
     occurredAt: hoursAgo(78),
     reason: 'Requested via support ticket #4471',
     correlationId: '91be0d4a-3c7e-4f9b-8d2c-6a1e5f7b8c04',
@@ -170,22 +170,13 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     tenantId: 'tenant_meridian',
     actor: 'ops@meridian.test',
     action: 'notification.route_set',
-    before: { channel: 'email' },
-    after: { channel: 'sms' },
+    before: { channel: 'email', retryLimit: 3 },
+    after: { channel: 'sms', retryLimit: 3 },
     occurredAt: hoursAgo(3),
     reason: 'Enable SMS for invoice notices',
     correlationId: '06f5e7d2-9b3c-4e1a-8f7d-1b6a0e3c5f09',
   },
 ];
-
-function diffFields(before: Record<string, unknown> | null, after: Record<string, unknown> | null): FieldDiffEntry[] {
-  const b = before ?? {};
-  const a = after ?? {};
-  const fields = [...new Set([...Object.keys(b), ...Object.keys(a)])].sort();
-  return fields
-    .map((field) => ({ field, before: b[field] ?? null, after: a[field] ?? null }))
-    .filter((entry) => JSON.stringify(entry.before) !== JSON.stringify(entry.after));
-}
 
 function matchesText(value: string, filter: string | undefined): boolean {
   return !filter || value === filter;
@@ -449,37 +440,3 @@ export async function mockActorActivity(actor: string): Promise<ActorActivitySum
   };
 }
 
-function toCsvValue(value: unknown): string {
-  const text = value === null || value === undefined ? '' : String(value);
-  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-}
-
-export async function mockDownloadCsv(query: {
-  entityType?: string;
-  action?: string;
-  actor?: string;
-  correlationId?: string;
-  occurredAfter?: string;
-  occurredBefore?: string;
-}): Promise<Blob> {
-  const occurredAfter = query.occurredAfter ? new Date(query.occurredAfter) : undefined;
-  const occurredBefore = query.occurredBefore ? new Date(query.occurredBefore) : undefined;
-  const filtered = MOCK_AUDIT_EVENTS.filter((event) => {
-    if (!matchesText(event.entityType, query.entityType)) return false;
-    if (!matchesText(event.action, query.action)) return false;
-    if (!matchesText(event.actor, query.actor)) return false;
-    if (!matchesText(event.correlationId, query.correlationId)) return false;
-    const occurredAt = new Date(event.occurredAt);
-    if (occurredAfter && occurredAt < occurredAfter) return false;
-    if (occurredBefore && occurredAt > occurredBefore) return false;
-    return true;
-  });
-
-  const header = ['id', 'occurredAt', 'actor', 'action', 'entityType', 'entityId', 'tenantId', 'reason', 'correlationId'];
-  const rows = sortNewestFirst(filtered).map((e) =>
-    [e.id, e.occurredAt, e.actor, e.action, e.entityType, e.entityId, e.tenantId ?? '', e.reason ?? '', e.correlationId]
-      .map(toCsvValue)
-      .join(','),
-  );
-  return new Blob([[header.join(','), ...rows].join('\n')], { type: 'text/csv' });
-}

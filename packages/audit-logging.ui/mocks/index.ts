@@ -7,5 +7,4 @@ export {
   mockOverviewStats,
   mockTopActionsStats,
   mockActorActivity,
-  mockDownloadCsv,
 } from './audit-events.mock';
