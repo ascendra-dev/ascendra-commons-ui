@@ -15,6 +15,7 @@ import {
   DataTableFilterDropdown,
   DataTableFoot,
   DataTableHead,
+  DataTableHeadAction,
   DataTableHeader,
   DataTableHeaderRow,
   DataTableHighlight,
@@ -57,12 +58,6 @@ function AuditExportCsvButton() {
   const { data } = useQueryContext();
   return <ExportCsvButton data={data as AuditEvent[]} filename="audit-events.csv" />;
 }
-
-/** Empty header cell matching DataTableRowAction's trailing column. */
-function ActionsColumnHead() {
-  return <th data-slot="table-head" className="py-3 pr-6 pl-5 w-12" />;
-}
-ActionsColumnHead.isLastColumn = true as const;
 
 /** The primary filterable Audit Log feed. */
 export default function AuditLogListPage() {
@@ -120,7 +115,7 @@ export default function AuditLogListPage() {
                         <DataTableHead column="correlationId">
                           Correlation
                         </DataTableHead>
-                        <ActionsColumnHead />
+                        <DataTableHeadAction />
                       </DataTableHeaderRow>
                     </DataTableHeader>
                     <DataTableBody>
