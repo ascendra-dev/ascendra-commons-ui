@@ -192,11 +192,17 @@ function matchesText(value: string, filter: string | undefined): boolean {
 
 const PAGE_SIZE = 5;
 
+/**
+ * Reports the true total, not a one-page-ahead peek — unlike the real
+ * cursor-paginated API (createCursorWalkingQueryFn in audit-query-functions.ts),
+ * this mock already holds the entire filtered array in memory before
+ * slicing it, so there's no reason to under-report what it already knows.
+ */
 function paginate(records: AuditEvent[], batch: number): { data: AuditEvent[]; totalBatches: number } {
   const start = (batch - 1) * PAGE_SIZE;
   const page = records.slice(start, start + PAGE_SIZE);
-  const hasMore = start + PAGE_SIZE < records.length;
-  return { data: page, totalBatches: hasMore ? batch + 1 : batch };
+  const totalBatches = Math.max(1, Math.ceil(records.length / PAGE_SIZE));
+  return { data: page, totalBatches };
 }
 
 function sortNewestFirst(records: AuditEvent[]): AuditEvent[] {
