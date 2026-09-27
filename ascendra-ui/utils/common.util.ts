@@ -122,8 +122,20 @@ export function objectsToCsv<T extends object>(
 }
 
 export interface DownloadCsvOptions<T> extends ObjectsToCsvOptions<T> {
-  /** Defaults to a timestamped name, e.g. "export-2026-09-27T05-42-10.csv". */
+  /**
+   * Base name, e.g. "audit-events.csv" — defaults to "export.csv" when
+   * omitted. Either way, a timestamp is always inserted before the
+   * extension (e.g. "audit-events-2026-09-27T05-42-10.csv"), so repeated
+   * exports never overwrite one another.
+   */
   filename?: string;
+}
+
+/** Inserts a timestamp before the extension, or appends one if there is none. */
+function timestampFilename(name: string): string {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const dot = name.lastIndexOf('.');
+  return dot > 0 ? `${name.slice(0, dot)}-${stamp}${name.slice(dot)}` : `${name}-${stamp}`;
 }
 
 /** Builds CSV via `objectsToCsv` and triggers a browser file download. No-ops on an empty array. */
@@ -133,7 +145,7 @@ export function downloadCsv<T extends object>(
 ): void {
   if (!data.length) return;
   const csv = objectsToCsv(data, options);
-  const filename = options.filename ?? `export-${new Date().toISOString().replace(/[:.]/g, '-')}.csv`;
+  const filename = timestampFilename(options.filename ?? 'export.csv');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
