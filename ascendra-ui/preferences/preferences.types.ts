@@ -34,6 +34,8 @@ export type TablePreferences = {
   queryState?: QueryStatePreferences;
   savedUserQueries?: StoredSavedUserQuery[];
   presetQueryPrefs?: PresetQueryPrefs;
+  /** Client-side "results per page" — auto-persisted on change, no explicit save() needed. */
+  pageSize?: number;
 };
 
 export type UserPreferences = {

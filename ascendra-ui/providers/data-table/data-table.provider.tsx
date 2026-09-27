@@ -99,7 +99,7 @@ export function DataTableProvider<T extends object>({
 
   const { sortConfig, handleSort, clearSort, sortedData } = useSort(filteredData, columns);
 
-  const { pagination, paginatedData: pagedData } = usePagination(sortedData);
+  const { pagination, paginatedData: pagedData } = usePagination(sortedData, 10, tableId);
 
   const {
     selectedRows,

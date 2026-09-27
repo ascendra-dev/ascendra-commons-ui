@@ -80,6 +80,14 @@ export function writePresetQueryPrefs(tableId: string, prefs: PresetQueryPrefs):
   writeTablePreferences(tableId, { presetQueryPrefs: prefs });
 }
 
+export function readPageSize(tableId: string): number | null {
+  return readTablePreferences(tableId)?.pageSize ?? null;
+}
+
+export function writePageSize(tableId: string, pageSize: number): void {
+  writeTablePreferences(tableId, { pageSize });
+}
+
 export function readSavedUserQueries(tableId: string): SavedUserQuery[] {
   const table = readTablePreferences(tableId);
   if (!table?.savedUserQueries?.length) return [];
