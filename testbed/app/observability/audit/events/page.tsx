@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { LuArrowUpRight, LuDownload } from 'react-icons/lu';
 import {
   Button,
@@ -172,22 +173,17 @@ export default function AuditLogListPage() {
                             </WithTooltip>
                           </DataTableCell>
                           <DataTableCell column="actor">
-                            <span
+                            <Link
+                              href={auditLogLinks.actorActivity(row.actor)}
                               className="hover:underline"
-                              role="link"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(
-                                  auditLogLinks.actorActivity(row.actor),
-                                );
-                              }}
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <DataTableHighlight
                                 text={row.actor}
                                 item={row}
                                 itemKey="actor"
                               />
-                            </span>
+                            </Link>
                           </DataTableCell>
                           <DataTableCell column="action">
                             <SimpleBadge>{row.action}</SimpleBadge>
