@@ -194,7 +194,15 @@ export default function AuditLogListPage() {
                             </Link>
                           </DataTableCell>
                           <DataTableCell column="action">
-                            <SimpleBadge>{row.action}</SimpleBadge>
+                            <SimpleBadge>
+                              <span>
+                                <DataTableHighlight
+                                  text={row.action}
+                                  item={row}
+                                  itemKey="action"
+                                />
+                              </span>
+                            </SimpleBadge>
                           </DataTableCell>
                           <DataTableCell column="entityType">
                             <div className="flex flex-col gap-0.5">
