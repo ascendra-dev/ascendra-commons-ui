@@ -45,7 +45,11 @@ export function DataTableFilterItem({
             <DropDownChevron />
           </div>
         </DropdownMenuTrigger>
-        <DropdownMenuContent sideOffset={8} align="start">
+        <DropdownMenuContent
+          sideOffset={8}
+          align="start"
+          className="w-auto min-w-48 max-w-xs"
+        >
           {options.length === 0 ? (
             <DropdownMenuItem disabled>No values</DropdownMenuItem>
           ) : (
