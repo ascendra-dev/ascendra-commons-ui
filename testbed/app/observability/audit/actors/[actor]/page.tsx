@@ -26,6 +26,7 @@ import {
   TableHeaderRow,
   TableRow,
   TableWrapper,
+  WithEmptyValue,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
@@ -67,12 +68,18 @@ export default function AuditActorActivityPage() {
                         <div>
                           <dt className="text-muted-foreground text-xs">First seen</dt>
                           <dd>
-                            {data.firstSeen ? formatDateTime(data.firstSeen, { style: 'relative' }) : '—'}
+                            <WithEmptyValue value={data.firstSeen}>
+                              {formatDateTime(data.firstSeen!, { style: 'relative' })}
+                            </WithEmptyValue>
                           </dd>
                         </div>
                         <div>
                           <dt className="text-muted-foreground text-xs">Last seen</dt>
-                          <dd>{data.lastSeen ? formatDateTime(data.lastSeen, { style: 'relative' }) : '—'}</dd>
+                          <dd>
+                            <WithEmptyValue value={data.lastSeen}>
+                              {formatDateTime(data.lastSeen!, { style: 'relative' })}
+                            </WithEmptyValue>
+                          </dd>
                         </div>
                         <div>
                           <dt className="text-muted-foreground text-xs">Total records</dt>
