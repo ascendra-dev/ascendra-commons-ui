@@ -7,7 +7,7 @@ import {
 } from '@/ascendra-ui/utils/common.util';
 import { LuDownload } from 'react-icons/lu';
 
-export interface ExportCsvButtonProps<T extends Record<string, unknown>>
+export interface ExportCsvButtonProps<T extends object>
   extends DownloadCsvOptions<T>,
     Omit<React.ComponentProps<typeof Button>, 'onClick' | 'children'> {
   /** Rows to export as CSV. */
@@ -24,7 +24,7 @@ export interface ExportCsvButtonProps<T extends Record<string, unknown>>
  * trigger, skip this component and call `downloadCsv`/`objectsToCsv`
  * (from `@/ascendra-ui/utils/common.util`) directly instead.
  */
-export function ExportCsvButton<T extends Record<string, unknown>>({
+export function ExportCsvButton<T extends object>({
   data,
   exclude,
   filename,

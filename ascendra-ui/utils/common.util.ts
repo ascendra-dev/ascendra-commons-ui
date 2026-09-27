@@ -109,7 +109,7 @@ export interface ObjectsToCsvOptions<T> {
  * `String()`) rather than a type locked in from the first row, so a
  * nullable column still renders correctly across rows.
  */
-export function objectsToCsv<T extends Record<string, unknown>>(
+export function objectsToCsv<T extends object>(
   data: T[],
   options: ObjectsToCsvOptions<T> = {},
 ): string {
@@ -127,7 +127,7 @@ export interface DownloadCsvOptions<T> extends ObjectsToCsvOptions<T> {
 }
 
 /** Builds CSV via `objectsToCsv` and triggers a browser file download. No-ops on an empty array. */
-export function downloadCsv<T extends Record<string, unknown>>(
+export function downloadCsv<T extends object>(
   data: T[],
   options: DownloadCsvOptions<T> = {},
 ): void {
