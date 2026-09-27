@@ -38,6 +38,7 @@ import {
   QueryParamPanel,
   SimpleBadge,
   useQueryContext,
+  WithEmptyValue,
   WithTooltip,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
@@ -236,15 +237,13 @@ export default function AuditLogListPage() {
                             )}
                           </DataTableCell>
                           <DataTableCell column="reason">
-                            {row.reason ? (
+                            <WithEmptyValue value={row.reason}>
                               <DataTableHighlight
-                                text={row.reason}
+                                text={row.reason!}
                                 item={row}
                                 itemKey="reason"
                               />
-                            ) : (
-                              '—'
-                            )}
+                            </WithEmptyValue>
                           </DataTableCell>
                           <DataTableCell column="correlationId">
                             <Link
