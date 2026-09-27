@@ -1,18 +1,18 @@
+import type { DateRange } from 'react-day-picker';
 import type { QueryFn, QueryFunctionMap, QueryParamValues } from '@/ascendra-ui';
 import { auditApi } from '../api/audit-api.client';
 import type { AuditEvent, AuditQuery, AuditQueryResult } from '../api/audit-api.types';
 
 const PAGE_SIZE = 50;
 
-function toISODate(value: QueryParamValues[string]): string | undefined {
-  return value instanceof Date ? value.toISOString() : undefined;
-}
-
 function toStringParam(value: QueryParamValues[string]): string | undefined {
   return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
 
 function baseQueryFromParams(params: QueryParamValues): Omit<AuditQuery, 'limit' | 'cursor'> {
+  // occurredRange is one `daterange` field in the form (see audit-query-defs.ts)
+  // but two independent params on the wire — split back out here.
+  const occurredRange = params.occurredRange as DateRange | undefined;
   return {
     entityType: toStringParam(params.entityType),
     entityId: toStringParam(params.entityId),
@@ -20,8 +20,8 @@ function baseQueryFromParams(params: QueryParamValues): Omit<AuditQuery, 'limit'
     actor: toStringParam(params.actor),
     action: toStringParam(params.action),
     correlationId: toStringParam(params.correlationId),
-    occurredAfter: toISODate(params.occurredAfter),
-    occurredBefore: toISODate(params.occurredBefore),
+    occurredAfter: occurredRange?.from?.toISOString(),
+    occurredBefore: occurredRange?.to?.toISOString(),
   };
 }
 

@@ -45,19 +45,30 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
  *
  * Fields are grouped into two rows via a section break — actor/action/
  * entityType/tenantId/correlationId (identity-style lookups) first, then
- * occurredAfter/occurredBefore (the date range) — with `columns: { sm: 1,
- * md: 2, lg: 3 }` (per AUI-028) so the form actually reflows across 1/2/3
- * columns instead of stacking one field per row regardless of screen size.
+ * a single occurredRange daterange field — with `columns: { sm: 1, md: 2,
+ * lg: 3 }` (per AUI-028) so the form actually reflows across 1/2/3 columns
+ * instead of stacking one field per row regardless of screen size.
  * `tenantId` was previously missing here despite already being a real,
  * optional AuditQuery field (see audit-api.types.ts) — added along with its
- * wiring in audit-query-functions.ts/mocks.
+ * wiring in audit-query-functions.ts/mocks. occurredAfter/occurredBefore
+ * were previously two separate `date` fields; consolidated into one
+ * `daterange` field (per AUI-038) since they're really one bounded range,
+ * not two independent conditions — audit-query-functions.ts/the mock now
+ * split it back into the two AuditQuery params internally.
+ *
+ * No field carries an `optional` badge — every field here is optional (the
+ * backend ANDs whichever ones are set), so badging all of them would be
+ * exactly the crowding field-hint-guide.md's own form-authoring guidance
+ * warns against (the badge exists to flag the *minority* case; an "all
+ * fields optional" form has no minority to flag). That's stated once, in
+ * the footer (`info`), instead — see AUI-038.
  *
  * No field claims a specific match algorithm (partial vs exact) in its
  * `info` — the mock's own matchesText does exact string equality, but the
  * real API's actual matching behavior isn't visible from this codebase, so
  * asserting one here could just be wrong. `placeholder` gives an example
  * format instead. `info` is used only for things confirmed by the code
- * itself (the date fields' inclusive bounds) or the domain concept
+ * itself (the date range's inclusive bounds) or the domain concept
  * (correlationId grouping related events).
  */
 export const auditQueryDefs: QueryDef[] = [
@@ -70,9 +81,9 @@ export const auditQueryDefs: QueryDef[] = [
   {
     id: 'advanced-filter',
     title: 'Advanced Filter',
-    description: 'Combine any of the fields below — all optional, ANDed together.',
+    description: 'Filter audit events by any combination of the fields below.',
     group: 'filter',
-    info: 'All active filters use AND logic — results must match every condition you set.',
+    info: 'Every field is optional — set any combination and results must match all of them (AND logic).',
     columns: { sm: 1, md: 2, lg: 3 },
     params: [
       {
@@ -80,7 +91,6 @@ export const auditQueryDefs: QueryDef[] = [
         label: 'Actor',
         type: 'text',
         placeholder: 'jane@acme.test',
-        optional: true,
         span: 1,
         maxLength: 100,
       },
@@ -89,7 +99,6 @@ export const auditQueryDefs: QueryDef[] = [
         label: 'Action',
         type: 'text',
         placeholder: 'invoice.void',
-        optional: true,
         span: 1,
         maxLength: 100,
       },
@@ -98,7 +107,6 @@ export const auditQueryDefs: QueryDef[] = [
         label: 'Entity type',
         type: 'text',
         placeholder: 'invoice',
-        optional: true,
         span: 1,
         maxLength: 100,
       },
@@ -107,7 +115,6 @@ export const auditQueryDefs: QueryDef[] = [
         label: 'Tenant',
         type: 'text',
         placeholder: 'tenant_acme',
-        optional: true,
         span: 1,
         maxLength: 64,
       },
@@ -116,27 +123,17 @@ export const auditQueryDefs: QueryDef[] = [
         label: 'Correlation ID',
         type: 'text',
         placeholder: '5b9e1c04-2a71-4c3e-9f8a-d3b6e0c1a1a1',
-        optional: true,
         span: 1,
         maxLength: 64,
         info: 'Groups every event from one originating request',
       },
       { _type: 'section', title: 'Occurred', showTitle: true },
       {
-        name: 'occurredAfter',
-        label: 'Occurred after',
-        type: 'date',
-        optional: true,
-        span: 1,
-        info: 'Inclusive start date',
-      },
-      {
-        name: 'occurredBefore',
-        label: 'Occurred before',
-        type: 'date',
-        optional: true,
-        span: 1,
-        info: 'Inclusive end date',
+        name: 'occurredRange',
+        label: 'Occurred between',
+        type: 'daterange',
+        span: 'full',
+        info: 'Inclusive of both the start and end date',
       },
     ],
   },

@@ -1,3 +1,4 @@
+import type { DateRange } from 'react-day-picker';
 import type { QueryFn, QueryFunctionMap } from '@/ascendra-ui';
 import type {
   ActorActivitySummary,
@@ -217,8 +218,9 @@ const mockAdvancedFilter: QueryFn<AuditEvent> = async (params, batch) => {
   const actor = typeof params.actor === 'string' ? params.actor : undefined;
   const tenantId = typeof params.tenantId === 'string' ? params.tenantId : undefined;
   const correlationId = typeof params.correlationId === 'string' ? params.correlationId : undefined;
-  const occurredAfter = params.occurredAfter instanceof Date ? params.occurredAfter : undefined;
-  const occurredBefore = params.occurredBefore instanceof Date ? params.occurredBefore : undefined;
+  const occurredRange = params.occurredRange as DateRange | undefined;
+  const occurredAfter = occurredRange?.from;
+  const occurredBefore = occurredRange?.to;
 
   const filtered = MOCK_AUDIT_EVENTS.filter((event) => {
     if (!matchesText(event.entityType, entityType)) return false;
