@@ -37,7 +37,8 @@ const fetchActivity = mockActorActivity;
 
 /** Reached only by clicking an actor cell elsewhere in the Audit Log — not nav. */
 export default function AuditActorActivityPage() {
-  const { actor } = useParams<{ actor: string }>();
+  const { actor: rawActor } = useParams<{ actor: string }>();
+  const actor = decodeURIComponent(rawActor);
   const { data, isLoading, isError } = useQuery({
     queryKey: ['audit-actor-activity', actor],
     queryFn: () => fetchActivity(actor),
@@ -69,7 +70,7 @@ export default function AuditActorActivityPage() {
                           <dt className="text-muted-foreground text-xs">First seen</dt>
                           <dd>
                             <WithEmptyValue value={data.firstSeen}>
-                              {formatDateTime(data.firstSeen!, { style: 'relative' })}
+                              {data.firstSeen && formatDateTime(data.firstSeen, { style: 'relative' })}
                             </WithEmptyValue>
                           </dd>
                         </div>
@@ -77,7 +78,7 @@ export default function AuditActorActivityPage() {
                           <dt className="text-muted-foreground text-xs">Last seen</dt>
                           <dd>
                             <WithEmptyValue value={data.lastSeen}>
-                              {formatDateTime(data.lastSeen!, { style: 'relative' })}
+                              {data.lastSeen && formatDateTime(data.lastSeen, { style: 'relative' })}
                             </WithEmptyValue>
                           </dd>
                         </div>
