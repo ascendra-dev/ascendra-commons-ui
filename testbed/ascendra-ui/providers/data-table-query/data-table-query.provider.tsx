@@ -347,9 +347,11 @@ export function DataTableQueryProvider<T = unknown>({
   const totalBatches = data?.totalBatches ?? null;
 
   const goNextBatch = useCallback(() => {
-    setCurrentBatch((prev) =>
-      totalBatches !== null ? Math.min(totalBatches, prev + 1) : prev + 1
-    );
+    // No-op while the bound isn't known yet (e.g. a batch in flight) rather
+    // than incrementing unbounded — TableFoot also disables the button
+    // itself while loading, this is a defensive backstop for any other caller.
+    if (totalBatches === null) return;
+    setCurrentBatch((prev) => Math.min(totalBatches, prev + 1));
   }, [totalBatches]);
 
   const goPrevBatch = useCallback(() => {

@@ -14,6 +14,7 @@ export function DataTableFoot() {
         totalBatches: query.totalBatches,
         goNextBatch: query.goNextBatch,
         goPrevBatch: query.goPrevBatch,
+        isLoading: query.isLoading,
       }
     : undefined;
 

@@ -34,6 +34,8 @@ export type BatchState = {
   totalBatches: number | null;
   goNextBatch: () => void;
   goPrevBatch: () => void;
+  /** Disables both batch nav buttons while true — a batch in flight has totalBatches temporarily null, which would otherwise leave goNextBatch's bound unenforced. */
+  isLoading?: boolean;
 };
 
 function filterChildrenByColumns(
@@ -306,11 +308,11 @@ function TableFoot({
     ? `${pagination.currentPage}/${pagination.totalPages}`
     : "1/1";
 
-  const atFirstBatch = !batch || batch.currentBatch <= 1;
+  const atFirstBatch = !batch || batch.currentBatch <= 1 || !!batch.isLoading;
   const atLastBatch =
-    !!batch &&
-    batch.totalBatches !== null &&
-    batch.currentBatch >= batch.totalBatches;
+    !batch ||
+    !!batch.isLoading ||
+    (batch.totalBatches !== null && batch.currentBatch >= batch.totalBatches);
   const batchLabel = batch
     ? batch.totalBatches !== null
       ? `${batch.currentBatch} / ${batch.totalBatches}`
