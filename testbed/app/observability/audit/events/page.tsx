@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LuArrowUpRight, LuDownload } from 'react-icons/lu';
+import { LuDownload } from 'react-icons/lu';
 import {
   Button,
   DataTable,
@@ -12,6 +12,7 @@ import {
   DataTableBody,
   DataTableCell,
   DataTableColumnManager,
+  DataTableCopyValueAction,
   DataTableFilterBar,
   DataTableFilterDropdown,
   DataTableFoot,
@@ -20,6 +21,7 @@ import {
   DataTableHeaderRow,
   DataTableHighlight,
   DataTableRow,
+  DataTableRowAction,
   DataTableSearchInput,
   DataTableSortDropdown,
   DataTableWithQueryProvider,
@@ -36,7 +38,6 @@ import {
   QueryParamPanel,
   SimpleBadge,
   useQueryContext,
-  WithCopyText,
   WithTooltip,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
@@ -88,6 +89,12 @@ function ExportCsvButton() {
     </Button>
   );
 }
+
+/** Empty header cell matching DataTableRowAction's trailing column. */
+function ActionsColumnHead() {
+  return <th data-slot="table-head" className="py-3 pr-6 pl-5 w-12" />;
+}
+ActionsColumnHead.isLastColumn = true as const;
 
 /** The primary filterable Audit Log feed. */
 export default function AuditLogListPage() {
@@ -145,6 +152,7 @@ export default function AuditLogListPage() {
                         <DataTableHead column="correlationId">
                           Correlation
                         </DataTableHead>
+                        <ActionsColumnHead />
                       </DataTableHeaderRow>
                     </DataTableHeader>
                     <DataTableBody>
@@ -189,27 +197,23 @@ export default function AuditLogListPage() {
                             <SimpleBadge>{row.action}</SimpleBadge>
                           </DataTableCell>
                           <DataTableCell column="entityType">
-                            <div
-                              className="flex flex-col gap-0.5"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(
-                                  auditLogLinks.entityHistory(
-                                    row.entityType,
-                                    row.entityId,
-                                  ),
-                                );
-                              }}
-                            >
+                            <div className="flex flex-col gap-0.5">
                               <SimpleBadge
                                 variant="secondary"
-                                className="w-fit cursor-pointer"
+                                className="w-fit"
                               >
                                 {row.entityType}
                               </SimpleBadge>
-                              <span className="font-mono text-muted-foreground cursor-pointer text-xs hover:underline">
+                              <Link
+                                href={auditLogLinks.entityHistory(
+                                  row.entityType,
+                                  row.entityId,
+                                )}
+                                className="font-mono text-muted-foreground text-xs hover:underline"
+                                onClick={(e) => e.stopPropagation()}
+                              >
                                 {row.entityId}
-                              </span>
+                              </Link>
                             </div>
                           </DataTableCell>
                           <DataTableCell column="tenantId">
@@ -229,29 +233,28 @@ export default function AuditLogListPage() {
                             )}
                           </DataTableCell>
                           <DataTableCell column="correlationId">
-                            <div
-                              className="flex items-center gap-1.5"
+                            <Link
+                              href={auditLogLinks.trace(row.correlationId)}
+                              className="font-mono text-xs hover:underline"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <WithCopyText
-                                value={row.correlationId}
-                                className="font-mono text-xs"
-                                showTooltip
-                              />
-                              <button
-                                type="button"
-                                title="View trace"
-                                className="text-muted-foreground hover:text-foreground"
-                                onClick={() =>
-                                  router.push(
-                                    auditLogLinks.trace(row.correlationId),
-                                  )
-                                }
-                              >
-                                <LuArrowUpRight className="size-3.5" />
-                              </button>
-                            </div>
+                              {row.correlationId}
+                            </Link>
                           </DataTableCell>
+                          <DataTableRowAction>
+                            <DataTableCopyValueAction
+                              title="Copy Entity ID"
+                              value={row.entityId}
+                            />
+                            <DataTableCopyValueAction
+                              title="Copy Correlation ID"
+                              value={row.correlationId}
+                            />
+                            <DataTableCopyValueAction
+                              title="Copy Row ID"
+                              value={row.id}
+                            />
+                          </DataTableRowAction>
                         </DataTableRow>
                       )}
                     </DataTableBody>
