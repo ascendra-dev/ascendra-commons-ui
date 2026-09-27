@@ -36,8 +36,8 @@ import {
   SimpleBadge,
   useQueryContext,
   WithCopyText,
+  WithTooltip,
 } from '@/ascendra-ui';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/ascendra-ui/shadcn';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
   auditEventColumns,
@@ -159,22 +159,17 @@ export default function AuditLogListPage() {
                             column="occurredAt"
                             className="whitespace-nowrap"
                           >
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span>
-                                  <DataTableHighlight
-                                    text={formatDateTime(row.occurredAt, {
-                                      time: true,
-                                    })}
-                                    item={row}
-                                    itemKey="occurredAt"
-                                  />
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {new Date(row.occurredAt).toISOString()}
-                              </TooltipContent>
-                            </Tooltip>
+                            <WithTooltip
+                              tooltip={new Date(row.occurredAt).toISOString()}
+                            >
+                              <DataTableHighlight
+                                text={formatDateTime(row.occurredAt, {
+                                  time: true,
+                                })}
+                                item={row}
+                                itemKey="occurredAt"
+                              />
+                            </WithTooltip>
                           </DataTableCell>
                           <DataTableCell column="actor">
                             <span
