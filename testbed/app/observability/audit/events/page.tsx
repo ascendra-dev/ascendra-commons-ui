@@ -11,6 +11,8 @@ import {
   DataTableCell,
   DataTableColumnManager,
   DataTableCopyValueAction,
+  DataTableEmptyBody,
+  DataTableErrorBody,
   DataTableFilterBar,
   DataTableFilterDropdown,
   DataTableFoot,
@@ -19,6 +21,7 @@ import {
   DataTableHeader,
   DataTableHeaderRow,
   DataTableHighlight,
+  DataTableLoadingBody,
   DataTableRow,
   DataTableRowAction,
   DataTableSearchInput,
@@ -234,6 +237,9 @@ export default function AuditLogListPage() {
                       )}
                     </DataTableBody>
                   </DataTable>
+                  <DataTableLoadingBody />
+                  <DataTableErrorBody />
+                  <DataTableEmptyBody />
                   <DataTableFoot />
                 </DataTableWrapper>
               </DataTableWithQueryProvider>
