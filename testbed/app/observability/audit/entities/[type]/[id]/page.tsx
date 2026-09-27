@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -16,7 +17,9 @@ import {
 } from '@/ascendra-ui';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
 import { mockEntityHistory } from '@/ascendra-commons-ui/audit-logging.ui/mocks';
+import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { AuditEventTimeline } from '../../../_audit-event-timeline';
+import { AuditEventDetailSheet } from '../../../_audit-event-detail-sheet';
 
 /** testbed has no live backend — using the mock fetcher (see page.tsx's own comment upstream). */
 const fetchHistory = mockEntityHistory;
@@ -28,6 +31,7 @@ export default function AuditEntityHistoryPage() {
     queryKey: ['audit-entity-history', type, id],
     queryFn: () => fetchHistory(type, id),
   });
+  const [selected, setSelected] = useState<AuditEvent | null>(null);
 
   return (
     <>
@@ -52,12 +56,14 @@ export default function AuditEntityHistoryPage() {
                 <AuditEventTimeline
                   records={data.records}
                   emptyMessage="Nothing has ever been recorded against this entity."
+                  onEventClick={setSelected}
                 />
               )}
             </MainContent>
           </PageContent>
         </PageWrapper>
       </PageMain>
+      {selected && <AuditEventDetailSheet record={selected} onClose={() => setSelected(null)} />}
     </>
   );
 }

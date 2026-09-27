@@ -14,8 +14,20 @@ import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
  * SimpleBadge rather than a shared "Timeline" component (none exists in
  * ascendra-ui yet — worth a BACKLOG.md suggestion if this shape recurs in
  * other modules).
+ *
+ * `onEventClick` opens the caller's own local-state detail Sheet (see
+ * AuditEventDetailSheet) instead of navigating — each row here already
+ * carries the full AuditEvent, so there's nothing to fetch.
  */
-export function AuditEventTimeline({ records, emptyMessage }: { records: AuditEvent[]; emptyMessage: string }) {
+export function AuditEventTimeline({
+  records,
+  emptyMessage,
+  onEventClick,
+}: {
+  records: AuditEvent[];
+  emptyMessage: string;
+  onEventClick: (row: AuditEvent) => void;
+}) {
   if (records.length === 0) {
     return <p className="text-muted-foreground text-sm">{emptyMessage}</p>;
   }
@@ -33,9 +45,9 @@ export function AuditEventTimeline({ records, emptyMessage }: { records: AuditEv
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-sm">
             <SimpleBadge>{row.action}</SimpleBadge>
-            <Link href={auditLogLinks.eventDetail(row.id)} className="hover:underline">
+            <button type="button" onClick={() => onEventClick(row)} className="cursor-pointer hover:underline">
               {row.entityType} / {row.entityId}
-            </Link>
+            </button>
             <span className="text-muted-foreground">·</span>
             <Link href={auditLogLinks.actorActivity(row.actor)} className="hover:underline">
               {row.actor}

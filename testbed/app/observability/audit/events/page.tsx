@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   DataTable,
@@ -42,7 +42,6 @@ import {
   SimpleBadge,
   useQueryContext,
   WithEmptyValue,
-  WithTooltip,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -52,6 +51,7 @@ import {
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
 import { mockAuditQueryFunctions } from '@/ascendra-commons-ui/audit-logging.ui/mocks';
 import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { AuditEventDetailSheet } from '../_audit-event-detail-sheet';
 
 /** testbed has no live backend — using mock fetchers (see page.tsx's own comment upstream). */
 const queryFunctions = mockAuditQueryFunctions;
@@ -59,12 +59,14 @@ const queryFunctions = mockAuditQueryFunctions;
 /** Bridges useQueryContext (only callable inside the provider) to ExportCsvButton's data prop. */
 function AuditExportCsvButton() {
   const { data } = useQueryContext();
-  return <ExportCsvButton data={data as AuditEvent[]} filename="audit-events.csv" />;
+  return (
+    <ExportCsvButton data={data as AuditEvent[]} filename="audit-events.csv" />
+  );
 }
 
 /** The primary filterable Audit Log feed. */
 export default function AuditLogListPage() {
-  const router = useRouter();
+  const [selected, setSelected] = useState<AuditEvent | null>(null);
 
   return (
     <>
@@ -126,25 +128,19 @@ export default function AuditLogListPage() {
                         <DataTableRow
                           key={row.id}
                           className="cursor-pointer"
-                          onClick={() =>
-                            router.push(auditLogLinks.eventDetail(row.id))
-                          }
+                          onClick={() => setSelected(row)}
                         >
                           <DataTableCell
                             column="occurredAt"
                             className="whitespace-nowrap"
                           >
-                            <WithTooltip
-                              tooltip={new Date(row.occurredAt).toISOString()}
-                            >
-                              <DataTableHighlight
-                                text={formatDateTime(row.occurredAt, {
-                                  time: true,
-                                })}
-                                item={row}
-                                itemKey="occurredAt"
-                              />
-                            </WithTooltip>
+                            <DataTableHighlight
+                              text={formatDateTime(row.occurredAt, {
+                                time: true,
+                              })}
+                              item={row}
+                              itemKey="occurredAt"
+                            />
                           </DataTableCell>
                           <DataTableCell column="actor">
                             <Link
@@ -247,6 +243,7 @@ export default function AuditLogListPage() {
           </PageContent>
         </PageWrapper>
       </PageMain>
+      {selected && <AuditEventDetailSheet record={selected} onClose={() => setSelected(null)} />}
     </>
   );
 }
