@@ -8,22 +8,16 @@ import {
 } from "@/ascendra-ui/components/ui/input-group";
 import { useDataTableContext } from "@/ascendra-ui/providers/data-table/data-table.provider";
 import { cn } from "@/ascendra-ui/shadcn";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { LuSearch, LuX } from "react-icons/lu";
 import { VscSearchFuzzy } from "react-icons/vsc";
 
 export function DataTableSearchInput() {
   const { searchTerm, setSearchTerm, fuzzy, setFuzzy } = useDataTableContext();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [searchHovered, setSearchHovered] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
 
   return (
-    <InputGroup
-      className="max-w-xs"
-      onMouseEnter={() => setSearchHovered(true)}
-      onMouseLeave={() => setSearchHovered(false)}
-    >
+    <InputGroup className="max-w-xs">
       <InputGroupAddon>
         <InputGroupButton
           className="text-muted-foreground"
@@ -45,16 +39,12 @@ export function DataTableSearchInput() {
         className="w-65"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        onFocus={() => setSearchFocused(true)}
-        onBlur={() => setSearchFocused(false)}
       />
       <InputGroupAddon
         align="inline-end"
         className={cn(
           "transition-opacity",
-          searchTerm && searchHovered && !searchFocused
-            ? "opacity-100"
-            : "pointer-events-none opacity-0",
+          searchTerm ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       >
         <InputGroupButton onClick={() => setSearchTerm("")}>
