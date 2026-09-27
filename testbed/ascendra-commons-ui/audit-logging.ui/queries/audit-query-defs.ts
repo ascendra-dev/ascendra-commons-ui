@@ -56,20 +56,24 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
  * not two independent conditions — audit-query-functions.ts/the mock now
  * split it back into the two AuditQuery params internally.
  *
- * No field carries an `optional` badge — every field here is optional (the
- * backend ANDs whichever ones are set), so badging all of them would be
- * exactly the crowding field-hint-guide.md's own form-authoring guidance
- * warns against (the badge exists to flag the *minority* case; an "all
- * fields optional" form has no minority to flag). That's stated once, in
- * the footer (`info`), instead — see AUI-038.
+ * Every field carries `optional: true` — deliberate, even though all 7 are
+ * uniformly optional (field-hint-guide.md's own form-authoring guidance
+ * would suggest dropping a badge with no minority to flag). The footer
+ * (`info`) also states the AND-logic/all-optional fact once, so the badge
+ * here is redundant with it — kept anyway, as a per-field decision, not an
+ * oversight (see AUI-038 for the guidance this deliberately departs from).
  *
  * No field claims a specific match algorithm (partial vs exact) in its
- * `info` — the mock's own matchesText does exact string equality, but the
- * real API's actual matching behavior isn't visible from this codebase, so
- * asserting one here could just be wrong. `placeholder` gives an example
- * format instead. `info` is used only for things confirmed by the code
- * itself (the date range's inclusive bounds) or the domain concept
- * (correlationId grouping related events).
+ * `info`/`description` — the mock's own matchesText does exact string
+ * equality, but the real API's actual matching behavior isn't visible from
+ * this codebase, so asserting one here could just be wrong. `placeholder`
+ * gives an example format instead. `correlationId` uses `description`
+ * (not `info`) for its one explanatory line — `FieldHint` (which renders
+ * `description`) safely reserves height on a bare call even when only one
+ * field in a `columns`-grid row has one set; `FieldInfo` (which renders
+ * `info`) does not have that same safety net (see AUI-037), so `info` is
+ * reserved for the date range field only, where every field in its own
+ * row has it.
  */
 export const auditQueryDefs: QueryDef[] = [
   {
@@ -93,6 +97,7 @@ export const auditQueryDefs: QueryDef[] = [
         placeholder: 'jane@acme.test',
         span: 1,
         maxLength: 100,
+        optional: true,
       },
       {
         name: 'action',
@@ -101,6 +106,7 @@ export const auditQueryDefs: QueryDef[] = [
         placeholder: 'invoice.void',
         span: 1,
         maxLength: 100,
+        optional: true,
       },
       {
         name: 'entityType',
@@ -109,6 +115,7 @@ export const auditQueryDefs: QueryDef[] = [
         placeholder: 'invoice',
         span: 1,
         maxLength: 100,
+        optional: true,
       },
       {
         name: 'tenantId',
@@ -117,6 +124,7 @@ export const auditQueryDefs: QueryDef[] = [
         placeholder: 'tenant_acme',
         span: 1,
         maxLength: 64,
+        optional: true,
       },
       {
         name: 'correlationId',
@@ -125,7 +133,8 @@ export const auditQueryDefs: QueryDef[] = [
         placeholder: '5b9e1c04-2a71-4c3e-9f8a-d3b6e0c1a1a1',
         span: 1,
         maxLength: 64,
-        info: 'Groups every event from one originating request',
+        optional: true,
+        description: 'Groups every event from one originating request',
       },
       { _type: 'section', title: 'Occurred', showTitle: true },
       {
@@ -134,6 +143,7 @@ export const auditQueryDefs: QueryDef[] = [
         type: 'daterange',
         span: 'full',
         info: 'Inclusive of both the start and end date',
+        optional: true,
       },
     ],
   },
