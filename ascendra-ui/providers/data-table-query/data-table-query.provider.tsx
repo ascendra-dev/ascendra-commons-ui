@@ -130,6 +130,11 @@ export function DataTableQueryProvider<T = unknown>({
     const stored = readTablePreferences(tableId);
 
     const loadedUserQueries = readSavedUserQueries(tableId);
+    // One-time hydration from localStorage after mount — starting from empty
+    // defaults and flipping isInitializing once done avoids an SSR/hydration
+    // mismatch, which a lazy useState initializer reading localStorage would
+    // cause instead (localStorage isn't available during server render).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSavedUserQueries(loadedUserQueries);
 
     const presetPrefs = readPresetQueryPrefs(tableId);
@@ -321,7 +326,7 @@ export function DataTableQueryProvider<T = unknown>({
   // Resolve query function — user queries delegate to their source filter's function
   const queryFn = (() => {
     if (confirmedQuery.group === 'user-query') {
-      const savedQ = savedUserQueriesRef.current.find((q) => q.id === activeId);
+      const savedQ = savedUserQueries.find((q) => q.id === activeId);
       return savedQ ? queryFunctions[savedQ.sourceQueryId] : undefined;
     }
     return queryFunctions[activeId];
