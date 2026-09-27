@@ -192,11 +192,17 @@ function matchesText(value: string, filter: string | undefined): boolean {
 
 const PAGE_SIZE = 5;
 
+/**
+ * Reports the true total, not a one-page-ahead peek — unlike the real
+ * cursor-paginated API (createCursorWalkingQueryFn in audit-query-functions.ts),
+ * this mock already holds the entire filtered array in memory before
+ * slicing it, so there's no reason to under-report what it already knows.
+ */
 function paginate(records: AuditEvent[], batch: number): { data: AuditEvent[]; totalBatches: number } {
   const start = (batch - 1) * PAGE_SIZE;
   const page = records.slice(start, start + PAGE_SIZE);
-  const hasMore = start + PAGE_SIZE < records.length;
-  return { data: page, totalBatches: hasMore ? batch + 1 : batch };
+  const totalBatches = Math.max(1, Math.ceil(records.length / PAGE_SIZE));
+  return { data: page, totalBatches };
 }
 
 function sortNewestFirst(records: AuditEvent[]): AuditEvent[] {
@@ -209,6 +215,7 @@ const mockAdvancedFilter: QueryFn<AuditEvent> = async (params, batch) => {
   const entityType = typeof params.entityType === 'string' ? params.entityType : undefined;
   const action = typeof params.action === 'string' ? params.action : undefined;
   const actor = typeof params.actor === 'string' ? params.actor : undefined;
+  const tenantId = typeof params.tenantId === 'string' ? params.tenantId : undefined;
   const correlationId = typeof params.correlationId === 'string' ? params.correlationId : undefined;
   const occurredAfter = params.occurredAfter instanceof Date ? params.occurredAfter : undefined;
   const occurredBefore = params.occurredBefore instanceof Date ? params.occurredBefore : undefined;
@@ -217,6 +224,7 @@ const mockAdvancedFilter: QueryFn<AuditEvent> = async (params, batch) => {
     if (!matchesText(event.entityType, entityType)) return false;
     if (!matchesText(event.action, action)) return false;
     if (!matchesText(event.actor, actor)) return false;
+    if (!matchesText(event.tenantId ?? '', tenantId)) return false;
     if (!matchesText(event.correlationId, correlationId)) return false;
     const occurredAt = new Date(event.occurredAt);
     if (occurredAfter && occurredAt < occurredAfter) return false;

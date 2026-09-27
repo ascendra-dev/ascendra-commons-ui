@@ -16,6 +16,7 @@ function baseQueryFromParams(params: QueryParamValues): Omit<AuditQuery, 'limit'
   return {
     entityType: toStringParam(params.entityType),
     entityId: toStringParam(params.entityId),
+    tenantId: toStringParam(params.tenantId),
     actor: toStringParam(params.actor),
     action: toStringParam(params.action),
     correlationId: toStringParam(params.correlationId),
