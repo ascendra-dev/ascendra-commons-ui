@@ -225,7 +225,13 @@ export default function AuditLogListPage() {
                             </div>
                           </DataTableCell>
                           <DataTableCell column="tenantId">
-                            {row.tenantId ?? (
+                            {row.tenantId ? (
+                              <DataTableHighlight
+                                text={row.tenantId}
+                                item={row}
+                                itemKey="tenantId"
+                              />
+                            ) : (
                               <SimpleBadge variant="info">platform</SimpleBadge>
                             )}
                           </DataTableCell>
