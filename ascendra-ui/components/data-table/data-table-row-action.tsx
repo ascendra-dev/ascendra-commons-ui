@@ -35,7 +35,11 @@ export function DataTableRowAction({
 }: DataTableRowActionProps) {
   return (
     <RowActionContext.Provider value={{ onAction }}>
-      <td data-slot="table-cell" className="px-5 py-4 last:pr-6 w-12">
+      <td
+        data-slot="table-cell"
+        className="px-5 py-4 last:pr-6 w-12"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -119,6 +123,32 @@ export function DataTableDuplicateRowAction(
     <DataTableRowActionItem id="duplicate" icon={<LuCopy />} {...props}>
       {props.children ?? 'Duplicate'}
     </DataTableRowActionItem>
+  );
+}
+
+export interface DataTableCopyValueActionProps {
+  /** Menu item label. */
+  title: string;
+  /** Copied to the clipboard when selected. */
+  value: string;
+  icon?: React.ReactNode;
+  disabled?: boolean;
+}
+
+export function DataTableCopyValueAction({
+  title,
+  value,
+  icon = <LuCopy />,
+  disabled,
+}: DataTableCopyValueActionProps) {
+  return (
+    <DropdownMenuItem
+      disabled={disabled}
+      onSelect={() => navigator.clipboard.writeText(value)}
+    >
+      {icon}
+      {title}
+    </DropdownMenuItem>
   );
 }
 
