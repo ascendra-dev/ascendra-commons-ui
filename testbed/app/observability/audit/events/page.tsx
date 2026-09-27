@@ -2,9 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LuDownload } from 'react-icons/lu';
 import {
-  Button,
   DataTable,
   DataTableBar,
   DataTableBarAction,
@@ -26,6 +24,7 @@ import {
   DataTableSortDropdown,
   DataTableWithQueryProvider,
   DataTableWrapper,
+  ExportCsvButton,
   MainContent,
   PageContent,
   PageHeader,
@@ -47,48 +46,16 @@ import {
   auditQueryDefs,
 } from '@/ascendra-commons-ui/audit-logging.ui/queries';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
-import {
-  mockAuditQueryFunctions,
-  mockDownloadCsv,
-} from '@/ascendra-commons-ui/audit-logging.ui/mocks';
+import { mockAuditQueryFunctions } from '@/ascendra-commons-ui/audit-logging.ui/mocks';
 import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 
 /** testbed has no live backend — using mock fetchers (see page.tsx's own comment upstream). */
 const queryFunctions = mockAuditQueryFunctions;
-const downloadCsv = mockDownloadCsv;
 
-/** Reads the confirmed query's params so "Export CSV" downloads exactly what's on screen. */
-function ExportCsvButton() {
-  const { confirmedParams } = useQueryContext();
-
-  const handleExport = async () => {
-    const params = confirmedParams ?? {};
-    const toStr = (v: unknown) =>
-      typeof v === 'string' && v.length > 0 ? v : undefined;
-    const toISO = (v: unknown) =>
-      v instanceof Date ? v.toISOString() : undefined;
-    const blob = await downloadCsv({
-      entityType: toStr(params.entityType),
-      action: toStr(params.action),
-      actor: toStr(params.actor),
-      correlationId: toStr(params.correlationId),
-      occurredAfter: toISO(params.occurredAfter),
-      occurredBefore: toISO(params.occurredBefore),
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'audit-events.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  return (
-    <Button variant="secondary" onClick={handleExport}>
-      <LuDownload className="size-3.5" />
-      Export CSV
-    </Button>
-  );
+/** Bridges useQueryContext (only callable inside the provider) to ExportCsvButton's data prop. */
+function AuditExportCsvButton() {
+  const { data } = useQueryContext();
+  return <ExportCsvButton data={data as AuditEvent[]} filename="audit-events.csv" />;
 }
 
 /** Empty header cell matching DataTableRowAction's trailing column. */
@@ -132,7 +99,7 @@ export default function AuditLogListPage() {
                     <DataTableFilterDropdown />
                   </DataTableBarContent>
                   <DataTableBarAction>
-                    <ExportCsvButton />
+                    <AuditExportCsvButton />
                   </DataTableBarAction>
                 </DataTableBar>
                 <DataTableFilterBar />
