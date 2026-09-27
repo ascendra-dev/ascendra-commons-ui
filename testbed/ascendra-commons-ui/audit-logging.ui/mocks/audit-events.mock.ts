@@ -209,9 +209,13 @@ function sortNewestFirst(records: AuditEvent[]): AuditEvent[] {
   return [...records].sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());
 }
 
-const mockRecent: QueryFn<AuditEvent> = async (_params, batch) => paginate(sortNewestFirst(MOCK_AUDIT_EVENTS), batch);
+const mockRecent: QueryFn<AuditEvent> = async (_params, batch) => {
+  await delay(2000);
+  return paginate(sortNewestFirst(MOCK_AUDIT_EVENTS), batch);
+};
 
 const mockAdvancedFilter: QueryFn<AuditEvent> = async (params, batch) => {
+  await delay(2000);
   const entityType = typeof params.entityType === 'string' ? params.entityType : undefined;
   const action = typeof params.action === 'string' ? params.action : undefined;
   const actor = typeof params.actor === 'string' ? params.actor : undefined;
