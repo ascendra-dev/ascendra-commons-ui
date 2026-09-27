@@ -84,3 +84,61 @@ export function formatDateRange(startIso: string, endIso: string): string {
   if (!startIso || !endIso) return '';
   return `${formatDateTime(startIso, { style: 'medium' })} – ${formatDateTime(endIso, { style: 'medium' })}`;
 }
+
+function csvCell(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  const text =
+    value instanceof Date
+      ? value.toISOString()
+      : typeof value === 'object'
+        ? JSON.stringify(value)
+        : String(value);
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+export interface ObjectsToCsvOptions<T> {
+  /** Keys to omit from the exported columns. */
+  exclude?: (keyof T)[];
+}
+
+/**
+ * Converts an array of flat objects into CSV text. Columns come from the
+ * first row's own keys — every row is expected to share that shape. Each
+ * cell is stringified by its own runtime type (a `Date` becomes its ISO
+ * string, an object/array is JSON-stringified, everything else via
+ * `String()`) rather than a type locked in from the first row, so a
+ * nullable column still renders correctly across rows.
+ */
+export function objectsToCsv<T extends Record<string, unknown>>(
+  data: T[],
+  options: ObjectsToCsvOptions<T> = {},
+): string {
+  if (!data.length) return '';
+  const exclude = new Set(options.exclude ?? []);
+  const keys = (Object.keys(data[0]) as (keyof T)[]).filter((k) => !exclude.has(k));
+  const header = keys.map((k) => csvCell(String(k)));
+  const rows = data.map((row) => keys.map((k) => csvCell(row[k])));
+  return [header, ...rows].map((r) => r.join(',')).join('\n');
+}
+
+export interface DownloadCsvOptions<T> extends ObjectsToCsvOptions<T> {
+  /** Defaults to a timestamped name, e.g. "export-2026-09-27T05-42-10.csv". */
+  filename?: string;
+}
+
+/** Builds CSV via `objectsToCsv` and triggers a browser file download. No-ops on an empty array. */
+export function downloadCsv<T extends Record<string, unknown>>(
+  data: T[],
+  options: DownloadCsvOptions<T> = {},
+): void {
+  if (!data.length) return;
+  const csv = objectsToCsv(data, options);
+  const filename = options.filename ?? `export-${new Date().toISOString().replace(/[:.]/g, '-')}.csv`;
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}

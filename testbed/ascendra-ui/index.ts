@@ -150,6 +150,7 @@ export * from './components/side-bar/side-bar-toggle';
 
 // Utility
 export * from './components/util/date-time';
+export * from './components/util/export-csv-button';
 export * from './components/util/scroll-to-top';
 export * from './components/util/theme-toggle';
 export * from './components/util/with-copy-text';
