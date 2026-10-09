@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  IdText,
   Sheet,
   SheetBody,
   SheetContent,
@@ -13,7 +14,6 @@ import {
   SheetTitle,
   SheetValue,
   SimpleBadge,
-  WithCopyText,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
@@ -32,7 +32,10 @@ interface DiffLine {
  * contract (FieldDiffEntry), which this doesn't need since every field is
  * already in hand on the row.
  */
-function buildDiffLines(before: Record<string, unknown> | null, after: Record<string, unknown> | null): DiffLine[] {
+function buildDiffLines(
+  before: Record<string, unknown> | null,
+  after: Record<string, unknown> | null,
+): DiffLine[] {
   const b = before ?? {};
   const a = after ?? {};
   const fields = [...new Set([...Object.keys(b), ...Object.keys(a)])];
@@ -46,14 +49,31 @@ function buildDiffLines(before: Record<string, unknown> | null, after: Record<st
   for (const field of fields) {
     const hasBefore = field in b;
     const hasAfter = field in a;
-    const isUnchanged = hasBefore && hasAfter && JSON.stringify(b[field]) === JSON.stringify(a[field]);
+    const isUnchanged =
+      hasBefore &&
+      hasAfter &&
+      JSON.stringify(b[field]) === JSON.stringify(a[field]);
 
     if (isUnchanged) {
-      unchanged.push({ key: field, kind: 'unchanged', text: `${field}: ${JSON.stringify(a[field])}` });
+      unchanged.push({
+        key: field,
+        kind: 'unchanged',
+        text: `${field}: ${JSON.stringify(a[field])}`,
+      });
       continue;
     }
-    if (hasBefore) changed.push({ key: `${field}-before`, kind: 'removed', text: `${field}: ${JSON.stringify(b[field])}` });
-    if (hasAfter) changed.push({ key: `${field}-after`, kind: 'added', text: `${field}: ${JSON.stringify(a[field])}` });
+    if (hasBefore)
+      changed.push({
+        key: `${field}-before`,
+        kind: 'removed',
+        text: `${field}: ${JSON.stringify(b[field])}`,
+      });
+    if (hasAfter)
+      changed.push({
+        key: `${field}-after`,
+        kind: 'added',
+        text: `${field}: ${JSON.stringify(a[field])}`,
+      });
   }
 
   return [...changed, ...unchanged];
@@ -66,7 +86,13 @@ function buildDiffLines(before: Record<string, unknown> | null, after: Record<st
  * (see call sites' `{selected && <AuditEventDetailSheet ... />}`), so
  * `record` is required and there's nothing to guard against internally.
  */
-export function AuditEventDetailSheet({ record, onClose }: { record: AuditEvent; onClose: () => void }) {
+export function AuditEventDetailSheet({
+  record,
+  onClose,
+}: {
+  record: AuditEvent;
+  onClose: () => void;
+}) {
   const diffLines = buildDiffLines(record.before, record.after);
 
   return (
@@ -74,20 +100,23 @@ export function AuditEventDetailSheet({ record, onClose }: { record: AuditEvent;
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Audit record detail</SheetTitle>
-          <SheetDescription>What changed on this record, when it happened, and who made the change.</SheetDescription>
+          <SheetDescription>
+            What changed on this record, when it happened, and who made the
+            change.
+          </SheetDescription>
         </SheetHeader>
         <SheetBody>
           <SheetSection>
             <SheetProperties>
               <SheetKey>Record id</SheetKey>
-              <SheetValue className="font-mono">
-                <WithCopyText value={record.id} showTooltip>
-                  {record.id}
-                </WithCopyText>
+              <SheetValue>
+                <IdText value={record.id} showTooltip={false} />
               </SheetValue>
 
               <SheetKey>Occurred at</SheetKey>
-              <SheetValue>{formatDateTime(record.occurredAt, { time: true })}</SheetValue>
+              <SheetValue>
+                {formatDateTime(record.occurredAt, { time: true })}
+              </SheetValue>
 
               <SheetKey>Actor</SheetKey>
               <SheetValue>{record.actor}</SheetValue>
@@ -103,20 +132,20 @@ export function AuditEventDetailSheet({ record, onClose }: { record: AuditEvent;
                   <SimpleBadge variant="secondary" className="w-fit">
                     {record.entityType}
                   </SimpleBadge>
-                  <WithCopyText value={record.entityId} showTooltip>
-                    <span className="font-mono text-xs">{record.entityId}</span>
-                  </WithCopyText>
+                  <IdText value={record.entityId} showTooltip={false} />
                 </div>
               </SheetValue>
 
               <SheetKey>Tenant</SheetKey>
-              <SheetValue>{record.tenantId ?? <SimpleBadge variant="info">platform</SimpleBadge>}</SheetValue>
+              <SheetValue>
+                {record.tenantId ?? (
+                  <SimpleBadge variant="info">platform</SimpleBadge>
+                )}
+              </SheetValue>
 
               <SheetKey>Correlation</SheetKey>
-              <SheetValue className="font-mono">
-                <WithCopyText value={record.correlationId} showTooltip>
-                  {record.correlationId}
-                </WithCopyText>
+              <SheetValue>
+                <IdText value={record.correlationId} showTooltip={false} />
               </SheetValue>
 
               {record.reason && (
@@ -131,7 +160,9 @@ export function AuditEventDetailSheet({ record, onClose }: { record: AuditEvent;
           <SheetSection>
             <SheetSectionHeader>Before → after</SheetSectionHeader>
             {diffLines.length === 0 ? (
-              <p className="text-muted-foreground text-sm">No field-level changes recorded.</p>
+              <p className="text-muted-foreground text-sm">
+                No field-level changes recorded.
+              </p>
             ) : (
               <div className="border-border bg-muted rounded-md border p-3 font-mono text-xs">
                 {diffLines.map((line) => (
@@ -145,7 +176,11 @@ export function AuditEventDetailSheet({ record, onClose }: { record: AuditEvent;
                           : 'text-muted-foreground'
                     }
                   >
-                    {line.kind === 'removed' ? '- ' : line.kind === 'added' ? '+ ' : '  '}
+                    {line.kind === 'removed'
+                      ? '- '
+                      : line.kind === 'added'
+                        ? '+ '
+                        : '  '}
                     {line.text}
                   </div>
                 ))}

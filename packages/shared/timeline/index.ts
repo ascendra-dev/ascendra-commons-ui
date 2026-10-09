@@ -1,1 +1,1 @@
-export { dotVariantForEntityType, type TimelineDotVariant } from './module-color';
+export { dotVariantForEntityType, dotVariantForAction, type TimelineDotVariant } from './module-color';

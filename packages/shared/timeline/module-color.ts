@@ -26,3 +26,32 @@ const ENTITY_TYPE_DOT_VARIANT: Record<string, TimelineDotVariant> = {
 export function dotVariantForEntityType(entityType: string): TimelineDotVariant {
   return ENTITY_TYPE_DOT_VARIANT[entityType] ?? 'gray';
 }
+
+/**
+ * Per-action-verb dot color — for a timeline whose events all share the same
+ * entityType (Entity History: one fixed entity), where `dotVariantForEntityType`
+ * would color every row identically. The verb (the segment after the
+ * module prefix, e.g. "created" in "invoice.created") is the dimension that
+ * actually varies within one entity's own history, grouped by rough
+ * semantic category — a new record (emerald), a state change (sky), or a
+ * terminal/negative one (rose) — rather than one color per literal action
+ * string, which would fragment for little benefit.
+ */
+const ACTION_VERB_DOT_VARIANT: Record<string, TimelineDotVariant> = {
+  created: 'emerald',
+  uploaded: 'emerald',
+  role_granted: 'emerald',
+  issued: 'sky',
+  resolved: 'sky',
+  paid: 'sky',
+  route_set: 'sky',
+  payment_failed: 'amber',
+  void: 'rose',
+  expired: 'rose',
+  role_revoked: 'rose',
+};
+
+export function dotVariantForAction(action: string): TimelineDotVariant {
+  const verb = action.split('.').slice(1).join('.');
+  return ACTION_VERB_DOT_VARIANT[verb] ?? 'gray';
+}

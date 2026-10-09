@@ -18,6 +18,7 @@ import {
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
 import { mockTrace } from '@/ascendra-commons-ui/audit-logging.ui/mocks';
 import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { dotVariantForEntityType } from '@/ascendra-commons-ui/shared/timeline';
 import { AuditEventTimeline } from '../../_audit-event-timeline';
 import { AuditEventDetailSheet } from '../../_audit-event-detail-sheet';
 
@@ -53,6 +54,7 @@ export default function AuditTracePage() {
                   records={data.records}
                   emptyMessage="No audit events recorded under this correlation id."
                   onEventClick={setSelected}
+                  dotVariant={(row) => dotVariantForEntityType(row.entityType)}
                 />
               )}
             </MainContent>

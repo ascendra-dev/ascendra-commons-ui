@@ -58,6 +58,28 @@ export interface AuditQueryResult {
   nextCursor?: string;
 }
 
+/**
+ * `GET /audit/entities/:type/:id/neighbors` — the adjacent entities of the
+ * same type, ordered by last activity (MAX(occurredAt) per entity), not by
+ * this entity's own event list. One entity's own audit trail is normally
+ * short enough to show in full without pagination (see AuditEntityHistory's
+ * own fetch); Newer/Older instead moves between *entities* of the same
+ * type — e.g. from one invoice to the next-most-recently-active invoice —
+ * which is the actually useful review workflow (going through every
+ * flagged invoice/user in turn without returning to the list each time).
+ *
+ * `tenantId` scopes the neighbor set to the current entity's own tenant;
+ * when the current entity's tenant is null (a platform-level entity), the
+ * scope is every tenant instead — there's no tenant boundary to enforce for
+ * an entity that isn't owned by one.
+ */
+export interface EntityNeighbors {
+  newer: { entityId: string } | null;
+  older: { entityId: string } | null;
+  /** Count of distinct entities of this type in the same (tenant-scoped) neighbor set. */
+  totalRecords: number;
+}
+
 export interface AuditDailyCount {
   /** YYYY-MM-DD, UTC. */
   day: string;

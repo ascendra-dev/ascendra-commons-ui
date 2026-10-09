@@ -3,6 +3,7 @@ export {
   mockAuditQueryFunctions,
   mockGetEvent,
   mockEntityHistory,
+  mockEntityNeighbors,
   mockTrace,
   mockOverviewStats,
   mockTopActionsStats,

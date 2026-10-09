@@ -1,5 +1,5 @@
 import { apiClient } from '@/ascendra-ui/lib/api/client';
-import type { ActorActivitySummary, AuditEventDetail, AuditQuery, AuditQueryResult, AuditStats } from './audit-api.types';
+import type { ActorActivitySummary, AuditEventDetail, AuditQuery, AuditQueryResult, AuditStats, EntityNeighbors } from './audit-api.types';
 
 /**
  * Uses the raw apiClient axios instance, not ascendra-ui's `api.get<T>`
@@ -46,6 +46,21 @@ export const auditApi = {
     const { data } = await apiClient.get<AuditQueryResult>(
       `/audit/entities/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}/history`,
       { params: toQueryParams(query) },
+    );
+    return data;
+  },
+
+  /**
+   * `tenantId` is the current entity's own tenant (the caller already has
+   * it from entityHistory's own records) — see EntityNeighbors' doc comment
+   * for the tenant-scoping rule this drives.
+   */
+  async entityNeighbors(entityType: string, entityId: string, tenantId?: string | null): Promise<EntityNeighbors> {
+    const params: Record<string, string> = {};
+    if (tenantId !== undefined) params.tenantId = tenantId ?? 'null';
+    const { data } = await apiClient.get<EntityNeighbors>(
+      `/audit/entities/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}/neighbors`,
+      { params },
     );
     return data;
   },

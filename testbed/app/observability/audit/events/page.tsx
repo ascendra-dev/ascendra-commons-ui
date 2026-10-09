@@ -28,7 +28,10 @@ import {
   DataTableSortDropdown,
   DataTableWithQueryProvider,
   DataTableWrapper,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   ExportCsvButton,
+  IdText,
   MainContent,
   PageContent,
   PageHeader,
@@ -179,10 +182,16 @@ export default function AuditLogListPage() {
                                   row.entityType,
                                   row.entityId,
                                 )}
-                                className="font-mono text-muted-foreground text-xs hover:underline"
+                                className="hover:underline"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                {row.entityId}
+                                <IdText
+                                  value={row.entityId}
+                                  size="lg"
+                                  copyable={false}
+                                  className="text-muted-foreground text-xs"
+                                  showTooltip={false}
+                                />
                               </Link>
                             </div>
                           </DataTableCell>
@@ -209,13 +218,20 @@ export default function AuditLogListPage() {
                           <DataTableCell column="correlationId">
                             <Link
                               href={auditLogLinks.trace(row.correlationId)}
-                              className="font-mono text-xs hover:underline"
+                              className="hover:underline"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              {row.correlationId}
+                              <IdText
+                                value={row.correlationId}
+                                size="lg"
+                                copyable={false}
+                                showTooltip={false}
+                              />
                             </Link>
                           </DataTableCell>
                           <DataTableRowAction>
+                            <DropdownMenuLabel>Row actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
                             <DataTableCopyValueAction
                               title="Copy Entity ID"
                               value={row.entityId}
@@ -243,7 +259,12 @@ export default function AuditLogListPage() {
           </PageContent>
         </PageWrapper>
       </PageMain>
-      {selected && <AuditEventDetailSheet record={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <AuditEventDetailSheet
+          record={selected}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </>
   );
 }

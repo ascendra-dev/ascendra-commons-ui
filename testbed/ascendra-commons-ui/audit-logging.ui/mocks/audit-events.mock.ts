@@ -13,6 +13,7 @@ import type {
   AuditStats,
   AuditTenantCount,
   AuditTopActionsStats,
+  EntityNeighbors,
 } from '../api/audit-api.types';
 
 const NOW = Date.now();
@@ -47,6 +48,58 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     correlationId: '5b9e1c04-2a71-4c3e-9f8a-d3b6e0c1a1a1',
   },
   {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e15',
+    entityType: 'invoice',
+    entityId: 'a7c1e4b2-5f3d-4a8e-9b2c-6d1f0e4a7c01',
+    tenantId: 'tenant_acme',
+    actor: 'customer_4471',
+    action: 'invoice.viewed',
+    before: null,
+    after: null,
+    occurredAt: hoursAgo(115),
+    reason: null,
+    correlationId: 'b2e5f8a1-3c6d-4b9e-8f2a-5c7d0e3b6a11',
+  },
+  {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e16',
+    entityType: 'invoice',
+    entityId: 'a7c1e4b2-5f3d-4a8e-9b2c-6d1f0e4a7c01',
+    tenantId: 'tenant_acme',
+    actor: 'system',
+    action: 'invoice.reminder_sent',
+    before: null,
+    after: null,
+    occurredAt: hoursAgo(110),
+    reason: null,
+    correlationId: 'c3f6a9b2-4d7e-4c0f-9a3b-6d8e1f4c7b12',
+  },
+  {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e17',
+    entityType: 'invoice',
+    entityId: 'a7c1e4b2-5f3d-4a8e-9b2c-6d1f0e4a7c01',
+    tenantId: 'tenant_acme',
+    actor: 'system',
+    action: 'invoice.payment_failed',
+    before: { status: 'issued', amount: 4200, currency: 'USD' },
+    after: { status: 'issued', amount: 4200, currency: 'USD', lastPaymentError: 'card_declined' },
+    occurredAt: hoursAgo(105),
+    reason: 'Card declined by issuing bank',
+    correlationId: 'd4a7b0c3-5e8f-4d1a-0b4c-7e9f2a5d8c13',
+  },
+  {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e18',
+    entityType: 'invoice',
+    entityId: 'a7c1e4b2-5f3d-4a8e-9b2c-6d1f0e4a7c01',
+    tenantId: 'tenant_acme',
+    actor: 'system',
+    action: 'invoice.reminder_sent',
+    before: null,
+    after: null,
+    occurredAt: hoursAgo(100),
+    reason: null,
+    correlationId: 'e5b8c1d4-6f9a-4e2b-1c5d-8f0a3b6e9d14',
+  },
+  {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e03',
     entityType: 'invoice',
     entityId: 'a7c1e4b2-5f3d-4a8e-9b2c-6d1f0e4a7c01',
@@ -69,6 +122,19 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     before: null,
     after: { amount: 1500, currency: 'USD', expiresAt: hoursAgo(-168) },
     occurredAt: hoursAgo(88),
+    reason: null,
+    correlationId: '3f10a2c7-4b8d-4e9a-9c1f-5d6e7a8b9c03',
+  },
+  {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e13',
+    entityType: 'payment-link',
+    entityId: 'b8d2f5c3-6a4e-4b9f-8c3d-7e2a1f5b8d01',
+    tenantId: 'tenant_acme',
+    actor: 'system',
+    action: 'payment-link.reminder_sent',
+    before: null,
+    after: null,
+    occurredAt: hoursAgo(87.5),
     reason: null,
     correlationId: '3f10a2c7-4b8d-4e9a-9c1f-5d6e7a8b9c03',
   },
@@ -106,7 +172,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     actor: 'admin@globex.test',
     action: 'invoice.created',
     before: null,
-    after: { status: 'draft', amount: 980 },
+    after: { status: 'draft', amount: 980, currency: 'USD' },
     occurredAt: hoursAgo(68),
     reason: null,
     correlationId: 'c2b1a3f8-5d9e-4a7c-8b3f-7d2e6a9c1b05',
@@ -118,11 +184,76 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     tenantId: 'tenant_globex',
     actor: 'admin@globex.test',
     action: 'invoice.issued',
-    before: { status: 'draft' },
-    after: { status: 'issued' },
+    before: { status: 'draft', amount: 980, currency: 'USD' },
+    after: { status: 'issued', amount: 980, currency: 'USD' },
     occurredAt: hoursAgo(67),
     reason: null,
     correlationId: 'c2b1a3f8-5d9e-4a7c-8b3f-7d2e6a9c1b05',
+  },
+  {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e14',
+    entityType: 'invoice',
+    entityId: 'd0f4a7e5-8c6a-4d9b-9e5f-9a4c3b7d0e01',
+    tenantId: 'tenant_globex',
+    actor: 'system',
+    action: 'invoice.paid',
+    before: { status: 'issued', amount: 980, currency: 'USD' },
+    after: { status: 'paid', amount: 980, currency: 'USD', paidAt: hoursAgo(60) },
+    occurredAt: hoursAgo(60),
+    reason: 'Payment received via bank transfer',
+    correlationId: 'a1f4e9c2-6b3d-4e7a-8c5f-9d2b1e6a3f10',
+  },
+  {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e19',
+    entityType: 'invoice',
+    entityId: 'f7a2c5e8-3b6d-4c9e-8f1a-5d2b7e4c9a01',
+    tenantId: 'tenant_acme',
+    actor: 'jane@acme.test',
+    action: 'invoice.created',
+    before: null,
+    after: { status: 'draft', amount: 2100, currency: 'USD' },
+    occurredAt: hoursAgo(20),
+    reason: null,
+    correlationId: 'f1a4c7e0-9b2d-4e5f-8a3c-6d9e0b4f7c15',
+  },
+  {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e20',
+    entityType: 'invoice',
+    entityId: 'f7a2c5e8-3b6d-4c9e-8f1a-5d2b7e4c9a01',
+    tenantId: 'tenant_acme',
+    actor: 'jane@acme.test',
+    action: 'invoice.issued',
+    before: { status: 'draft', amount: 2100, currency: 'USD' },
+    after: { status: 'issued', amount: 2100, currency: 'USD' },
+    occurredAt: hoursAgo(15),
+    reason: null,
+    correlationId: 'f1a4c7e0-9b2d-4e5f-8a3c-6d9e0b4f7c15',
+  },
+  {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e21',
+    entityType: 'invoice',
+    entityId: 'a9c3e6f1-4d7e-4b0f-9a2c-6e3d8f5b1c02',
+    tenantId: 'tenant_acme',
+    actor: 'jane@acme.test',
+    action: 'invoice.created',
+    before: null,
+    after: { status: 'draft', amount: 750, currency: 'USD' },
+    occurredAt: hoursAgo(5),
+    reason: null,
+    correlationId: 'a2b5d8e1-0c3f-4a6b-9d4e-7f1a5c8e2b16',
+  },
+  {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e22',
+    entityType: 'invoice',
+    entityId: 'c48f1a92-5e8b-4c1d-8a3f-7b4e9c2d6a03',
+    tenantId: null,
+    actor: 'system',
+    action: 'invoice.created',
+    before: null,
+    after: { status: 'draft', amount: 300, currency: 'USD' },
+    occurredAt: hoursAgo(30),
+    reason: 'Platform-level billing adjustment, not tied to a tenant',
+    correlationId: 'b3c6e9f2-1d4a-4b7c-8e5f-9a2b6d0f3c17',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e09',
@@ -243,8 +374,57 @@ export async function mockGetEvent(id: string): Promise<AuditEventDetail> {
   return { ...event, diff: diffFields(event.before, event.after) };
 }
 
+/**
+ * Offset-as-cursor paging (the cursor is just the next offset, stringified)
+ * — safe here because the mock already holds every matching record in
+ * memory, unlike the real cursor-paginated API this mirrors the shape of.
+ * `totalRecords` is likewise mock-only, reported because it's free to
+ * compute from the in-memory array — see AuditQueryResult's own doc comment.
+ */
+/** One entity's own trail is normally short enough to show in full — no pagination. */
 export async function mockEntityHistory(entityType: string, entityId: string): Promise<AuditQueryResult> {
+  await delay(400);
   return { records: sortNewestFirst(MOCK_AUDIT_EVENTS.filter((e) => e.entityType === entityType && e.entityId === entityId)) };
+}
+
+/**
+ * See EntityNeighbors' own doc comment for what this actually orders by
+ * (last activity per entity) and the tenant-scoping rule. `tenantId` here
+ * is the CURRENT entity's own tenant, passed by the caller (which already
+ * has it loaded) — not a filter the caller chooses independently.
+ */
+export async function mockEntityNeighbors(
+  entityType: string,
+  entityId: string,
+  tenantId?: string | null,
+): Promise<EntityNeighbors> {
+  await delay(400);
+
+  const scoped = MOCK_AUDIT_EVENTS.filter((e) => {
+    if (e.entityType !== entityType) return false;
+    return tenantId ? e.tenantId === tenantId : true;
+  });
+
+  const lastActivityByEntity = new Map<string, number>();
+  for (const e of scoped) {
+    const t = new Date(e.occurredAt).getTime();
+    const prev = lastActivityByEntity.get(e.entityId);
+    if (prev === undefined || t > prev) lastActivityByEntity.set(e.entityId, t);
+  }
+
+  const entities = [...lastActivityByEntity.entries()]
+    .map(([id, lastActivity]) => ({ id, lastActivity }))
+    .sort((a, b) => a.lastActivity - b.lastActivity || a.id.localeCompare(b.id));
+
+  const index = entities.findIndex((e) => e.id === entityId);
+  const older = index > 0 ? entities[index - 1] : null;
+  const newer = index >= 0 && index < entities.length - 1 ? entities[index + 1] : null;
+
+  return {
+    newer: newer ? { entityId: newer.id } : null,
+    older: older ? { entityId: older.id } : null,
+    totalRecords: entities.length,
+  };
 }
 
 export async function mockTrace(correlationId: string): Promise<AuditQueryResult> {
