@@ -316,7 +316,7 @@ const PAGE_SIZE = 5;
 
 /**
  * Reports the true total, not a one-page-ahead peek — unlike the real
- * cursor-paginated API (createCursorWalkingQueryFn in audit-query-functions.ts),
+ * cursor-paginated API (createCursorQueryFn in audit-query-functions.ts),
  * this mock already holds the entire filtered array in memory before
  * slicing it, so there's no reason to under-report what it already knows.
  */
