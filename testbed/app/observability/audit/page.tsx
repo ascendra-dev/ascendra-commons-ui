@@ -61,10 +61,11 @@ import type {
 } from "@/ascendra-commons-ui/audit-logging.ui/api";
 import {
   formatCount,
-  formatDateRange,
-  formatShortDate,
+  formatDateTime,
   formatSignedPercent,
 } from "@/ascendra-ui/utils/common.util";
+
+const formatDayTick = (day: string) => formatDateTime(day, { style: "short" });
 
 const chartConfig: ChartConfig = {
   count: { label: "Records", color: "var(--chart-1)" },
@@ -141,8 +142,7 @@ export default function AuditOverviewPage() {
   });
 
   const volumeSubtitle = overview.data
-    ? `Past 30 days · ${formatDateRange(
-        overview.data.perDay[0].day,
+    ? `Past 30 days · ${formatDateTime(overview.data.perDay[0].day)} – ${formatDateTime(
         overview.data.perDay[overview.data.perDay.length - 1].day,
       )}`
     : "Past 30 days";
@@ -275,7 +275,7 @@ export default function AuditOverviewPage() {
                             axisLine={false}
                             tick={{ fontSize: 11 }}
                             interval={4}
-                            tickFormatter={formatShortDate}
+                            tickFormatter={formatDayTick}
                           />
                           <YAxis
                             tickLine={false}
@@ -312,7 +312,7 @@ export default function AuditOverviewPage() {
                             axisLine={false}
                             tick={{ fontSize: 11 }}
                             interval={4}
-                            tickFormatter={formatShortDate}
+                            tickFormatter={formatDayTick}
                           />
                           <YAxis
                             tickLine={false}
