@@ -12,21 +12,6 @@ import type { ActorActivitySummary, AuditEvent, AuditEventDetail, AuditQuery, Au
  * ascendra-pay-api today). Revisit if that changes.
  */
 
-function toQueryParams(query: AuditQuery): Record<string, string | number> {
-  const params: Record<string, string | number> = {};
-  if (query.entityType) params.entityType = query.entityType;
-  if (query.entityId) params.entityId = query.entityId;
-  if (query.tenantId !== undefined) params.tenantId = query.tenantId ?? 'null';
-  if (query.actor) params.actor = query.actor;
-  if (query.action) params.action = query.action;
-  if (query.correlationId) params.correlationId = query.correlationId;
-  if (query.occurredAfter) params.occurredAfter = query.occurredAfter;
-  if (query.occurredBefore) params.occurredBefore = query.occurredBefore;
-  if (query.limit !== undefined) params.limit = query.limit;
-  if (query.cursor) params.cursor = query.cursor;
-  return params;
-}
-
 export const auditApi = {
   /**
    * Returns api-contract.md's cursor list shape. audit-logging.api still sends
@@ -59,7 +44,7 @@ export const auditApi = {
   ): Promise<AuditQueryResult> {
     const { data } = await apiClient.get<AuditQueryResult>(
       `/audit/entities/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}/history`,
-      { params: toQueryParams(query) },
+      { params: query },
     );
     return data;
   },
@@ -82,7 +67,7 @@ export const auditApi = {
   async trace(correlationId: string, query: Pick<AuditQuery, 'limit' | 'cursor'> = {}): Promise<AuditQueryResult> {
     const { data } = await apiClient.get<AuditQueryResult>(
       `/audit/trace/${encodeURIComponent(correlationId)}`,
-      { params: toQueryParams(query) },
+      { params: query },
     );
     return data;
   },
@@ -108,7 +93,8 @@ export const auditApi = {
   /** GET /audit/events.csv — same filters as findEvents, returns the raw CSV text. */
   async downloadEventsCsv(query: Omit<AuditQuery, 'limit' | 'cursor'>): Promise<Blob> {
     const { data } = await apiClient.get<string>('/audit/events.csv', {
-      params: toQueryParams(query),
+      // axios drops null params; an explicit null tenant (platform-level) must reach the wire as 'null'.
+      params: { ...query, tenantId: query.tenantId === null ? 'null' : query.tenantId },
       responseType: 'blob',
     });
     return new Blob([data], { type: 'text/csv' });
