@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -14,9 +15,12 @@ import {
   PageWrapper,
   SimpleAlert,
 } from '@/ascendra-ui';
-import { auditApi } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
+import { auditApi } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { dotVariantForEntityType } from '@/ascendra-commons-ui/shared/timeline';
 import { AuditEventTimeline } from '../../_audit-event-timeline';
+import { AuditEventDetailSheet } from '../../_audit-event-detail-sheet';
 
 /**
  * The one fetcher this page calls — real API by default. A consumer without
@@ -32,6 +36,7 @@ export default function AuditTracePage() {
     queryKey: ['audit-trace', correlationId],
     queryFn: () => fetchTrace(correlationId),
   });
+  const [selected, setSelected] = useState<AuditEvent | null>(null);
 
   return (
     <>
@@ -52,12 +57,15 @@ export default function AuditTracePage() {
                 <AuditEventTimeline
                   records={data.records}
                   emptyMessage="No audit events recorded under this correlation id."
+                  onEventClick={setSelected}
+                  dotVariant={(row) => dotVariantForEntityType(row.entityType)}
                 />
               )}
             </MainContent>
           </PageContent>
         </PageWrapper>
       </PageMain>
+      {selected && <AuditEventDetailSheet record={selected} onClose={() => setSelected(null)} />}
     </>
   );
 }

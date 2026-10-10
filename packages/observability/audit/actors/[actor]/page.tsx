@@ -26,10 +26,11 @@ import {
   TableHeaderRow,
   TableRow,
   TableWrapper,
+  WithEmptyValue,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
-import { auditApi } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
+import { auditApi } from '@/ascendra-commons-ui/audit-logging.ui/api';
 
 /**
  * The one fetcher this page calls — real API by default. A consumer without
@@ -40,7 +41,8 @@ const fetchActivity = (actor: string) => auditApi.actorActivity(actor);
 
 /** Reached only by clicking an actor cell elsewhere in the Audit Log — not nav. */
 export default function AuditActorActivityPage() {
-  const { actor } = useParams<{ actor: string }>();
+  const { actor: rawActor } = useParams<{ actor: string }>();
+  const actor = decodeURIComponent(rawActor);
   const { data, isLoading, isError } = useQuery({
     queryKey: ['audit-actor-activity', actor],
     queryFn: () => fetchActivity(actor),
@@ -71,12 +73,18 @@ export default function AuditActorActivityPage() {
                         <div>
                           <dt className="text-muted-foreground text-xs">First seen</dt>
                           <dd>
-                            {data.firstSeen ? formatDateTime(data.firstSeen, { style: 'relative' }) : '—'}
+                            <WithEmptyValue value={data.firstSeen}>
+                              {data.firstSeen && formatDateTime(data.firstSeen, { style: 'relative' })}
+                            </WithEmptyValue>
                           </dd>
                         </div>
                         <div>
                           <dt className="text-muted-foreground text-xs">Last seen</dt>
-                          <dd>{data.lastSeen ? formatDateTime(data.lastSeen, { style: 'relative' }) : '—'}</dd>
+                          <dd>
+                            <WithEmptyValue value={data.lastSeen}>
+                              {data.lastSeen && formatDateTime(data.lastSeen, { style: 'relative' })}
+                            </WithEmptyValue>
+                          </dd>
                         </div>
                         <div>
                           <dt className="text-muted-foreground text-xs">Total records</dt>
