@@ -1,6 +1,6 @@
 'use client';
 
-import { useOptionalQueryContext } from '@/ascendra-ui/providers/data-table-query/data-table-query.provider';
+import { useIsQueryParamPanelOpen } from '@/ascendra-ui/providers/data-table-query/data-table-query.provider';
 import { cn } from '@/ascendra-ui/shadcn';
 
 export function DataTableBar({
@@ -8,8 +8,7 @@ export function DataTableBar({
   children,
   ...props
 }: React.ComponentProps<'div'>) {
-  const queryCtx = useOptionalQueryContext();
-  const showParamPanel = !!queryCtx?.activeQuery.params?.length && queryCtx.confirmedParams === null;
+  const showParamPanel = useIsQueryParamPanelOpen();
   return (
     <div
       data-slot="data-table-bar"

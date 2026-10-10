@@ -12,7 +12,10 @@ import { CardHeader } from "@/ascendra-ui/components/card/card-header";
 import { CardPanel } from "@/ascendra-ui/components/card/card-panel";
 import { CardPanelItem } from "@/ascendra-ui/components/card/card-panel-item";
 import { Button } from "@/ascendra-ui/components/ui/button";
-import { useQueryContext } from "@/ascendra-ui/providers/data-table-query/data-table-query.provider";
+import {
+  useIsQueryParamPanelOpen,
+  useQueryContext,
+} from "@/ascendra-ui/providers/data-table-query/data-table-query.provider";
 import type {
   ColumnsConfig,
   FieldDef,
@@ -191,9 +194,8 @@ function getSpanClass(field: FieldDef): string {
 }
 
 export function QueryParamPanel() {
-  const { activeQuery, confirmedParams } = useQueryContext();
-  const showParamPanel =
-    !!activeQuery.params?.length && confirmedParams === null;
+  const { activeQuery } = useQueryContext();
+  const showParamPanel = useIsQueryParamPanelOpen();
 
   if (!showParamPanel) return null;
 

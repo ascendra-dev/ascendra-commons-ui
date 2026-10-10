@@ -408,3 +408,9 @@ export function useQueryContext(): QueryContextValue {
 export function useOptionalQueryContext(): QueryContextValue | null {
   return useContext(QueryContext);
 }
+
+/** True while the active query's param form is showing (it has params, none confirmed yet) — the table chrome hides meanwhile. */
+export function useIsQueryParamPanelOpen(): boolean {
+  const ctx = useOptionalQueryContext();
+  return !!ctx?.activeQuery.params?.length && ctx.confirmedParams === null;
+}

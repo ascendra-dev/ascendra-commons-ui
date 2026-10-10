@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { cn } from '@/ascendra-ui/shadcn';
-import { useOptionalQueryContext } from '@/ascendra-ui/providers/data-table-query/data-table-query.provider';
+import { useIsQueryParamPanelOpen } from '@/ascendra-ui/providers/data-table-query/data-table-query.provider';
 import {
   buildBorderClasses,
   type BorderConfig,
@@ -13,8 +13,7 @@ export function DataTableWrapper({
   className,
   ...props
 }: React.ComponentProps<'div'> & { border?: BorderConfig }) {
-  const queryCtx = useOptionalQueryContext();
-  const showParamPanel = !!queryCtx?.activeQuery.params?.length && queryCtx.confirmedParams === null;
+  const showParamPanel = useIsQueryParamPanelOpen();
 
   return (
     <div
