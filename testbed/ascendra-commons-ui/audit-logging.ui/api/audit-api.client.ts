@@ -1,7 +1,9 @@
 import { apiClient } from '@/ascendra-ui/lib/api/client';
 import { dateRangeBounds } from '@/ascendra-ui';
 import type { CursorListResponse, QueryParamValues } from '@/ascendra-ui';
-import type { ActorActivitySummary, AuditEvent, AuditEventDetail, AuditQuery, AuditQueryResult, AuditStats, EntityNeighbors } from './audit-api.types';
+import type { ActorActivitySummary, AuditEvent, AuditEventDetail, AuditStats, EntityNeighbors } from './audit-api.types';
+
+type CursorPage = { limit?: number; cursor?: string };
 
 /**
  * Uses the raw apiClient axios instance, not ascendra-ui's `api.get<T>`
@@ -13,10 +15,6 @@ import type { ActorActivitySummary, AuditEvent, AuditEventDetail, AuditQuery, Au
  */
 
 export const auditApi = {
-  /**
-   * Returns api-contract.md's cursor list shape. audit-logging.api still sends
-   * `{ records, nextCursor }` on the wire, so it's reshaped here.
-   */
   async findEvents(
     params: QueryParamValues,
     limit: number,
@@ -26,10 +24,10 @@ export const auditApi = {
     // but two independent params on the wire — split back out here.
     const { occurredRange, ...filters } = params;
     const { from: occurredAfter, to: occurredBefore } = dateRangeBounds(occurredRange);
-    const { data } = await apiClient.get<AuditQueryResult>('/audit/events', {
+    const { data } = await apiClient.get<CursorListResponse<AuditEvent>>('/audit/events', {
       params: { ...filters, limit, cursor, occurredAfter, occurredBefore },
     });
-    return { data: data.records, meta: { nextCursor: data.nextCursor } };
+    return data;
   },
 
   async getEvent(id: string): Promise<AuditEventDetail> {
@@ -40,9 +38,9 @@ export const auditApi = {
   async entityHistory(
     entityType: string,
     entityId: string,
-    query: Pick<AuditQuery, 'limit' | 'cursor'> = {},
-  ): Promise<AuditQueryResult> {
-    const { data } = await apiClient.get<AuditQueryResult>(
+    query: CursorPage = {},
+  ): Promise<CursorListResponse<AuditEvent>> {
+    const { data } = await apiClient.get<CursorListResponse<AuditEvent>>(
       `/audit/entities/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}/history`,
       { params: query },
     );
@@ -64,8 +62,8 @@ export const auditApi = {
     return data;
   },
 
-  async trace(correlationId: string, query: Pick<AuditQuery, 'limit' | 'cursor'> = {}): Promise<AuditQueryResult> {
-    const { data } = await apiClient.get<AuditQueryResult>(
+  async trace(correlationId: string, query: CursorPage = {}): Promise<CursorListResponse<AuditEvent>> {
+    const { data } = await apiClient.get<CursorListResponse<AuditEvent>>(
       `/audit/trace/${encodeURIComponent(correlationId)}`,
       { params: query },
     );
@@ -90,11 +88,12 @@ export const auditApi = {
     return data;
   },
 
-  /** GET /audit/events.csv — same filters as findEvents, returns the raw CSV text. */
-  async downloadEventsCsv(query: Omit<AuditQuery, 'limit' | 'cursor'>): Promise<Blob> {
+  /** GET /audit/events.csv — same filter form params as findEvents, returns the raw CSV text. */
+  async downloadEventsCsv(params: QueryParamValues): Promise<Blob> {
+    const { occurredRange, ...filters } = params;
+    const { from: occurredAfter, to: occurredBefore } = dateRangeBounds(occurredRange);
     const { data } = await apiClient.get<string>('/audit/events.csv', {
-      // axios drops null params; an explicit null tenant (platform-level) must reach the wire as 'null'.
-      params: { ...query, tenantId: query.tenantId === null ? 'null' : query.tenantId },
+      params: { ...filters, occurredAfter, occurredBefore },
       responseType: 'blob',
     });
     return new Blob([data], { type: 'text/csv' });

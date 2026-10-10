@@ -30,35 +30,6 @@ export interface AuditEventDetail extends AuditEvent {
 }
 
 /**
- * Filter for GET /audit/events (and, with one extra fixed field each,
- * /entities/:type/:id/history and /trace/:correlationId). Every field is
- * optional and ANDed, matching AuditQuery in audit-logging.core.
- */
-export interface AuditQuery {
-  entityType?: string;
-  entityId?: string;
-  tenantId?: string | null;
-  actor?: string;
-  action?: string;
-  correlationId?: string;
-  /** ISO date string. */
-  occurredAfter?: string;
-  /** ISO date string. */
-  occurredBefore?: string;
-  /** Default 50, capped at 200 server-side. */
-  limit?: number;
-  /** Opaque — pass back a previous result's nextCursor. */
-  cursor?: string;
-}
-
-export interface AuditQueryResult {
-  /** Newest first. */
-  records: AuditEvent[];
-  /** Present only when more records match. */
-  nextCursor?: string;
-}
-
-/**
  * `GET /audit/entities/:type/:id/neighbors` — the adjacent entities of the
  * same type, ordered by last activity (MAX(occurredAt) per entity), not by
  * this entity's own event list. One entity's own audit trail is normally

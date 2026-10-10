@@ -1,5 +1,5 @@
 import type { DateRange } from 'react-day-picker';
-import type { QueryFn, QueryFunctionMap } from '@/ascendra-ui';
+import type { CursorListResponse, QueryFn, QueryFunctionMap } from '@/ascendra-ui';
 import { diffFields } from '../api/audit-diff.util';
 import type {
   ActorActivitySummary,
@@ -9,7 +9,6 @@ import type {
   AuditEvent,
   AuditEventDetail,
   AuditOverviewStats,
-  AuditQueryResult,
   AuditStats,
   AuditTenantCount,
   AuditTopActionsStats,
@@ -379,12 +378,12 @@ export async function mockGetEvent(id: string): Promise<AuditEventDetail> {
  * — safe here because the mock already holds every matching record in
  * memory, unlike the real cursor-paginated API this mirrors the shape of.
  * `totalRecords` is likewise mock-only, reported because it's free to
- * compute from the in-memory array — see AuditQueryResult's own doc comment.
+ * compute from the in-memory array.
  */
 /** One entity's own trail is normally short enough to show in full — no pagination. */
-export async function mockEntityHistory(entityType: string, entityId: string): Promise<AuditQueryResult> {
+export async function mockEntityHistory(entityType: string, entityId: string): Promise<CursorListResponse<AuditEvent>> {
   await delay(400);
-  return { records: sortNewestFirst(MOCK_AUDIT_EVENTS.filter((e) => e.entityType === entityType && e.entityId === entityId)) };
+  return { data: sortNewestFirst(MOCK_AUDIT_EVENTS.filter((e) => e.entityType === entityType && e.entityId === entityId)), meta: {} };
 }
 
 /**
@@ -427,8 +426,8 @@ export async function mockEntityNeighbors(
   };
 }
 
-export async function mockTrace(correlationId: string): Promise<AuditQueryResult> {
-  return { records: sortNewestFirst(MOCK_AUDIT_EVENTS.filter((e) => e.correlationId === correlationId)) };
+export async function mockTrace(correlationId: string): Promise<CursorListResponse<AuditEvent>> {
+  return { data: sortNewestFirst(MOCK_AUDIT_EVENTS.filter((e) => e.correlationId === correlationId)), meta: {} };
 }
 
 // ─── Overview stats (synthetic, realistic-scale) ───────────────────────────

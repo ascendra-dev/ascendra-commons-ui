@@ -50,7 +50,7 @@ export default function AuditEntityHistoryPage() {
     queryFn: () => fetchHistory(type, id),
   });
 
-  const tenantId = data?.records[0]?.tenantId;
+  const tenantId = data?.data[0]?.tenantId;
   const { data: neighbors } = useQuery({
     queryKey: ['audit-entity-neighbors', type, id, tenantId],
     queryFn: () => fetchNeighbors(type, id, tenantId),
@@ -80,7 +80,7 @@ export default function AuditEntityHistoryPage() {
               {data && (
                 <>
                   <AuditEventTimeline
-                    records={data.records}
+                    records={data.data}
                     emptyMessage="Nothing has ever been recorded against this entity."
                     onEventClick={setSelected}
                     dotVariant={(row) => dotVariantForAction(row.action)}

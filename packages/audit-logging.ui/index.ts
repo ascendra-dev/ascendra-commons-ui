@@ -7,8 +7,6 @@ export type {
   AuditEventDetail,
   AuditKpiValue,
   AuditOverviewStats,
-  AuditQuery,
-  AuditQueryResult,
   AuditStats,
   AuditTopActionsStats,
   FieldDiffEntry,

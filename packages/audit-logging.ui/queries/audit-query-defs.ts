@@ -37,7 +37,7 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
 
 /**
  * Two scenarios, not five — audit-logging.api/mocks.html's own filter bar
- * shows every AuditQuery field available at once, not as mutually-exclusive
+ * shows every /audit/events filter available at once, not as mutually-exclusive
  * named presets. "Advanced Filter" lets a user combine several fields in one
  * request; entityId is deliberately not one of them — filtering to one
  * specific entity's history is the dedicated Entity History screen's job,
@@ -49,12 +49,11 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
  * lg: 3 }` (per AUI-028) so the form actually reflows across 1/2/3 columns
  * instead of stacking one field per row regardless of screen size.
  * `tenantId` was previously missing here despite already being a real,
- * optional AuditQuery field (see audit-api.types.ts) — added along with its
- * wiring in audit-query-functions.ts/mocks. occurredAfter/occurredBefore
+ * optional /audit/events filter — added along with its wiring in the mocks. occurredAfter/occurredBefore
  * were previously two separate `date` fields; consolidated into one
  * `daterange` field (per AUI-038) since they're really one bounded range,
  * not two independent conditions — audit-query-functions.ts/the mock now
- * split it back into the two AuditQuery params internally.
+ * split it back into the two wire params (via dateRangeBounds).
  *
  * Every field carries `optional: true` — deliberate, even though all 7 are
  * uniformly optional (field-hint-guide.md's own form-authoring guidance

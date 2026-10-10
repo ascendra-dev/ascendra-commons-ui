@@ -51,7 +51,7 @@ export default function AuditTracePage() {
               {isError && <SimpleAlert variant="destructive">Could not load this trace.</SimpleAlert>}
               {data && (
                 <AuditEventTimeline
-                  records={data.records}
+                  records={data.data}
                   emptyMessage="No audit events recorded under this correlation id."
                   onEventClick={setSelected}
                   dotVariant={(row) => dotVariantForEntityType(row.entityType)}

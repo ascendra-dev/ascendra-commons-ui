@@ -10,8 +10,6 @@ export type {
   AuditEventDetail,
   AuditKpiValue,
   AuditOverviewStats,
-  AuditQuery,
-  AuditQueryResult,
   AuditStats,
   AuditStatsKpis,
   AuditTenantCount,
