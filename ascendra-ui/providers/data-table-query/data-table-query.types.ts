@@ -88,6 +88,8 @@ export interface QueryDef {
 export type QueryResult<T = unknown> = {
   data: T[];
   totalBatches: number;
+  /** False when totalBatches is a lower-bound estimate (e.g. cursor-walked), not a known count. Defaults to true. */
+  totalBatchesExact?: boolean;
 };
 
 /** Function that fetches rows for a query, receiving confirmed param values and the requested batch */
@@ -137,6 +139,8 @@ export interface QueryContextValue {
   setConfirmedParams: (values: QueryParamValues) => void;
   currentBatch: number;
   totalBatches: number | null;
+  /** False when totalBatches is a lower-bound estimate, not a known count — see QueryResult.totalBatchesExact. */
+  totalBatchesExact: boolean;
   goNextBatch: () => void;
   goPrevBatch: () => void;
   fieldOptions: FieldOptionsMap;

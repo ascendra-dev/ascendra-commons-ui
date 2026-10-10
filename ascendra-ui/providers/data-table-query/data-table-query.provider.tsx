@@ -345,6 +345,7 @@ export function DataTableQueryProvider<T = unknown>({
   });
 
   const totalBatches = data?.totalBatches ?? null;
+  const totalBatchesExact = data?.totalBatchesExact ?? true;
 
   const goNextBatch = useCallback(() => {
     // No-op while the bound isn't known yet (e.g. a batch in flight) rather
@@ -377,6 +378,7 @@ export function DataTableQueryProvider<T = unknown>({
         setConfirmedParams,
         currentBatch,
         totalBatches,
+        totalBatchesExact,
         goNextBatch,
         goPrevBatch,
         fieldOptions,

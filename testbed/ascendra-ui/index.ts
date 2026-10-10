@@ -193,6 +193,7 @@ export * from './providers/data-table/data-table.provider';
 export * from './providers/data-table-query/data-table-query.types';
 export * from './providers/data-table-query/data-table-query.provider';
 export * from './providers/data-table-query/data-table-with-query.provider';
+export * from './providers/data-table-query/create-cursor-walking-query-fn';
 export * from './providers/query/query.provider';
 export * from './providers/tabs/tabs.provider';
 export * from './providers/tabs/tabs.types';
