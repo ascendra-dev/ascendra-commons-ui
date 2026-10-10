@@ -194,6 +194,14 @@ export * from './providers/data-table-query/data-table-query.types';
 export * from './providers/data-table-query/data-table-query.provider';
 export * from './providers/data-table-query/data-table-with-query.provider';
 export * from './providers/data-table-query/create-cursor-walking-query-fn';
+export * from './providers/data-table-query/date-range-bounds';
+export type {
+  PageMeta,
+  CursorMeta,
+  ListResponse,
+  PageListResponse,
+  CursorListResponse,
+} from './lib/api/types';
 export * from './providers/query/query.provider';
 export * from './providers/tabs/tabs.provider';
 export * from './providers/tabs/tabs.types';

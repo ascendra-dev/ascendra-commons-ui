@@ -1,5 +1,7 @@
 import { apiClient } from '@/ascendra-ui/lib/api/client';
-import type { ActorActivitySummary, AuditEventDetail, AuditQuery, AuditQueryResult, AuditStats, EntityNeighbors } from './audit-api.types';
+import { dateRangeBounds } from '@/ascendra-ui';
+import type { CursorListResponse, QueryParamValues } from '@/ascendra-ui';
+import type { ActorActivitySummary, AuditEvent, AuditEventDetail, AuditQuery, AuditQueryResult, AuditStats, EntityNeighbors } from './audit-api.types';
 
 /**
  * Uses the raw apiClient axios instance, not ascendra-ui's `api.get<T>`
@@ -26,11 +28,23 @@ function toQueryParams(query: AuditQuery): Record<string, string | number> {
 }
 
 export const auditApi = {
-  async findEvents(query: AuditQuery): Promise<AuditQueryResult> {
+  /**
+   * Returns api-contract.md's cursor list shape. audit-logging.api still sends
+   * `{ records, nextCursor }` on the wire, so it's reshaped here.
+   */
+  async findEvents(
+    params: QueryParamValues,
+    limit: number,
+    cursor?: string,
+  ): Promise<CursorListResponse<AuditEvent>> {
+    // occurredRange is one `daterange` field in the form (see audit-query-defs.ts)
+    // but two independent params on the wire — split back out here.
+    const { occurredRange, ...filters } = params;
+    const { from: occurredAfter, to: occurredBefore } = dateRangeBounds(occurredRange);
     const { data } = await apiClient.get<AuditQueryResult>('/audit/events', {
-      params: toQueryParams(query),
+      params: { ...filters, limit, cursor, occurredAfter, occurredBefore },
     });
-    return data;
+    return { data: data.records, meta: { nextCursor: data.nextCursor } };
   },
 
   async getEvent(id: string): Promise<AuditEventDetail> {

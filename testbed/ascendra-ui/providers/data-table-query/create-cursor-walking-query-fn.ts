@@ -1,10 +1,5 @@
+import type { CursorListResponse } from '@/ascendra-ui/lib/api/types';
 import type { QueryFn, QueryParamValues } from './data-table-query.types';
-
-/** Wire shape for a cursor-paginated list response (api-contract.md's cursor-based list shape). */
-export interface CursorListResponse<T> {
-  data: T[];
-  meta: { nextCursor?: string };
-}
 
 /**
  * Adapts a forward-only, cursor-paginated API into a QueryFn — DataTableQueryProvider only ever

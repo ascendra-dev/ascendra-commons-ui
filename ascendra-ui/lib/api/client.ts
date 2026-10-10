@@ -57,6 +57,17 @@ apiClient.interceptors.request.use(async (config) => {
   return config;
 });
 
+// axios already skips null/undefined params but sends '' as `key=` — a cleared form field holds
+// '', which would otherwise reach the backend as a literal empty-string filter.
+apiClient.interceptors.request.use((config) => {
+  if (config.params && typeof config.params === 'object' && !(config.params instanceof URLSearchParams)) {
+    config.params = Object.fromEntries(
+      Object.entries(config.params as Record<string, unknown>).filter(([, value]) => value !== ''),
+    );
+  }
+  return config;
+});
+
 apiClient.interceptors.response.use(
   (response) => response,
   (err: AxiosError) => Promise.reject(toApiError(err))
