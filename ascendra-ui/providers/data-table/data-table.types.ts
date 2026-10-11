@@ -75,6 +75,8 @@ export interface DataTableDataContextValue {
   totalFiltered: number;
   pagination: PaginationState;
   isLoading: boolean;
+  /** The provider's own getRowId prop, if it was given one. */
+  getRowId?: (row: unknown) => string;
 }
 
 export interface DataTableSelectionContextValue {

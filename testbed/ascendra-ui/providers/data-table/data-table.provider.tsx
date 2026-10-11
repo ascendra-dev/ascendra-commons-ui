@@ -162,8 +162,14 @@ export function DataTableProvider<T extends object>({
   );
 
   const dataCtx = useMemo<DataTableDataContextValue>(
-    () => ({ pagedData: pagedData as unknown[], totalFiltered: sortedData.length, pagination, isLoading }),
-    [pagedData, sortedData.length, pagination, isLoading]
+    () => ({
+      pagedData: pagedData as unknown[],
+      totalFiltered: sortedData.length,
+      pagination,
+      isLoading,
+      getRowId: getRowId as DataTableDataContextValue['getRowId'],
+    }),
+    [pagedData, sortedData.length, pagination, isLoading, getRowId]
   );
 
   const selectionCtx = useMemo<DataTableSelectionContextValue>(

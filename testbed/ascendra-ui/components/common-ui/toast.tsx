@@ -24,12 +24,12 @@ export function Toaster() {
           closeButton:
             "border! border-border! bg-background! text-muted-foreground! hover:text-foreground!",
           success:
-            "border-positive/20! bg-positive/5! text-positive! dark:bg-positive/10!",
+            "border-positive/20! bg-linear-to-r! from-positive/5 to-positive/5 text-positive! dark:from-positive/10 dark:to-positive/10",
           error:
-            "border-negative/20! bg-negative/5! text-negative! dark:bg-negative/10!",
+            "border-negative/20! bg-linear-to-r! from-negative/5 to-negative/5 text-negative! dark:from-negative/10 dark:to-negative/10",
           warning:
-            "border-warning/20! bg-warning/5! text-warning! dark:bg-warning/10!",
-          info: "border-info/20! bg-info/5! text-info! dark:bg-info/10!",
+            "border-warning/20! bg-linear-to-r! from-warning/5 to-warning/5 text-warning! dark:from-warning/10 dark:to-warning/10",
+          info: "border-info/20! bg-linear-to-r! from-info/5 to-info/5 text-info! dark:from-info/10 dark:to-info/10",
           loading: "border-border! bg-background! text-foreground!",
         },
       }}
