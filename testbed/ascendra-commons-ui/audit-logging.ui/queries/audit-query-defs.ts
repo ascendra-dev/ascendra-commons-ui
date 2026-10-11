@@ -129,6 +129,7 @@ export const auditQueryDefs: QueryDef[] = [
         label: 'Occurred between',
         type: 'daterange',
         span: 'full',
+        editable: true,
         info: 'Inclusive of both the start and end date, up to 90 days',
         mandatory: true,
         required: true,
