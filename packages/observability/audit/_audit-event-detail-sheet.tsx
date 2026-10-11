@@ -100,8 +100,10 @@ export function AuditEventDetailSheet({
   const diffLines = buildDiffLines(record.before, record.after);
 
   return (
-    <Sheet open onOpenChange={(open) => !open && onClose()}>
-      <SheetContent>
+    // An inspector, not a dialog: the page behind stays scrollable and clickable (another row
+    // switches the record), so outside clicks don't close it — × or Esc does.
+    <Sheet open modal={false} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent onInteractOutside={(event) => event.preventDefault()}>
         {navigator}
         <SheetHeader>
           <SheetTitle>Audit record detail</SheetTitle>
