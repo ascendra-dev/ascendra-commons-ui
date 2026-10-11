@@ -36,6 +36,8 @@ export type BatchState = {
   goPrevBatch: () => void;
   /** Disables both batch nav buttons while true — a batch in flight has totalBatches temporarily null, which would otherwise leave goNextBatch's bound unenforced. */
   isLoading?: boolean;
+  /** False when totalBatches is only a lower-bound estimate (cursor-walked) — the label then shows just the current batch. Defaults to true. */
+  totalBatchesExact?: boolean;
 };
 
 function filterChildrenByColumns(
@@ -314,7 +316,7 @@ function TableFoot({
     !!batch.isLoading ||
     (batch.totalBatches !== null && batch.currentBatch >= batch.totalBatches);
   const batchLabel = batch
-    ? batch.totalBatches !== null
+    ? batch.totalBatches !== null && batch.totalBatchesExact !== false
       ? `${batch.currentBatch} / ${batch.totalBatches}`
       : `${batch.currentBatch}`
     : "";

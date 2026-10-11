@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useFormContext, Controller, useWatch } from "react-hook-form";
 import type { DateRange } from "react-day-picker";
 
@@ -55,6 +56,8 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
   const {
     register,
     control,
+    getValues,
+    setValue,
     formState: { errors },
   } = useFormContext();
   const ctx = useOptionalQueryContext();
@@ -65,6 +68,24 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
     if (!def) return field.options ?? [];
     return typeof def === "function" ? def(allValues) : def;
   })();
+
+  // When a resolver narrows this field's options (e.g. actions filtered by the chosen entity type),
+  // drop a selection that's no longer among them rather than leave an impossible filter in place.
+  // Skipped while the list is empty, so a restored value survives options that haven't loaded yet.
+  const optionValuesKey = resolvedOptions.map((o) => o.value).join("\u0000");
+  const isChoiceField = field.type === "select" || field.type === "multiselect";
+  useEffect(() => {
+    if (!isChoiceField || optionValuesKey === "") return;
+    const allowed = new Set(optionValuesKey.split("\u0000"));
+    const current = getValues(field.name);
+    const opts = { shouldDirty: true, shouldValidate: true };
+    if (typeof current === "string" && current !== "" && !allowed.has(current)) {
+      setValue(field.name, undefined, opts);
+    } else if (Array.isArray(current)) {
+      const kept = current.filter((v: string) => allowed.has(v));
+      if (kept.length !== current.length) setValue(field.name, kept, opts);
+    }
+  }, [optionValuesKey, isChoiceField, field.name, getValues, setValue]);
 
   const error = errors[field.name];
   const inputId = `qf-${field.name}`;
