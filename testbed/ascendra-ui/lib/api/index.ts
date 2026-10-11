@@ -1,36 +1,38 @@
 import { type AxiosRequestConfig } from 'axios';
 
 import { apiClient } from './client';
-import { type ApiResponse } from './types';
 
+/**
+ * Thin wrappers over `apiClient` that resolve to the response body. Per api-contract.md Rule 3 the
+ * body is the resource itself, with no envelope — `T` is that resource (or a Rule 4 `ListResponse`).
+ * Use `apiClient` directly when you need the headers, e.g. `fetchExport`.
+ */
 export const api = {
-  get<T>(url: string, params?: Record<string, unknown>, config?: AxiosRequestConfig) {
-    return apiClient.get<ApiResponse<T>>(url, { params, ...config });
+  async get<T>(url: string, params?: Record<string, unknown>, config?: AxiosRequestConfig): Promise<T> {
+    return (await apiClient.get<T>(url, { params, ...config })).data;
   },
 
-  post<T>(url: string, body?: unknown, config?: AxiosRequestConfig) {
-    return apiClient.post<ApiResponse<T>>(url, body, config);
+  async post<T>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    return (await apiClient.post<T>(url, body, config)).data;
   },
 
-  put<T>(url: string, body?: unknown, config?: AxiosRequestConfig) {
-    return apiClient.put<ApiResponse<T>>(url, body, config);
+  async put<T>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    return (await apiClient.put<T>(url, body, config)).data;
   },
 
-  patch<T>(url: string, body?: unknown, config?: AxiosRequestConfig) {
-    return apiClient.patch<ApiResponse<T>>(url, body, config);
+  async patch<T>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    return (await apiClient.patch<T>(url, body, config)).data;
   },
 
-  delete<T>(url: string, config?: AxiosRequestConfig) {
-    return apiClient.delete<ApiResponse<T>>(url, config);
+  async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return (await apiClient.delete<T>(url, config)).data;
   },
 };
 
 export { ApiError, isApiError } from './types';
 export { fetchExport } from './fetch-export';
 export type {
-  ApiResponse,
   ApiErrorPayload,
-  PaginationMeta,
   PageMeta,
   CursorMeta,
   ListResponse,
