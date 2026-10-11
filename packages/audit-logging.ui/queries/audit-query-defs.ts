@@ -90,7 +90,7 @@ export const auditQueryDefs: QueryDef[] = [
     title: 'Advanced Filter',
     description: 'Filter audit events by any combination of the fields below.',
     group: 'filter',
-    info: 'Every field is optional — set any combination and results must match all of them (AND logic).',
+    info: 'Occurred between is required (up to 90 days); every other field is optional. Results must match all of them (AND logic).',
     columns: { sm: 1, md: 2, lg: 3 },
     params: [
       {
@@ -129,8 +129,13 @@ export const auditQueryDefs: QueryDef[] = [
         label: 'Occurred between',
         type: 'daterange',
         span: 'full',
-        info: 'Inclusive of both the start and end date',
-        optional: true,
+        info: 'Inclusive of both the start and end date, up to 90 days',
+        mandatory: true,
+        required: true,
+        maxRangeDays: 90,
+        maxDate: 'today',
+        // -89d through today is 90 days counting both ends — '-90d' would be 91 and fail maxRangeDays.
+        defaultValue: { from: '-89d', to: 'today' },
       },
     ],
   },
