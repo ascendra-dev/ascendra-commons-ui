@@ -99,6 +99,7 @@ export * from './components/data-table/data-table-checkbox-head';
 export * from './components/data-table/data-table-column-manager';
 export * from './components/data-table/data-table-empty-body';
 export * from './components/data-table/data-table-error-body';
+export * from './components/data-table/data-table-export-button';
 export * from './components/data-table/data-table-filter-bar';
 export * from './components/data-table/data-table-filter-dropdown';
 export * from './components/data-table/data-table-filter-item';
@@ -201,6 +202,7 @@ export type {
   ListResponse,
   PageListResponse,
   CursorListResponse,
+  ExportResult,
 } from './lib/api/types';
 export * from './providers/query/query.provider';
 export * from './providers/tabs/tabs.provider';

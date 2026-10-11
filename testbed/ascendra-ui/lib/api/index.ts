@@ -26,6 +26,7 @@ export const api = {
 };
 
 export { ApiError, isApiError } from './types';
+export { fetchExport } from './fetch-export';
 export type {
   ApiResponse,
   ApiErrorPayload,
@@ -35,4 +36,5 @@ export type {
   ListResponse,
   PageListResponse,
   CursorListResponse,
+  ExportResult,
 } from './types';

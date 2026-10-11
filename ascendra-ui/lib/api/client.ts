@@ -68,9 +68,22 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// A `responseType: 'blob'` request (a file download) receives its error body as a Blob too.
+async function withJsonErrorBody(err: AxiosError): Promise<AxiosError> {
+  const data = err.response?.data;
+  if (data instanceof Blob && data.type.includes('json')) {
+    try {
+      err.response!.data = JSON.parse(await data.text());
+    } catch {
+      // leave the Blob — toApiError falls back to a status message
+    }
+  }
+  return err;
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
-  (err: AxiosError) => Promise.reject(toApiError(err))
+  async (err: AxiosError) => Promise.reject(toApiError(await withJsonErrorBody(err)))
 );
 
 export { apiClient };

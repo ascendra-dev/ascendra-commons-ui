@@ -132,7 +132,7 @@ export interface DownloadCsvOptions<T> extends ObjectsToCsvOptions<T> {
 }
 
 /** Inserts a timestamp before the extension, or appends one if there is none. */
-function timestampFilename(name: string): string {
+export function timestampFilename(name: string): string {
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const dot = name.lastIndexOf('.');
   return dot > 0 ? `${name.slice(0, dot)}-${stamp}${name.slice(dot)}` : `${name}-${stamp}`;
@@ -145,8 +145,11 @@ export function downloadCsv<T extends object>(
 ): void {
   if (!data.length) return;
   const csv = objectsToCsv(data, options);
-  const filename = timestampFilename(options.filename ?? 'export.csv');
-  const blob = new Blob([csv], { type: 'text/csv' });
+  downloadBlob(new Blob([csv], { type: 'text/csv' }), timestampFilename(options.filename ?? 'export.csv'));
+}
+
+/** Triggers a browser download of `blob` under `filename`. */
+export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

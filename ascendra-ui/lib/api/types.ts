@@ -27,6 +27,19 @@ export interface ListResponse<T, M = PageMeta> {
 export type PageListResponse<T> = ListResponse<T, PageMeta>;
 export type CursorListResponse<T> = ListResponse<T, CursorMeta>;
 
+/** api-contract.md Rule 9 — an exported file plus what its response headers report about it. */
+export interface ExportResult {
+  blob: Blob;
+  /** From `Content-Disposition`; absent when the server doesn't name the file. */
+  filename?: string;
+  /** Rows in the file (`X-Export-Row-Count`). */
+  rowCount?: number;
+  /** More rows matched than the server's cap allowed (`X-Export-Truncated`). */
+  truncated?: boolean;
+  /** The server's row cap (`X-Export-Limit`). */
+  limit?: number;
+}
+
 export interface ApiResponse<T> {
   success: true;
   data: T;
