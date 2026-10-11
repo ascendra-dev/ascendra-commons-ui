@@ -14,6 +14,7 @@ import {
   DataTableCopyValueAction,
   DataTableEmptyBody,
   DataTableErrorBody,
+  DataTableExportButton,
   DataTableFilterBar,
   DataTableFilterDropdown,
   DataTableFoot,
@@ -31,7 +32,6 @@ import {
   DataTableWrapper,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  ExportCsvButton,
   IdText,
   MainContent,
   PageContent,
@@ -44,7 +44,6 @@ import {
   QueryBar,
   QueryParamPanel,
   SimpleBadge,
-  useQueryContext,
   WithEmptyValue,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
@@ -60,20 +59,14 @@ import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { AuditEventDetailSheet } from '../_audit-event-detail-sheet';
 
 /**
- * The one fetcher this page calls — real API by default. A consumer without
- * a live backend (e.g. testbed) swaps this for a mock from
+ * The fetchers this page calls — real API by default. A consumer without
+ * a live backend (e.g. testbed) swaps these for mocks from
  * `audit-logging.ui/mocks` instead of editing the page body.
  */
 const queryFunctions = auditQueryFunctions;
 const fetchCatalog = () => auditApi.catalog();
+const exportEvents = auditApi.exportEvents;
 
-/** Bridges useQueryContext (only callable inside the provider) to ExportCsvButton's data prop. */
-function AuditExportCsvButton() {
-  const { data } = useQueryContext();
-  return (
-    <ExportCsvButton data={data as AuditEvent[]} filename="audit-events.csv" />
-  );
-}
 
 /** The primary filterable Audit Log feed. */
 export default function AuditLogListPage() {
@@ -113,7 +106,7 @@ export default function AuditLogListPage() {
                     <DataTableFilterDropdown />
                   </DataTableBarContent>
                   <DataTableBarAction>
-                    <AuditExportCsvButton />
+                    <DataTableExportButton exportFn={exportEvents} />
                   </DataTableBarAction>
                 </DataTableBar>
                 <DataTableFilterBar />

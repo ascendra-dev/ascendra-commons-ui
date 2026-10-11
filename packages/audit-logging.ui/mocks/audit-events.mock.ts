@@ -1,5 +1,6 @@
 import type { DateRange } from 'react-day-picker';
-import type { CursorListResponse, QueryFn, QueryFunctionMap } from '@/ascendra-ui';
+import type { CursorListResponse, ExportResult, QueryFn, QueryFunctionMap, QueryParamValues } from '@/ascendra-ui';
+import { objectsToCsv } from '@/ascendra-ui/utils/common.util';
 import { diffFields } from '../api/audit-diff.util';
 import type {
   ActorActivitySummary,
@@ -334,7 +335,8 @@ function sortNewestFirst(records: AuditEvent[]): AuditEvent[] {
 
 const mockRecent: QueryFn<AuditEvent> = async (_params, batch) => paginate(sortNewestFirst(MOCK_AUDIT_EVENTS), batch);
 
-const mockAdvancedFilter: QueryFn<AuditEvent> = async (params, batch) => {
+/** The advanced filter's param semantics — shared by the list query and the export. */
+function filterEvents(params: QueryParamValues): AuditEvent[] {
   const entityType = typeof params.entityType === 'string' ? params.entityType : undefined;
   const action = typeof params.action === 'string' ? params.action : undefined;
   const actor = typeof params.actor === 'string' ? params.actor : undefined;
@@ -344,7 +346,7 @@ const mockAdvancedFilter: QueryFn<AuditEvent> = async (params, batch) => {
   const occurredAfter = occurredRange?.from;
   const occurredBefore = occurredRange?.to;
 
-  const filtered = MOCK_AUDIT_EVENTS.filter((event) => {
+  return MOCK_AUDIT_EVENTS.filter((event) => {
     if (!matchesText(event.entityType, entityType)) return false;
     if (!matchesText(event.action, action)) return false;
     if (!matchesText(event.actor, actor)) return false;
@@ -355,14 +357,33 @@ const mockAdvancedFilter: QueryFn<AuditEvent> = async (params, batch) => {
     if (occurredBefore && occurredAt > occurredBefore) return false;
     return true;
   });
+}
 
-  return paginate(sortNewestFirst(filtered), batch);
+const mockAdvancedFilter: QueryFn<AuditEvent> = async (params, batch) => {
+  return paginate(sortNewestFirst(filterEvents(params)), batch);
 };
 
 export const mockAuditQueryFunctions: QueryFunctionMap<AuditEvent> = {
   recent: mockRecent,
   'advanced-filter': mockAdvancedFilter,
 };
+
+/** Small on purpose, so the unfiltered "Recent" export (22 rows) shows the truncation warning. */
+const MOCK_EXPORT_LIMIT = 15;
+
+/** Mirrors auditApi.exportEvents: every match newest-first, capped, with the Rule 9 metadata. */
+export async function mockExportEvents(params: QueryParamValues): Promise<ExportResult> {
+  await delay(1500);
+  const matched = sortNewestFirst(filterEvents(params));
+  const rows = matched.slice(0, MOCK_EXPORT_LIMIT);
+  return {
+    blob: new Blob([objectsToCsv(rows)], { type: 'text/csv' }),
+    filename: `audit-events-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}Z.csv`,
+    rowCount: rows.length,
+    truncated: matched.length > MOCK_EXPORT_LIMIT,
+    limit: MOCK_EXPORT_LIMIT,
+  };
+}
 
 export async function mockGetEvent(id: string): Promise<AuditEventDetail> {
   const event = MOCK_AUDIT_EVENTS.find((e) => e.id === id);

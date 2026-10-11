@@ -1,6 +1,7 @@
 export {
   MOCK_AUDIT_EVENTS,
   mockAuditQueryFunctions,
+  mockExportEvents,
   mockCatalog,
   mockGetEvent,
   mockEntityHistory,

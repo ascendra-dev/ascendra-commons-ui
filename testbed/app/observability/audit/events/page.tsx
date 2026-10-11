@@ -14,6 +14,7 @@ import {
   DataTableCopyValueAction,
   DataTableEmptyBody,
   DataTableErrorBody,
+  DataTableExportButton,
   DataTableFilterBar,
   DataTableFilterDropdown,
   DataTableFoot,
@@ -31,7 +32,6 @@ import {
   DataTableWrapper,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  ExportCsvButton,
   IdText,
   MainContent,
   PageContent,
@@ -44,7 +44,6 @@ import {
   QueryBar,
   QueryParamPanel,
   SimpleBadge,
-  useQueryContext,
   WithEmptyValue,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
@@ -54,21 +53,19 @@ import {
   auditQueryDefs,
 } from '@/ascendra-commons-ui/audit-logging.ui/queries';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
-import { mockAuditQueryFunctions, mockCatalog } from '@/ascendra-commons-ui/audit-logging.ui/mocks';
+import {
+  mockAuditQueryFunctions,
+  mockCatalog,
+  mockExportEvents,
+} from '@/ascendra-commons-ui/audit-logging.ui/mocks';
 import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { AuditEventDetailSheet } from '../_audit-event-detail-sheet';
 
 /** testbed has no live backend — using mock fetchers (see page.tsx's own comment upstream). */
 const queryFunctions = mockAuditQueryFunctions;
 const fetchCatalog = mockCatalog;
+const exportEvents = mockExportEvents;
 
-/** Bridges useQueryContext (only callable inside the provider) to ExportCsvButton's data prop. */
-function AuditExportCsvButton() {
-  const { data } = useQueryContext();
-  return (
-    <ExportCsvButton data={data as AuditEvent[]} filename="audit-events.csv" />
-  );
-}
 
 /** The primary filterable Audit Log feed. */
 export default function AuditLogListPage() {
@@ -108,7 +105,7 @@ export default function AuditLogListPage() {
                     <DataTableFilterDropdown />
                   </DataTableBarContent>
                   <DataTableBarAction>
-                    <AuditExportCsvButton />
+                    <DataTableExportButton exportFn={exportEvents} />
                   </DataTableBarAction>
                 </DataTableBar>
                 <DataTableFilterBar />

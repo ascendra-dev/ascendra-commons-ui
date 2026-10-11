@@ -1,6 +1,6 @@
-import { apiClient } from '@/ascendra-ui/lib/api/client';
+import { api, fetchExport } from '@/ascendra-ui/lib/api';
 import { dateRangeBounds } from '@/ascendra-ui';
-import type { CursorListResponse, QueryParamValues } from '@/ascendra-ui';
+import type { CursorListResponse, ExportResult, QueryParamValues } from '@/ascendra-ui';
 import type {
   ActorActivitySummary,
   AuditCatalogEntry,
@@ -12,17 +12,8 @@ import type {
 
 type CursorPage = { limit?: number; cursor?: string };
 
-/**
- * Uses the raw apiClient axios instance, not ascendra-ui's `api.get<T>`
- * helper — that helper expects an `{ success, data, meta }` envelope, but
- * audit-logging.api's NestJS controllers return the DTO directly as the
- * response body (confirmed against the controller source; no
- * response-wrapping interceptor exists in ascendra-commons or
- * ascendra-pay-api today). Revisit if that changes.
- */
-
 export const auditApi = {
-  async findEvents(
+  findEvents(
     params: QueryParamValues,
     limit: number,
     cursor?: string,
@@ -31,33 +22,33 @@ export const auditApi = {
     // but two independent params on the wire — split back out here.
     const { occurredRange, ...filters } = params;
     const { from: occurredAfter, to: occurredBefore } = dateRangeBounds(occurredRange);
-    const { data } = await apiClient.get<CursorListResponse<AuditEvent>>('/audit/events', {
-      params: { ...filters, limit, cursor, occurredAfter, occurredBefore },
+    return api.get<CursorListResponse<AuditEvent>>('/audit/events', {
+      ...filters,
+      limit,
+      cursor,
+      occurredAfter,
+      occurredBefore,
     });
-    return data;
   },
 
   /** GET /audit/catalog — the app's configured entity types and their actions (a bare array; `[]` when none). */
-  async catalog(): Promise<AuditCatalogEntry[]> {
-    const { data } = await apiClient.get<AuditCatalogEntry[]>('/audit/catalog');
-    return data;
+  catalog(): Promise<AuditCatalogEntry[]> {
+    return api.get<AuditCatalogEntry[]>('/audit/catalog');
   },
 
-  async getEvent(id: string): Promise<AuditEventDetail> {
-    const { data } = await apiClient.get<AuditEventDetail>(`/audit/events/${encodeURIComponent(id)}`);
-    return data;
+  getEvent(id: string): Promise<AuditEventDetail> {
+    return api.get<AuditEventDetail>(`/audit/events/${encodeURIComponent(id)}`);
   },
 
-  async entityHistory(
+  entityHistory(
     entityType: string,
     entityId: string,
     query: CursorPage = {},
   ): Promise<CursorListResponse<AuditEvent>> {
-    const { data } = await apiClient.get<CursorListResponse<AuditEvent>>(
+    return api.get<CursorListResponse<AuditEvent>>(
       `/audit/entities/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}/history`,
-      { params: query },
+      query,
     );
-    return data;
   },
 
   /**
@@ -65,50 +56,39 @@ export const auditApi = {
    * it from entityHistory's own records) — see EntityNeighbors' doc comment
    * for the tenant-scoping rule this drives.
    */
-  async entityNeighbors(entityType: string, entityId: string, tenantId?: string | null): Promise<EntityNeighbors> {
+  entityNeighbors(entityType: string, entityId: string, tenantId?: string | null): Promise<EntityNeighbors> {
     const params: Record<string, string> = {};
     if (tenantId !== undefined) params.tenantId = tenantId ?? 'null';
-    const { data } = await apiClient.get<EntityNeighbors>(
+    return api.get<EntityNeighbors>(
       `/audit/entities/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}/neighbors`,
-      { params },
+      params,
     );
-    return data;
   },
 
-  async trace(correlationId: string, query: CursorPage = {}): Promise<CursorListResponse<AuditEvent>> {
-    const { data } = await apiClient.get<CursorListResponse<AuditEvent>>(
-      `/audit/trace/${encodeURIComponent(correlationId)}`,
-      { params: query },
-    );
-    return data;
+  trace(correlationId: string, query: CursorPage = {}): Promise<CursorListResponse<AuditEvent>> {
+    return api.get<CursorListResponse<AuditEvent>>(`/audit/trace/${encodeURIComponent(correlationId)}`, query);
   },
 
-  async actorActivity(
+  actorActivity(
     actor: string,
     query: { occurredAfter?: string; occurredBefore?: string } = {},
   ): Promise<ActorActivitySummary> {
-    const { data } = await apiClient.get<ActorActivitySummary>(
-      `/audit/actors/${encodeURIComponent(actor)}/activity`,
-      { params: query },
-    );
-    return data;
+    return api.get<ActorActivitySummary>(`/audit/actors/${encodeURIComponent(actor)}/activity`, query);
   },
 
-  async stats(window = '30d', tenantId?: string | null): Promise<AuditStats> {
+  stats(window = '30d', tenantId?: string | null): Promise<AuditStats> {
     const params: Record<string, string> = { window };
     if (tenantId !== undefined) params.tenantId = tenantId ?? 'null';
-    const { data } = await apiClient.get<AuditStats>('/audit/stats', { params });
-    return data;
+    return api.get<AuditStats>('/audit/stats', params);
   },
 
-  /** GET /audit/events.csv — same filter form params as findEvents, returns the raw CSV text. */
-  async downloadEventsCsv(params: QueryParamValues): Promise<Blob> {
+  /**
+   * GET /audit/events.csv (api-contract Rule 9) — every record matching the same filter form params as
+   * findEvents, not one page, up to the server's export cap.
+   */
+  exportEvents(params: QueryParamValues): Promise<ExportResult> {
     const { occurredRange, ...filters } = params;
     const { from: occurredAfter, to: occurredBefore } = dateRangeBounds(occurredRange);
-    const { data } = await apiClient.get<string>('/audit/events.csv', {
-      params: { ...filters, occurredAfter, occurredBefore },
-      responseType: 'blob',
-    });
-    return new Blob([data], { type: 'text/csv' });
+    return fetchExport('/audit/events.csv', { ...filters, occurredAfter, occurredBefore });
   },
 };
