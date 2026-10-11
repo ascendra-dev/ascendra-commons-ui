@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Popover as PopoverPrimitive } from 'radix-ui';
-import { differenceInCalendarDays, format } from 'date-fns';
+import { differenceInCalendarDays, format, isSameDay } from 'date-fns';
 import { type DateRange, type Matcher } from 'react-day-picker';
 import { type CalendarProps } from '@/ascendra-ui/components/date/calendar';
 import { LuCalendar } from 'react-icons/lu';
@@ -54,7 +54,10 @@ function DateRangePicker({
 
   const disabledDays: Matcher[] = boundsMatchers(minDate, maxDate);
   const start = value?.from;
-  if (maxRangeDays && start && !value?.to) {
+  // react-day-picker's first click sets both ends to that day, so a one-day selection is still
+  // "picking the other end" — that's when days beyond the limit are disabled.
+  const pickingEnd = start && (!value?.to || isSameDay(start, value.to));
+  if (maxRangeDays && start && pickingEnd) {
     disabledDays.push((day: Date) => Math.abs(differenceInCalendarDays(day, start)) >= maxRangeDays);
   }
 
