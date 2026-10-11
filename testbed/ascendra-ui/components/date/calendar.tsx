@@ -63,6 +63,9 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  // Every month drawn with 6 week rows, so the calendar's height never changes while paging
+  // months — a popover opened above its field would otherwise shift its arrows under the cursor.
+  fixedWeeks = true,
   captionLayout,
   startMonth,
   endMonth,
@@ -74,6 +77,7 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      fixedWeeks={fixedWeeks}
       captionLayout={resolvedCaptionLayout}
       startMonth={startMonth}
       endMonth={endMonth}
