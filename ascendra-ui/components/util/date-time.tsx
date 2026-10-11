@@ -1,6 +1,6 @@
 'use client';
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/ascendra-ui/shadcn';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ascendra-ui/components/ui/tooltip';
 import { formatDateTime, type FormatDateTimeOptions } from '@/ascendra-ui/utils/common.util';
 
 export interface DateTimeProps extends FormatDateTimeOptions {

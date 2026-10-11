@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { ThemeProvider } from "next-themes";
-import { TooltipProvider } from "@/ascendra-ui/shadcn";
+import { TooltipProvider } from "@/ascendra-ui";
 import { QueryProvider, ScrollToTop, Toaster } from "@/ascendra-ui";
 
 export function AppProviders({ children }: { children: ReactNode }) {

@@ -40,6 +40,7 @@ export * from './components/ui/stepper';
 export * from './components/ui/select';
 export * from './components/ui/sheet';
 export * from './components/ui/sheet-navigator';
+export * from './components/ui/tooltip';
 export * from './components/ui/switch';
 export * from './components/ui/table';
 export * from './components/ui/table-lookup';

@@ -1,6 +1,7 @@
 'use client';
 
-import { cn, Tooltip, TooltipContent, TooltipTrigger } from '@/ascendra-ui/shadcn';
+import { cn } from '@/ascendra-ui/shadcn';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ascendra-ui/components/ui/tooltip';
 
 export interface WithTooltipProps {
   /** Content shown inside the tooltip on hover/focus. */
