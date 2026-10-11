@@ -57,6 +57,8 @@ export interface FieldDef {
   maxDate?: DateExpr;
   /** daterange: longest allowed range in days, counting both ends (Oct 1–Oct 1 is 1 day). */
   maxRangeDays?: number;
+  /** date / daterange: a pencil switches the field to a dd/mm/yyyy text box, so the date can be typed as well as picked. */
+  editable?: boolean;
   /** Starting value — and what Reset restores. Ignored when the user has a saved draft for the query. */
   defaultValue?: FieldDefaultValue;
 }

@@ -5,6 +5,8 @@ import { Popover as PopoverPrimitive } from 'radix-ui';
 import { format } from 'date-fns';
 import { boundsMatchers } from '@/ascendra-ui/components/date/bounds-matchers';
 import { clearOnKey, PickerClearButton } from '@/ascendra-ui/components/date/picker-clear-button';
+import { EditableDateField, pickerFieldClass } from '@/ascendra-ui/components/date/picker-field';
+import { DEFAULT_DATE_FORMAT, formatDateText, formatHint, parseDateText } from '@/ascendra-ui/components/date/date-text';
 import { type CalendarProps } from '@/ascendra-ui/components/date/calendar';
 import { LuCalendar } from 'react-icons/lu';
 import { cn } from '@/ascendra-ui/shadcn';
@@ -29,6 +31,13 @@ interface DatePickerProps {
   captionLayout?: CalendarProps['captionLayout'];
   /** Show a × while a value is set (Backspace/Delete on the trigger too) — clears to undefined. */
   showClear?: boolean;
+  /**
+   * Type the date as well as pick it: the field becomes a text input (committed on blur/Enter) and
+   * a calendar button opens the picker. Unreadable text reverts to the last value; empty text clears.
+   */
+  editable?: boolean;
+  /** date-fns pattern typed and shown when `editable`. Default 'dd/MM/yyyy'; `/`, `-` or `.` all accepted. */
+  dateFormat?: string;
 }
 
 function DatePicker({
@@ -36,7 +45,7 @@ function DatePicker({
   value,
   onChange,
   onBlur,
-  placeholder = 'Pick a date',
+  placeholder,
   disabled,
   readOnly,
   invalid,
@@ -47,6 +56,8 @@ function DatePicker({
   maxDate,
   captionLayout,
   showClear = false,
+  editable = false,
+  dateFormat = DEFAULT_DATE_FORMAT,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
   const clearVisible = showClear && !!value && !readOnly && !disabled;
@@ -62,42 +73,44 @@ function DatePicker({
         if (!next) onBlur?.();
       }}
     >
-      <PopoverPrimitive.Trigger asChild>
-        <button
+      {editable ? (
+        <EditableDateField
           id={id}
-          type="button"
+          slot="date-picker-trigger"
+          label={value ? format(value, 'PPP') : null}
+          placeholder={placeholder ?? 'Pick a date'}
+          committedText={value ? formatDateText(value, dateFormat) : ''}
+          editPlaceholder={formatHint(dateFormat)}
+          editLabel="Type date"
+          onCommitText={(text) => {
+            const parsed = parseDateText(text, dateFormat);
+            if (parsed !== 'invalid') onChange?.(parsed);
+          }}
+          onBlur={onBlur}
           disabled={disabled}
-          aria-invalid={invalid || undefined}
-          onKeyDown={clearOnKey(clearVisible, clear)}
-          data-slot="date-picker-trigger"
-          className={cn(
-            'flex h-8 w-full items-center gap-2 rounded-[.375rem] px-3 text-left text-sm transition',
-            'ring-1',
-            'shadow-[0_2px_2px_-1px_rgba(0,0,0,0.06),0_4px_4px_-2px_rgba(0,0,0,0.04)]',
-            'dark:shadow-[0_2px_2px_-1px_rgba(0,0,0,0.16),0_4px_4px_-2px_rgba(0,0,0,0.24)]',
-            'disabled:cursor-not-allowed disabled:opacity-40',
-            invalid && 'outline-2 outline-destructive outline-offset-1',
-            !value && 'text-gray-500 dark:text-gray-700',
-            readOnly ? [
-              'bg-gray-100 dark:bg-white/5',
-              'ring-gray-300 dark:ring-white/10',
-              'shadow-none',
-              'cursor-default',
-              'focus-visible:outline-none',
-            ] : [
-              'bg-white dark:bg-secondary',
-              'ring-(--color-umbra)/12 dark:ring-(--color-gray-1000)/88 dark:ring-inset',
-              'hover:ring-(--color-umbra)/24',
-              'focus-visible:outline-primary! focus-visible:outline-2! focus-visible:outline-offset-1!',
-            ],
-            className
-          )}
-        >
-          <LuCalendar className="text-muted-foreground size-4 shrink-0" />
-          <span className="min-w-0 truncate">{value ? format(value, 'PPP') : placeholder}</span>
-          {clearVisible && <PickerClearButton onClear={clear} />}
-        </button>
-      </PopoverPrimitive.Trigger>
+          readOnly={readOnly}
+          invalid={invalid}
+          className={className}
+          clearVisible={clearVisible}
+          onClear={clear}
+        />
+      ) : (
+        <PopoverPrimitive.Trigger asChild>
+          <button
+            id={id}
+            type="button"
+            disabled={disabled}
+            aria-invalid={invalid || undefined}
+            onKeyDown={clearOnKey(clearVisible, clear)}
+            data-slot="date-picker-trigger"
+            className={cn(pickerFieldClass({ invalid, readOnly, empty: !value }), className)}
+          >
+            <LuCalendar className="text-muted-foreground size-4 shrink-0" />
+            <span className="min-w-0 truncate">{value ? format(value, 'PPP') : (placeholder ?? 'Pick a date')}</span>
+            {clearVisible && <PickerClearButton onClear={clear} />}
+          </button>
+        </PopoverPrimitive.Trigger>
+      )}
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content
           align="start"

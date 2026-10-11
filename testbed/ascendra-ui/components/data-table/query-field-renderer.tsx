@@ -224,7 +224,8 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
               showClear={!field.required}
               onChange={f.onChange}
               onBlur={f.onBlur}
-              placeholder={field.placeholder ?? "Pick a date"}
+              placeholder={field.placeholder}
+              editable={field.editable}
               invalid={!!error}
             />
           )}
@@ -245,7 +246,8 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
               showClear={!field.required}
               onChange={f.onChange}
               onBlur={f.onBlur}
-              placeholder={field.placeholder ?? "Pick a date range"}
+              placeholder={field.placeholder}
+              editable={field.editable}
               invalid={!!error}
             />
           )}
