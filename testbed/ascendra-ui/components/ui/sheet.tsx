@@ -51,11 +51,18 @@ function SheetClose({
 
 /* ── Content ──────────────────────────────────────────────────────────────── */
 
+/** Focus the panel itself on open, not its first button — no focus ring until the user tabs. */
+function focusSheetPanel(event: Event) {
+  event.preventDefault();
+  (event.currentTarget as HTMLElement | null)?.focus();
+}
+
 function SheetContent({
   className,
   children,
   side = "right",
   showCloseButton = true,
+  onOpenAutoFocus = focusSheetPanel,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left";
@@ -66,6 +73,7 @@ function SheetContent({
       <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"
+        onOpenAutoFocus={onOpenAutoFocus}
         className={cn(
           /* Base positioning and shape */
           "fixed z-1000 flex flex-col overflow-hidden bg-white outline-none dark:bg-(--color-gray-1500)",
