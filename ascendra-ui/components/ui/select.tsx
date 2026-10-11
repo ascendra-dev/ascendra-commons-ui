@@ -4,22 +4,44 @@ import * as React from 'react';
 import { Select as SelectPrimitive } from 'radix-ui';
 
 import { cn } from '@/ascendra-ui/shadcn';
-import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from 'lucide-react';
+import { ChevronDownIcon, CheckIcon, ChevronUpIcon, XIcon } from 'lucide-react';
 
-const SelectContext = React.createContext<{ readOnly?: boolean }>({});
+const SelectContext = React.createContext<{
+  readOnly?: boolean;
+  disabled?: boolean;
+  hasValue: boolean;
+  clear: () => void;
+}>({ hasValue: false, clear: () => {} });
 
 function Select({
   readOnly,
   open,
   onOpenChange,
+  value: valueProp,
+  defaultValue,
+  onValueChange,
+  disabled,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root> & { readOnly?: boolean }) {
+  // Tracked here (controlled or not) so SelectTrigger's showClear knows when a value is set.
+  const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue ?? '');
+  const isControlled = valueProp !== undefined;
+  const value = isControlled ? valueProp : uncontrolledValue;
+
+  const setValue = (next: string) => {
+    if (!isControlled) setUncontrolledValue(next);
+    onValueChange?.(next);
+  };
+
   return (
-    <SelectContext.Provider value={{ readOnly }}>
+    <SelectContext.Provider value={{ readOnly, disabled, hasValue: value !== '', clear: () => setValue('') }}>
       <SelectPrimitive.Root
         data-slot="select"
         open={readOnly ? false : open}
         onOpenChange={readOnly ? () => {} : onOpenChange}
+        value={value}
+        onValueChange={setValue}
+        disabled={disabled}
         {...props}
       />
     </SelectContext.Provider>
@@ -50,13 +72,19 @@ function SelectTrigger({
   size = 'default',
   children,
   readOnly: readOnlyProp,
+  showClear = false,
+  disabled: disabledProp,
+  onKeyDown,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: 'sm' | 'default';
   readOnly?: boolean;
+  /** Show a × in place of the chevron while a value is selected — same behavior as ComboboxInput's showClear. */
+  showClear?: boolean;
 }) {
-  const { readOnly: readOnlyCtx } = React.useContext(SelectContext);
+  const { readOnly: readOnlyCtx, disabled: disabledCtx, hasValue, clear } = React.useContext(SelectContext);
   const readOnly = readOnlyProp ?? readOnlyCtx;
+  const clearVisible = showClear && hasValue && !readOnly && !(disabledProp ?? disabledCtx);
 
   return (
     <SelectPrimitive.Trigger
@@ -95,13 +123,42 @@ function SelectTrigger({
         ],
         className
       )}
+      disabled={disabledProp}
+      onKeyDown={(e) => {
+        onKeyDown?.(e);
+        // Keyboard path for clearing — the × itself is pointer-only (a trigger <button> can't nest another).
+        if (clearVisible && !e.defaultPrevented && (e.key === 'Backspace' || e.key === 'Delete')) {
+          e.preventDefault();
+          clear();
+        }
+      }}
       {...props}
     >
       <div className="flex w-full items-center justify-between">
         <span className="px-1.25">{children}</span>
-        <SelectPrimitive.Icon asChild>
-          <ChevronDownIcon className="text-muted-foreground pointer-events-none size-4 transition-transform duration-150 group-data-[state=open]:rotate-180" />
-        </SelectPrimitive.Icon>
+        {clearVisible ? (
+          <span
+            data-slot="select-clear"
+            aria-hidden
+            className="text-muted-foreground -m-0.5 flex cursor-pointer items-center justify-center rounded-sm p-0.5 hover:bg-black/5 dark:hover:bg-white/10"
+            // Stop Radix from opening the list: it opens on pointerdown (mouse) and click (touch).
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              clear();
+            }}
+          >
+            <XIcon className="pointer-events-none size-4" />
+          </span>
+        ) : (
+          <SelectPrimitive.Icon asChild>
+            <ChevronDownIcon className="text-muted-foreground pointer-events-none size-4 transition-transform duration-150 group-data-[state=open]:rotate-180" />
+          </SelectPrimitive.Icon>
+        )}
       </div>
     </SelectPrimitive.Trigger>
   );

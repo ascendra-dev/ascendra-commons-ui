@@ -115,7 +115,7 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
           render={({ field: f }) => (
             <Select
               value={f.value ?? ""}
-              onValueChange={f.onChange}
+              onValueChange={(v) => f.onChange(v === "" ? undefined : v)}
               onOpenChange={(open) => {
                 if (!open) f.onBlur();
               }}
@@ -124,6 +124,7 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
                 id={inputId}
                 className="w-full"
                 aria-invalid={!!error || undefined}
+                showClear={!field.required}
               >
                 <SelectValue
                   placeholder={field.placeholder ?? `Select ${field.label}`}
