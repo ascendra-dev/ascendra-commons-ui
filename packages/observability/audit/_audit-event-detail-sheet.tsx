@@ -17,6 +17,7 @@ import {
   SimpleBadge,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
+import { flattenPaths } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 
 interface DiffLine {
@@ -26,54 +27,54 @@ interface DiffLine {
 }
 
 /**
- * One line per field, matching audit-logging.api/mocks.html's own
- * before → after block: an unchanged field shows once, a changed one shows
+ * One line per leaf, matching audit-logging.api/mocks.html's own
+ * before → after block: an unchanged leaf shows once, a changed one shows
  * as a removed line (old value) followed by an added line (new value).
- * Presentation-only — distinct from the API's own changed-only `diff[]`
- * contract (FieldDiffEntry), which this doesn't need since every field is
- * already in hand on the row.
+ * Nested objects are flattened to dot paths (`address.street`) and arrays are
+ * shown whole — the same rules as the API's changed-only `diff[]`, which this
+ * doesn't fetch since every field is already in hand on the row.
  */
 function buildDiffLines(
   before: Record<string, unknown> | null,
   after: Record<string, unknown> | null,
 ): DiffLine[] {
-  const b = before ?? {};
-  const a = after ?? {};
-  const fields = [...new Set([...Object.keys(b), ...Object.keys(a)])];
+  const b = flattenPaths(before ?? {});
+  const a = flattenPaths(after ?? {});
+  const paths = [...new Set([...b.keys(), ...a.keys()])];
 
-  // Changed fields first (what actually happened), unchanged fields after as
+  // Changed leaves first (what actually happened), unchanged leaves after as
   // trailing context — matches audit-logging.api/mocks.html's own example,
   // which orders status/paidAt (changed) before amount/currency (unchanged).
   const changed: DiffLine[] = [];
   const unchanged: DiffLine[] = [];
 
-  for (const field of fields) {
-    const hasBefore = field in b;
-    const hasAfter = field in a;
+  for (const path of paths) {
+    const hasBefore = b.has(path);
+    const hasAfter = a.has(path);
     const isUnchanged =
       hasBefore &&
       hasAfter &&
-      JSON.stringify(b[field]) === JSON.stringify(a[field]);
+      JSON.stringify(b.get(path)) === JSON.stringify(a.get(path));
 
     if (isUnchanged) {
       unchanged.push({
-        key: field,
+        key: path,
         kind: 'unchanged',
-        text: `${field}: ${JSON.stringify(a[field])}`,
+        text: `${path}: ${JSON.stringify(a.get(path))}`,
       });
       continue;
     }
     if (hasBefore)
       changed.push({
-        key: `${field}-before`,
+        key: `${path}-before`,
         kind: 'removed',
-        text: `${field}: ${JSON.stringify(b[field])}`,
+        text: `${path}: ${JSON.stringify(b.get(path))}`,
       });
     if (hasAfter)
       changed.push({
-        key: `${field}-after`,
+        key: `${path}-after`,
         kind: 'added',
-        text: `${field}: ${JSON.stringify(a[field])}`,
+        text: `${path}: ${JSON.stringify(a.get(path))}`,
       });
   }
 

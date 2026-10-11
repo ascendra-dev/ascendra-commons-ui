@@ -23,6 +23,27 @@ const hoursAgo = (h: number) => new Date(NOW - h * 60 * 60 * 1000).toISOString()
 /** Fixture ids look like the real thing (uuids) — see AUI-004 in this repo's hard-instructions.md. */
 export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
   {
+    id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e23',
+    entityType: 'user',
+    entityId: 'c9e3f6d4-7b5f-4c8a-9d4e-8f3b2a6c9d01',
+    tenantId: 'tenant_globex',
+    actor: 'admin@globex.test',
+    action: 'user.profile_updated',
+    before: {
+      name: 'Ayesha Noor',
+      address: { street: '12 Old Rd', city: 'Lahore', geo: { lat: 31.52, lng: 74.35 } },
+      roles: ['viewer', 'billing_admin'],
+    },
+    after: {
+      name: 'Ayesha Noor',
+      address: { street: '7 New St', city: 'Lahore', geo: { lat: 31.55, lng: 74.35 } },
+      roles: ['viewer', 'billing_admin'],
+    },
+    occurredAt: hoursAgo(0.5),
+    reason: 'Moved office',
+    correlationId: '7d2e9a41-6c3b-4f8e-a1d5-2b9c8e7f6a23',
+  },
+  {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e01',
     entityType: 'invoice',
     entityId: 'a7c1e4b2-5f3d-4a8e-9b2c-6d1f0e4a7c01',

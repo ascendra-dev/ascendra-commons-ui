@@ -30,6 +30,7 @@ export interface AuditCatalogEntry {
 }
 
 export interface FieldDiffEntry {
+  /** Dot path of the changed leaf, e.g. `address.street` — arrays are compared whole. */
   field: string;
   before: unknown;
   after: unknown;
