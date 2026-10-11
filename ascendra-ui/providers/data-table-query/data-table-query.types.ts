@@ -128,6 +128,10 @@ export interface QueryContextValue {
   pendingQueryId: string | null;
   setActiveQueryId: (id: string) => void;
   confirmPending: () => void;
+  /** Closes a filter query's param panel and restores the run that was showing before it opened. */
+  cancelPending: () => void;
+  /** False when the panel has no earlier run to return to (e.g. a filter query is active on first load). */
+  canCancelPending: boolean;
   /** True on the first render while localStorage preferences are being read. Use to suppress query-specific UI. */
   isInitializing: boolean;
   isLoading: boolean;

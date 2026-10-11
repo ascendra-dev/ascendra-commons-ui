@@ -50,6 +50,8 @@ export function DataTableQueryProvider<T = unknown>({
   const [confirmedParamsState, setConfirmedParamsState] = useState<QueryParamValues | null>(null);
   const [currentBatch, setCurrentBatch] = useState(1);
   const [isInitializing, setIsInitializing] = useState(!!tableId);
+  // The run that was showing before a filter query's param panel opened — restored by cancelPending().
+  const [runBeforePending, setRunBeforePending] = useState<{ params: QueryParamValues | null; batch: number } | null>(null);
 
   // Saved user queries
   const savedUserQueriesRef = useRef<SavedUserQuery[]>([]);
@@ -169,6 +171,8 @@ export function DataTableQueryProvider<T = unknown>({
   const confirmedQuery = allQueries.find((q) => q.id === activeId) ?? allQueries[0];
 
   const setActiveQueryId = useCallback((id: string) => {
+    const previousRun = { params: confirmedParamsState, batch: currentBatch };
+    const panelWasOpen = !!confirmedQuery.params?.length && confirmedParamsState === null;
     setCurrentBatch(1);
     setConfirmedParamsState(null);
 
@@ -186,13 +190,16 @@ export function DataTableQueryProvider<T = unknown>({
     // Preset query
     const presetQ = propQueries.find((q) => q.id === id);
     if (presetQ?.group === 'filter') {
+      // Snapshot only when a pending session starts from a real run — switching between filter
+      // queries while the panel is already open keeps the original snapshot.
+      if (pendingQueryId === null) setRunBeforePending(panelWasOpen ? null : previousRun);
       setPendingQueryId(id);
     } else if (presetQ) {
       setActiveId(id);
       setPendingQueryId(null);
       if (tableId) writeQueryRunPreferences(tableId, id, {});
     }
-  }, [propQueries, tableId]);
+  }, [propQueries, tableId, confirmedParamsState, currentBatch, confirmedQuery, pendingQueryId]);
 
   const confirmPending = useCallback(() => {
     if (pendingQueryId) {
@@ -200,6 +207,15 @@ export function DataTableQueryProvider<T = unknown>({
       setPendingQueryId(null);
     }
   }, [pendingQueryId]);
+
+  const canCancelPending = pendingQueryId !== null && runBeforePending !== null;
+
+  const cancelPending = useCallback(() => {
+    if (pendingQueryId === null || runBeforePending === null) return;
+    setConfirmedParamsState(runBeforePending.params);
+    setCurrentBatch(runBeforePending.batch);
+    setPendingQueryId(null);
+  }, [pendingQueryId, runBeforePending]);
 
   const setConfirmedParams = useCallback((values: QueryParamValues) => {
     const confirmedId = pendingQueryId ?? activeId;
@@ -368,6 +384,8 @@ export function DataTableQueryProvider<T = unknown>({
         pendingQueryId,
         setActiveQueryId,
         confirmPending,
+        cancelPending,
+        canCancelPending,
         isInitializing,
         isLoading: isInitializing || isLoading,
         isError,

@@ -24,7 +24,7 @@ import type {
 } from "@/ascendra-ui/providers/data-table-query/data-table-query.types";
 import { isFieldDef } from "@/ascendra-ui/providers/data-table-query/data-table-query.types";
 import { cn } from "@/ascendra-ui/shadcn";
-import { BookmarkPlus } from "lucide-react";
+import { BookmarkPlus, XIcon } from "lucide-react";
 import { CardFooterIcon } from "@/ascendra-ui/components/card/card-footer-icon";
 import { IoColorFilterOutline } from "react-icons/io5";
 import { SaveQueryDialog } from "./save-query-dialog";
@@ -209,6 +209,8 @@ function QueryParamPanelInner() {
     setConfirmedParams,
     isLoading,
     confirmPending,
+    cancelPending,
+    canCancelPending,
     getDraftValues,
     saveDraftValues,
     saveAsUserQuery,
@@ -272,18 +274,31 @@ function QueryParamPanelInner() {
                 </p>
               </div>
             </div>
-            {isValid && (
+            <div className="flex shrink-0 items-center gap-1">
+              {isValid && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground shrink-0 gap-1.5"
+                  onClick={() => setSaveDialogOpen(true)}
+                >
+                  <BookmarkPlus className="size-3.5" />
+                  Save as My Query
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-muted-foreground hover:text-foreground shrink-0 gap-1.5"
-                onClick={() => setSaveDialogOpen(true)}
+                className="text-muted-foreground hover:text-foreground size-7 shrink-0 px-0"
+                aria-label="Close filter and return to the previous results"
+                disabled={!canCancelPending}
+                onClick={cancelPending}
               >
-                <BookmarkPlus className="size-3.5" />
-                Save as My Query
+                <XIcon className="size-3.5" />
               </Button>
-            )}
+            </div>
           </div>
         </CardHeader>
 
