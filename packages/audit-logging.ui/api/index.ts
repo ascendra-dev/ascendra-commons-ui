@@ -5,6 +5,7 @@ export type {
   ActorActivitySummary,
   AuditActionCount,
   AuditActorCount,
+  AuditCatalogEntry,
   AuditDailyCount,
   AuditEvent,
   AuditEventDetail,

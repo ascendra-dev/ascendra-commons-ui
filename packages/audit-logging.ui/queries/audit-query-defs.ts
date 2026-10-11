@@ -1,6 +1,6 @@
-import type { ColumnDef, QueryDef } from '@/ascendra-ui';
+import type { ColumnDef, FieldOptionsMap, QueryDef } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
-import type { AuditEvent } from '../api/audit-api.types';
+import type { AuditCatalogEntry, AuditEvent } from '../api/audit-api.types';
 
 /**
  * Column labels are sentence case ("Occurred at", not "Occurred At") —
@@ -43,8 +43,8 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
  * specific entity's history is the dedicated Entity History screen's job,
  * reached by clicking the Entity cell, not this list's filter form.
  *
- * Fields are grouped into two rows via a section break — actor/action/
- * entityType/tenantId/correlationId (identity-style lookups) first, then
+ * Fields are grouped into two rows via a section break — actor/entityType/
+ * action/tenantId/correlationId (identity-style lookups) first, then
  * a single occurredRange daterange field — with `columns: { sm: 1, md: 2,
  * lg: 3 }` (per AUI-028) so the form actually reflows across 1/2/3 columns
  * instead of stacking one field per row regardless of screen size.
@@ -61,6 +61,9 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
  * (`info`) also states the AND-logic/all-optional fact once, so the badge
  * here is redundant with it — kept anyway, as a per-field decision, not an
  * oversight (see AUI-038 for the guidance this deliberately departs from).
+ *
+ * entityType/action are selects fed by `GET /audit/catalog` (`auditFieldOptionsFor`), with
+ * entityType first so Action can narrow to it.
  *
  * No field claims a specific match algorithm (partial vs exact) in its
  * `info`/`description` — the mock's own matchesText does exact string
@@ -98,24 +101,8 @@ export const auditQueryDefs: QueryDef[] = [
         maxLength: 100,
         optional: true,
       },
-      {
-        name: 'action',
-        label: 'Action',
-        type: 'text',
-        placeholder: 'invoice.void',
-        span: 1,
-        maxLength: 100,
-        optional: true,
-      },
-      {
-        name: 'entityType',
-        label: 'Entity type',
-        type: 'text',
-        placeholder: 'invoice',
-        span: 1,
-        maxLength: 100,
-        optional: true,
-      },
+      { name: 'entityType', label: 'Entity type', type: 'select', span: 1, optional: true },
+      { name: 'action', label: 'Action', type: 'select', span: 1, optional: true },
       {
         name: 'tenantId',
         label: 'Tenant',
@@ -147,3 +134,22 @@ export const auditQueryDefs: QueryDef[] = [
     ],
   },
 ];
+
+const toOptions = (values: string[]) => [...new Set(values)].map((value) => ({ value, label: value }));
+
+/**
+ * Options for the Entity type / Action selects, from `GET /audit/catalog` — Action narrows to the
+ * chosen Entity type, or lists every action when none is chosen. An empty catalog (still loading,
+ * or none configured) just means empty dropdowns.
+ */
+export function auditFieldOptionsFor(catalog: AuditCatalogEntry[]): FieldOptionsMap {
+  return {
+    'advanced-filter': {
+      entityType: toOptions(catalog.map((e) => e.entityType)),
+      action: (values) => {
+        const entries = values.entityType ? catalog.filter((e) => e.entityType === values.entityType) : catalog;
+        return toOptions(entries.flatMap((e) => e.actions));
+      },
+    },
+  };
+}

@@ -19,6 +19,16 @@ export interface AuditEvent {
   correlationId: string;
 }
 
+/**
+ * `GET /audit/catalog` — one entity type the app audits, with the actions recorded against it.
+ * Actions are grouped explicitly, not by name prefix (e.g. `notification.route_set` is recorded
+ * on `channel_route`). Empty when the backend has no catalog configured.
+ */
+export interface AuditCatalogEntry {
+  entityType: string;
+  actions: string[];
+}
+
 export interface FieldDiffEntry {
   field: string;
   before: unknown;

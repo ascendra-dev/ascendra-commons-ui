@@ -1,7 +1,14 @@
 import { apiClient } from '@/ascendra-ui/lib/api/client';
 import { dateRangeBounds } from '@/ascendra-ui';
 import type { CursorListResponse, QueryParamValues } from '@/ascendra-ui';
-import type { ActorActivitySummary, AuditEvent, AuditEventDetail, AuditStats, EntityNeighbors } from './audit-api.types';
+import type {
+  ActorActivitySummary,
+  AuditCatalogEntry,
+  AuditEvent,
+  AuditEventDetail,
+  AuditStats,
+  EntityNeighbors,
+} from './audit-api.types';
 
 type CursorPage = { limit?: number; cursor?: string };
 
@@ -27,6 +34,12 @@ export const auditApi = {
     const { data } = await apiClient.get<CursorListResponse<AuditEvent>>('/audit/events', {
       params: { ...filters, limit, cursor, occurredAfter, occurredBefore },
     });
+    return data;
+  },
+
+  /** GET /audit/catalog — the app's configured entity types and their actions (a bare array; `[]` when none). */
+  async catalog(): Promise<AuditCatalogEntry[]> {
+    const { data } = await apiClient.get<AuditCatalogEntry[]>('/audit/catalog');
     return data;
   },
 

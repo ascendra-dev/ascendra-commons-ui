@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import {
   DataTable,
@@ -49,10 +50,12 @@ import {
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
   auditEventColumns,
+  auditFieldOptionsFor,
   auditQueryDefs,
   auditQueryFunctions,
 } from '@/ascendra-commons-ui/audit-logging.ui/queries';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
+import { auditApi } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { AuditEventDetailSheet } from '../_audit-event-detail-sheet';
 
@@ -62,6 +65,7 @@ import { AuditEventDetailSheet } from '../_audit-event-detail-sheet';
  * `audit-logging.ui/mocks` instead of editing the page body.
  */
 const queryFunctions = auditQueryFunctions;
+const fetchCatalog = () => auditApi.catalog();
 
 /** Bridges useQueryContext (only callable inside the provider) to ExportCsvButton's data prop. */
 function AuditExportCsvButton() {
@@ -74,6 +78,8 @@ function AuditExportCsvButton() {
 /** The primary filterable Audit Log feed. */
 export default function AuditLogListPage() {
   const [selected, setSelected] = useState<AuditEvent | null>(null);
+  const catalog = useQuery({ queryKey: ['audit-catalog'], queryFn: fetchCatalog, staleTime: Infinity });
+  const fieldOptions = useMemo(() => auditFieldOptionsFor(catalog.data ?? []), [catalog.data]);
 
   return (
     <>
@@ -91,6 +97,7 @@ export default function AuditLogListPage() {
             <MainContent>
               <DataTableWithQueryProvider
                 queries={auditQueryDefs}
+                fieldOptions={fieldOptions}
                 queryFunctions={queryFunctions}
                 columns={auditEventColumns}
                 getRowId={(row) => row.id}

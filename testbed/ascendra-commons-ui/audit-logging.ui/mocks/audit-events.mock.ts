@@ -5,6 +5,7 @@ import type {
   ActorActivitySummary,
   AuditActionCount,
   AuditActorCount,
+  AuditCatalogEntry,
   AuditDailyCount,
   AuditEvent,
   AuditEventDetail,
@@ -424,6 +425,17 @@ export async function mockEntityNeighbors(
     older: older ? { entityId: older.id } : null,
     totalRecords: entities.length,
   };
+}
+
+/** Grouped from the mock events themselves, so the filter selects always match what the mock can return. */
+export async function mockCatalog(): Promise<AuditCatalogEntry[]> {
+  await delay(300);
+  const byEntity = new Map<string, Set<string>>();
+  for (const e of MOCK_AUDIT_EVENTS) {
+    if (!byEntity.has(e.entityType)) byEntity.set(e.entityType, new Set());
+    byEntity.get(e.entityType)!.add(e.action);
+  }
+  return [...byEntity].map(([entityType, actions]) => ({ entityType, actions: [...actions].sort() }));
 }
 
 export async function mockTrace(correlationId: string): Promise<CursorListResponse<AuditEvent>> {

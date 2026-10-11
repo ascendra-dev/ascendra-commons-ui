@@ -3,6 +3,7 @@ export { auditLogLinks } from './links';
 export { auditApi } from './api';
 export type {
   ActorActivitySummary,
+  AuditCatalogEntry,
   AuditEvent,
   AuditEventDetail,
   AuditKpiValue,
@@ -11,4 +12,9 @@ export type {
   AuditTopActionsStats,
   FieldDiffEntry,
 } from './api';
-export { auditEventColumns, auditQueryDefs, auditQueryFunctions } from './queries';
+export {
+  auditEventColumns,
+  auditFieldOptionsFor,
+  auditQueryDefs,
+  auditQueryFunctions,
+} from './queries';
