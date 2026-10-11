@@ -27,6 +27,7 @@ import {
   DataTableRow,
   DataTableRowAction,
   DataTableSearchInput,
+  DataTableSheetNavigator,
   DataTableSortDropdown,
   DataTableWithQueryProvider,
   DataTableWrapper,
@@ -134,6 +135,7 @@ export default function AuditLogListPage() {
                       {(row: AuditEvent) => (
                         <DataTableRow
                           key={row.id}
+                          active={row.id === selected?.id}
                           className="cursor-pointer"
                           onClick={() => setSelected(row)}
                         >
@@ -258,17 +260,23 @@ export default function AuditLogListPage() {
                   <DataTableEmptyBody />
                   <DataTableFoot />
                 </DataTableWrapper>
+                {selected && (
+                  <AuditEventDetailSheet
+                    record={selected}
+                    onClose={() => setSelected(null)}
+                    navigator={
+                      <DataTableSheetNavigator<AuditEvent>
+                        selectedId={selected.id}
+                        onSelect={setSelected}
+                      />
+                    }
+                  />
+                )}
               </DataTableWithQueryProvider>
             </MainContent>
           </PageContent>
         </PageWrapper>
       </PageMain>
-      {selected && (
-        <AuditEventDetailSheet
-          record={selected}
-          onClose={() => setSelected(null)}
-        />
-      )}
     </>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import {
   IdText,
   Sheet,
@@ -89,15 +90,19 @@ function buildDiffLines(
 export function AuditEventDetailSheet({
   record,
   onClose,
+  navigator,
 }: {
   record: AuditEvent;
   onClose: () => void;
+  /** Previous/next control, e.g. a DataTableSheetNavigator — omitted where the sheet shows a lone record. */
+  navigator?: ReactNode;
 }) {
   const diffLines = buildDiffLines(record.before, record.after);
 
   return (
     <Sheet open onOpenChange={(open) => !open && onClose()}>
       <SheetContent>
+        {navigator}
         <SheetHeader>
           <SheetTitle>Audit record detail</SheetTitle>
           <SheetDescription>
