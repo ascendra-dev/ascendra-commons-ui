@@ -17,6 +17,8 @@ export interface AuditEvent {
   occurredAt: string;
   reason: string | null;
   correlationId: string;
+  /** The Ascendra application that wrote the record (e.g. `ascendra-pay`) — one value per app today. */
+  application: string;
 }
 
 /**

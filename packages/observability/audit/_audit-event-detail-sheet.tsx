@@ -155,6 +155,9 @@ export function AuditEventDetailSheet({
                 <IdText value={record.correlationId} showTooltip={false} />
               </SheetValue>
 
+              <SheetKey>Application</SheetKey>
+              <SheetValue>{record.application}</SheetValue>
+
               {record.reason && (
                 <>
                   <SheetKey>Reason</SheetKey>

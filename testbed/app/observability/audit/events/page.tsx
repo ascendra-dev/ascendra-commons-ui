@@ -128,6 +128,9 @@ export default function AuditLogListPage() {
                         <DataTableHead column="correlationId">
                           Correlation
                         </DataTableHead>
+                        <DataTableHead column="application">
+                          Application
+                        </DataTableHead>
                         <DataTableHeadAction />
                       </DataTableHeaderRow>
                     </DataTableHeader>
@@ -239,6 +242,13 @@ export default function AuditLogListPage() {
                                 showTooltip={false}
                               />
                             </Link>
+                          </DataTableCell>
+                          <DataTableCell column="application">
+                            <DataTableHighlight
+                              text={row.application}
+                              item={row}
+                              itemKey="application"
+                            />
                           </DataTableCell>
                           <DataTableRowAction>
                             <DropdownMenuLabel>Row actions</DropdownMenuLabel>

@@ -33,6 +33,7 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
   { key: 'tenantId', label: 'Tenant' },
   { key: 'reason', label: 'Reason', active: false },
   { key: 'correlationId', label: 'Correlation', sortable: false },
+  { key: 'application', label: 'Application', active: false },
 ];
 
 /**

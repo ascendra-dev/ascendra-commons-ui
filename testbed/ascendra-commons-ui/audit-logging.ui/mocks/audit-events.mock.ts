@@ -43,6 +43,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     reason:
       'Moved to the new Gulberg office after the lease on Old Rd ended; geo pin re-captured on site by the facilities team, and the billing address will follow in a separate change once finance signs off.',
     correlationId: '7d2e9a41-6c3b-4f8e-a1d5-2b9c8e7f6a23',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e01',
@@ -56,6 +57,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(120),
     reason: null,
     correlationId: '5b9e1c04-2a71-4c3e-9f8a-d3b6e0c1a1a1',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e02',
@@ -69,6 +71,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(119),
     reason: null,
     correlationId: '5b9e1c04-2a71-4c3e-9f8a-d3b6e0c1a1a1',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e15',
@@ -82,6 +85,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(115),
     reason: null,
     correlationId: 'b2e5f8a1-3c6d-4b9e-8f2a-5c7d0e3b6a11',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e16',
@@ -95,6 +99,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(110),
     reason: null,
     correlationId: 'c3f6a9b2-4d7e-4c0f-9a3b-6d8e1f4c7b12',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e17',
@@ -108,6 +113,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(105),
     reason: 'Card declined by issuing bank',
     correlationId: 'd4a7b0c3-5e8f-4d1a-0b4c-7e9f2a5d8c13',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e18',
@@ -121,6 +127,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(100),
     reason: null,
     correlationId: 'e5b8c1d4-6f9a-4e2b-1c5d-8f0a3b6e9d14',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e03',
@@ -134,6 +141,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(96),
     reason: 'Duplicate invoice raised in error',
     correlationId: '71a29f6e-0c3d-4b8a-9e1f-2c5d6a7b8c02',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e04',
@@ -147,6 +155,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(88),
     reason: null,
     correlationId: '3f10a2c7-4b8d-4e9a-9c1f-5d6e7a8b9c03',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e13',
@@ -160,6 +169,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(87.5),
     reason: null,
     correlationId: '3f10a2c7-4b8d-4e9a-9c1f-5d6e7a8b9c03',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e05',
@@ -173,6 +183,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(87),
     reason: null,
     correlationId: '3f10a2c7-4b8d-4e9a-9c1f-5d6e7a8b9c03',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e06',
@@ -186,6 +197,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(78),
     reason: 'Requested via support ticket #4471',
     correlationId: '91be0d4a-3c7e-4f9b-8d2c-6a1e5f7b8c04',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e07',
@@ -199,6 +211,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(68),
     reason: null,
     correlationId: 'c2b1a3f8-5d9e-4a7c-8b3f-7d2e6a9c1b05',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e08',
@@ -212,6 +225,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(67),
     reason: null,
     correlationId: 'c2b1a3f8-5d9e-4a7c-8b3f-7d2e6a9c1b05',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e14',
@@ -225,6 +239,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(60),
     reason: 'Payment received via bank transfer',
     correlationId: 'a1f4e9c2-6b3d-4e7a-8c5f-9d2b1e6a3f10',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e19',
@@ -238,6 +253,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(20),
     reason: null,
     correlationId: 'f1a4c7e0-9b2d-4e5f-8a3c-6d9e0b4f7c15',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e20',
@@ -251,6 +267,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(15),
     reason: null,
     correlationId: 'f1a4c7e0-9b2d-4e5f-8a3c-6d9e0b4f7c15',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e21',
@@ -264,6 +281,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(5),
     reason: null,
     correlationId: 'a2b5d8e1-0c3f-4a6b-9d4e-7f1a5c8e2b16',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e22',
@@ -277,6 +295,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(30),
     reason: 'Platform-level billing adjustment, not tied to a tenant',
     correlationId: 'b3c6e9f2-1d4a-4b7c-8e5f-9a2b6d0f3c17',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e09',
@@ -290,6 +309,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(50),
     reason: null,
     correlationId: 'd3c2b4a9-6e0f-4b8d-9c4a-8e3f7b0d2c06',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e10',
@@ -303,6 +323,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(40),
     reason: 'Offboarded contractor',
     correlationId: 'e4d3c5b0-7f1a-4c9e-8d5b-9f4a8c1e3d07',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e11',
@@ -316,6 +337,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(24),
     reason: 'KYC — certificate of incorporation',
     correlationId: 'f5e4d6c1-8a2b-4d0f-9e6c-0a5b9d2f4e08',
+    application: 'ascendra-pay',
   },
   {
     id: '3f2a1c9e-8b7d-4e2a-9c3f-1a2b3c4d5e12',
@@ -329,6 +351,7 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
     occurredAt: hoursAgo(3),
     reason: 'Enable SMS for invoice notices',
     correlationId: '06f5e7d2-9b3c-4e1a-8f7d-1b6a0e3c5f09',
+    application: 'ascendra-pay',
   },
 ];
 
