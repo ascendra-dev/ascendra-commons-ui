@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import type { DateRange } from "react-day-picker";
 import { z } from "zod";
 
 import { UnsavedChangesBar } from "@/ascendra-ui/components/common-ui/unsaved-changes-bar";
@@ -81,13 +82,26 @@ function buildZodSchema(
         break;
       }
       case "date": {
-        const s = z.date({ error: "Select a valid date, date is required" });
+        const s = z.date({
+          error: (issue) =>
+            issue.input === undefined
+              ? `${field.label} is required`
+              : "Select a valid date",
+        });
         schema = field.required ? s : s.optional();
         break;
       }
       case "daterange": {
-        const s = z.object({ from: z.date(), to: z.date().optional() });
-        schema = field.required ? s : s.optional();
+        // The picker can emit { from: undefined } when a selection is toggled off — that's empty,
+        // not a malformed range, so it gets the same "is required" message as a missing value.
+        const range = z.object(
+          { from: z.date(), to: z.date().optional() },
+          { error: `${field.label} is required` },
+        );
+        schema = z.preprocess(
+          (value) => ((value as DateRange | undefined)?.from ? value : undefined),
+          field.required ? range : range.optional(),
+        );
         break;
       }
       case "checkbox": {
