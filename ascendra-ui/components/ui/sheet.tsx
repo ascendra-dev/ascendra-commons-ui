@@ -33,8 +33,24 @@ function SheetOverlay({
 
 /* ... Root, Trigger, Close remain the same ... */
 
-function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
-  return <SheetPrimitive.Root data-slot="sheet" {...props} />;
+const SheetLockScrollContext = React.createContext(true);
+
+function Sheet({
+  lockScroll = true,
+  modal,
+  ...props
+}: React.ComponentProps<typeof SheetPrimitive.Root> & {
+  /**
+   * false: the page behind keeps scrolling. An outside click still only closes the sheet — a
+   * transparent layer takes it, so the element underneath never receives it.
+   */
+  lockScroll?: boolean;
+}) {
+  return (
+    <SheetLockScrollContext.Provider value={lockScroll}>
+      <SheetPrimitive.Root data-slot="sheet" modal={lockScroll ? modal : false} {...props} />
+    </SheetLockScrollContext.Provider>
+  );
 }
 
 function SheetTrigger({
@@ -63,17 +79,29 @@ function SheetContent({
   side = "right",
   showCloseButton = true,
   onOpenAutoFocus = focusSheetPanel,
+  onFocusOutside,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left";
   showCloseButton?: boolean;
 }) {
+  const lockScroll = React.useContext(SheetLockScrollContext);
+  // Without a focus trap, focus leaving the sheet (e.g. a menu returning focus to its trigger) would
+  // close it; with lockScroll off, only a press outside should.
+  const handleFocusOutside =
+    onFocusOutside ?? (lockScroll ? undefined : (event: Event) => event.preventDefault());
+
   return (
     <SheetPrimitive.Portal>
-      <SheetOverlay />
+      {lockScroll ? (
+        <SheetOverlay />
+      ) : (
+        <div data-slot="sheet-overlay" aria-hidden className="fixed inset-0 z-200" />
+      )}
       <SheetPrimitive.Content
         data-slot="sheet-content"
         onOpenAutoFocus={onOpenAutoFocus}
+        onFocusOutside={handleFocusOutside}
         className={cn(
           /* Base positioning and shape */
           "fixed z-1000 flex flex-col overflow-hidden bg-white outline-none dark:bg-(--color-gray-1500)",
