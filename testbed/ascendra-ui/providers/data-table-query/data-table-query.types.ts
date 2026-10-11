@@ -1,4 +1,5 @@
 import type { DateRange } from 'react-day-picker';
+import type { DateExpr } from './date-expr';
 
 export type FieldType =
   | 'text'
@@ -21,6 +22,9 @@ export interface ColumnsConfig {
   lg?: number;
 }
 
+/** A field's starting value — and what Reset restores. Dates are DateExprs, resolved when the form opens. */
+export type FieldDefaultValue = string | number | boolean | string[] | { from: DateExpr; to?: DateExpr };
+
 export interface FieldDef {
   name: string;
   label: string;
@@ -41,6 +45,20 @@ export interface FieldDef {
   max?: number;
   minLength?: number;
   maxLength?: number;
+  /** text: a regex (source string) the whole value must match; an empty optional field skips it. */
+  pattern?: string;
+  /** text: message when `pattern` fails. Default "<label> is not in the expected format". */
+  patternMessage?: string;
+  /** multiselect: most items that may be selected. */
+  maxItems?: number;
+  /** date / daterange: earliest allowed day, inclusive — e.g. 'today', '-1y', '2026-01-01'. */
+  minDate?: DateExpr;
+  /** date / daterange: latest allowed day, inclusive — e.g. 'today' for past-only. */
+  maxDate?: DateExpr;
+  /** daterange: longest allowed range in days, counting both ends (Oct 1–Oct 1 is 1 day). */
+  maxRangeDays?: number;
+  /** Starting value — and what Reset restores. Ignored when the user has a saved draft for the query. */
+  defaultValue?: FieldDefaultValue;
 }
 
 export interface SectionBreak {

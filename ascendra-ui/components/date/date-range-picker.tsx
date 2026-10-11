@@ -2,12 +2,13 @@
 
 import * as React from 'react';
 import { Popover as PopoverPrimitive } from 'radix-ui';
-import { format } from 'date-fns';
-import { type DateRange } from 'react-day-picker';
+import { differenceInCalendarDays, format } from 'date-fns';
+import { type DateRange, type Matcher } from 'react-day-picker';
 import { type CalendarProps } from '@/ascendra-ui/components/date/calendar';
 import { LuCalendar } from 'react-icons/lu';
 import { cn } from '@/ascendra-ui/shadcn';
 import { Calendar } from '@/ascendra-ui/components/date/calendar';
+import { boundsMatchers } from '@/ascendra-ui/components/date/bounds-matchers';
 
 interface DateRangePickerProps {
   id?: string;
@@ -22,6 +23,12 @@ interface DateRangePickerProps {
   fromYear?: number;
   toYear?: number;
   numberOfMonths?: number;
+  /** Earliest selectable day; earlier days are disabled. */
+  minDate?: Date;
+  /** Latest selectable day; later days are disabled. */
+  maxDate?: Date;
+  /** Longest range in days, counting both ends — once a start is picked, days beyond it are disabled. */
+  maxRangeDays?: number;
   captionLayout?: CalendarProps['captionLayout'];
 }
 
@@ -38,9 +45,18 @@ function DateRangePicker({
   fromYear,
   toYear,
   numberOfMonths = 2,
+  minDate,
+  maxDate,
+  maxRangeDays,
   captionLayout,
 }: DateRangePickerProps) {
   const [open, setOpen] = React.useState(false);
+
+  const disabledDays: Matcher[] = boundsMatchers(minDate, maxDate);
+  const start = value?.from;
+  if (maxRangeDays && start && !value?.to) {
+    disabledDays.push((day: Date) => Math.abs(differenceInCalendarDays(day, start)) >= maxRangeDays);
+  }
 
   const label = React.useMemo(() => {
     if (!value?.from) return null;
@@ -96,7 +112,7 @@ function DateRangePicker({
           align="start"
           sideOffset={6}
           className={cn(
-            'z-50 overflow-hidden rounded-xl',
+            'z-1001 overflow-hidden rounded-xl',
             'bg-white dark:bg-(--color-gray-1400)',
             'ring-1 ring-black/8 dark:ring-white/8',
             'shadow-[0_16px_36px_-6px_rgba(25,28,33,0.16),0_6px_16px_-2px_rgba(25,28,33,0.08)]',
@@ -113,6 +129,7 @@ function DateRangePicker({
             selected={value}
             onSelect={onChange}
             defaultMonth={value?.from}
+            disabled={disabledDays}
             numberOfMonths={numberOfMonths}
             startMonth={
               fromYear !== undefined ? new Date(fromYear, 0) : undefined

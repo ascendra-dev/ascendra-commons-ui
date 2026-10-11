@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Popover as PopoverPrimitive } from 'radix-ui';
 import { format } from 'date-fns';
+import { boundsMatchers } from '@/ascendra-ui/components/date/bounds-matchers';
 import { type CalendarProps } from '@/ascendra-ui/components/date/calendar';
 import { LuCalendar } from 'react-icons/lu';
 import { cn } from '@/ascendra-ui/shadcn';
@@ -20,6 +21,10 @@ interface DatePickerProps {
   className?: string;
   fromYear?: number;
   toYear?: number;
+  /** Earliest selectable day; earlier days are disabled. */
+  minDate?: Date;
+  /** Latest selectable day; later days are disabled. */
+  maxDate?: Date;
   captionLayout?: CalendarProps['captionLayout'];
 }
 
@@ -35,9 +40,12 @@ function DatePicker({
   className,
   fromYear,
   toYear,
+  minDate,
+  maxDate,
   captionLayout,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
+  const disabledDays = boundsMatchers(minDate, maxDate);
 
   return (
     <PopoverPrimitive.Root
@@ -87,7 +95,7 @@ function DatePicker({
           align="start"
           sideOffset={6}
           className={cn(
-            'z-50 overflow-hidden rounded-xl',
+            'z-1001 overflow-hidden rounded-xl',
             'bg-white dark:bg-(--color-gray-1400)',
             'ring-1 ring-black/8 dark:ring-white/8',
             'shadow-[0_16px_36px_-6px_rgba(25,28,33,0.16),0_6px_16px_-2px_rgba(25,28,33,0.08)]',
@@ -107,6 +115,7 @@ function DatePicker({
               setOpen(false);
             }}
             defaultMonth={value}
+            disabled={disabledDays}
             startMonth={
               fromYear !== undefined ? new Date(fromYear, 0) : undefined
             }

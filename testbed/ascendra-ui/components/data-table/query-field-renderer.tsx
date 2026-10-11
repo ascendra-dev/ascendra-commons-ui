@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useFormContext, Controller, useWatch } from "react-hook-form";
 import type { DateRange } from "react-day-picker";
 
@@ -34,6 +34,7 @@ const ComboboxChipItem = ComboboxChip as React.ComponentType<
   React.ComponentProps<typeof ComboboxChip> & { value: string }
 >;
 import { DatePicker } from "@/ascendra-ui/components/date/date-picker";
+import { resolveDateBounds } from "@/ascendra-ui/providers/data-table-query/date-expr";
 import { DateRangePicker } from "@/ascendra-ui/components/date/date-range-picker";
 import { Checkbox } from "@/ascendra-ui/components/ui/checkbox";
 import {
@@ -88,6 +89,10 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
   }, [optionValuesKey, isChoiceField, field.name, getValues, setValue]);
 
   const error = errors[field.name];
+  const dateBounds = useMemo(
+    () => resolveDateBounds({ minDate: field.minDate, maxDate: field.maxDate }),
+    [field.minDate, field.maxDate],
+  );
   const inputId = `qf-${field.name}`;
   const labelId = `qf-${field.name}-label`;
 
@@ -214,6 +219,8 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
             <DatePicker
               id={inputId}
               value={f.value as Date | undefined}
+              minDate={dateBounds.min}
+              maxDate={dateBounds.max}
               onChange={f.onChange}
               onBlur={f.onBlur}
               placeholder={field.placeholder ?? "Pick a date"}
@@ -231,6 +238,9 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
           render={({ field: f }) => (
             <DateRangePicker
               value={f.value as DateRange | undefined}
+              minDate={dateBounds.min}
+              maxDate={dateBounds.max}
+              maxRangeDays={field.maxRangeDays}
               onChange={f.onChange}
               onBlur={f.onBlur}
               placeholder={field.placeholder ?? "Pick a date range"}

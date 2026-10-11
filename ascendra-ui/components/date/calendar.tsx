@@ -83,14 +83,16 @@ function Calendar({
         month_caption: 'flex justify-center pt-1 relative items-center w-full',
         caption_label: 'text-sm font-medium',
         dropdowns: 'flex items-center gap-1.5',
-        nav: 'absolute top-3 left-0 right-0 h-7 flex items-center justify-between px-1',
+        // Above the month caption (drawn later, so it would take the clicks); the bar itself lets
+        // clicks through so a dropdown caption between the arrows stays usable.
+        nav: 'absolute top-3 left-0 right-0 z-10 h-7 flex items-center justify-between px-1 pointer-events-none',
         button_previous: cn(
           buttonVariants({ variant: 'secondary', size: 'icon' }),
-          'h-7 w-7 bg-transparent hover:bg-muted opacity-50 hover:opacity-100 shadow-none'
+          'pointer-events-auto h-7 w-7 bg-transparent hover:bg-muted opacity-50 hover:opacity-100 shadow-none'
         ),
         button_next: cn(
           buttonVariants({ variant: 'secondary', size: 'icon' }),
-          'h-7 w-7 bg-transparent hover:bg-muted opacity-50 hover:opacity-100 shadow-none'
+          'pointer-events-auto h-7 w-7 bg-transparent hover:bg-muted opacity-50 hover:opacity-100 shadow-none'
         ),
         month_grid: 'w-full border-collapse',
         weekdays: 'flex',

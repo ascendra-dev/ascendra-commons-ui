@@ -199,6 +199,7 @@ export * from './providers/data-table-query/data-table-query.provider';
 export * from './providers/data-table-query/data-table-with-query.provider';
 export * from './providers/data-table-query/create-query-fn';
 export * from './providers/data-table-query/date-range-bounds';
+export * from './providers/data-table-query/date-expr';
 export type {
   PageMeta,
   CursorMeta,
