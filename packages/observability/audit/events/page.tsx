@@ -46,6 +46,7 @@ import {
   QueryParamPanel,
   SimpleBadge,
   WithEmptyValue,
+  WithTooltip,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -68,12 +69,18 @@ const queryFunctions = auditQueryFunctions;
 const fetchCatalog = () => auditApi.catalog();
 const exportEvents = auditApi.exportEvents;
 
-
 /** The primary filterable Audit Log feed. */
 export default function AuditLogListPage() {
   const [selected, setSelected] = useState<AuditEvent | null>(null);
-  const catalog = useQuery({ queryKey: ['audit-catalog'], queryFn: fetchCatalog, staleTime: Infinity });
-  const fieldOptions = useMemo(() => auditFieldOptionsFor(catalog.data ?? []), [catalog.data]);
+  const catalog = useQuery({
+    queryKey: ['audit-catalog'],
+    queryFn: fetchCatalog,
+    staleTime: Infinity,
+  });
+  const fieldOptions = useMemo(
+    () => auditFieldOptionsFor(catalog.data ?? []),
+    [catalog.data],
+  );
 
   return (
     <>
@@ -214,11 +221,16 @@ export default function AuditLogListPage() {
                           </DataTableCell>
                           <DataTableCell column="reason">
                             <WithEmptyValue value={row.reason}>
-                              <DataTableHighlight
-                                text={row.reason!}
-                                item={row}
-                                itemKey="reason"
-                              />
+                              <WithTooltip
+                                tooltip={row.reason}
+                                className="line-clamp-3 w-64"
+                              >
+                                <DataTableHighlight
+                                  text={row.reason!}
+                                  item={row}
+                                  itemKey="reason"
+                                />
+                              </WithTooltip>
                             </WithEmptyValue>
                           </DataTableCell>
                           <DataTableCell column="correlationId">
@@ -231,7 +243,7 @@ export default function AuditLogListPage() {
                                 value={row.correlationId}
                                 size="lg"
                                 copyable={false}
-                                showTooltip={false}
+                                showTooltip={true}
                               />
                             </Link>
                           </DataTableCell>

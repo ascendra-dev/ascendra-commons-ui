@@ -40,7 +40,8 @@ export const MOCK_AUDIT_EVENTS: AuditEvent[] = [
       roles: ['viewer', 'billing_admin'],
     },
     occurredAt: hoursAgo(0.5),
-    reason: 'Moved office',
+    reason:
+      'Moved to the new Gulberg office after the lease on Old Rd ended; geo pin re-captured on site by the facilities team, and the billing address will follow in a separate change once finance signs off.',
     correlationId: '7d2e9a41-6c3b-4f8e-a1d5-2b9c8e7f6a23',
   },
   {
