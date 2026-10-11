@@ -9,6 +9,7 @@ import { LuCalendar } from 'react-icons/lu';
 import { cn } from '@/ascendra-ui/shadcn';
 import { Calendar } from '@/ascendra-ui/components/date/calendar';
 import { boundsMatchers } from '@/ascendra-ui/components/date/bounds-matchers';
+import { clearOnKey, PickerClearButton } from '@/ascendra-ui/components/date/picker-clear-button';
 
 interface DateRangePickerProps {
   id?: string;
@@ -30,6 +31,8 @@ interface DateRangePickerProps {
   /** Longest range in days, counting both ends — once a start is picked, days beyond it are disabled. */
   maxRangeDays?: number;
   captionLayout?: CalendarProps['captionLayout'];
+  /** Show a × while a value is set (Backspace/Delete on the trigger too) — clears to undefined. */
+  showClear?: boolean;
 }
 
 function DateRangePicker({
@@ -49,8 +52,11 @@ function DateRangePicker({
   maxDate,
   maxRangeDays,
   captionLayout,
+  showClear = false,
 }: DateRangePickerProps) {
   const [open, setOpen] = React.useState(false);
+  const clearVisible = showClear && !!value?.from && !readOnly && !disabled;
+  const clear = () => onChange?.(undefined);
 
   const disabledDays: Matcher[] = boundsMatchers(minDate, maxDate);
   const start = value?.from;
@@ -82,6 +88,7 @@ function DateRangePicker({
           type="button"
           disabled={disabled}
           aria-invalid={invalid || undefined}
+          onKeyDown={clearOnKey(clearVisible, clear)}
           data-slot="date-range-picker-trigger"
           className={cn(
             'flex h-8 w-full items-center gap-2 rounded-[.375rem] px-3 text-left text-sm transition',
@@ -107,7 +114,8 @@ function DateRangePicker({
           )}
         >
           <LuCalendar className="text-muted-foreground size-4 shrink-0" />
-          {label ?? placeholder}
+          <span className="min-w-0 truncate">{label ?? placeholder}</span>
+          {clearVisible && <PickerClearButton onClear={clear} />}
         </button>
       </PopoverPrimitive.Trigger>
       <PopoverPrimitive.Portal>

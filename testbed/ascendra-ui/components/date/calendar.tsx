@@ -47,7 +47,8 @@ function CalendarDropdown({
       <SelectTrigger size="sm" className="h-7 min-w-0" aria-label={ariaLabel}>
         <SelectValue />
       </SelectTrigger>
-      <SelectContent className="z-60 max-h-72">
+      {/* One layer above the date picker popover (z-1001) it opens inside. */}
+      <SelectContent className="z-1002 max-h-72">
         {options?.map(({ value: val, label, disabled: optDisabled }) => (
           <SelectItem key={val} value={val.toString()} disabled={optDisabled}>
             {label}

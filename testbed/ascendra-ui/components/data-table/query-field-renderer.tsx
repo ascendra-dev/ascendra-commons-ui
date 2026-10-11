@@ -221,6 +221,7 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
               value={f.value as Date | undefined}
               minDate={dateBounds.min}
               maxDate={dateBounds.max}
+              showClear={!field.required}
               onChange={f.onChange}
               onBlur={f.onBlur}
               placeholder={field.placeholder ?? "Pick a date"}
@@ -241,6 +242,7 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
               minDate={dateBounds.min}
               maxDate={dateBounds.max}
               maxRangeDays={field.maxRangeDays}
+              showClear={!field.required}
               onChange={f.onChange}
               onBlur={f.onBlur}
               placeholder={field.placeholder ?? "Pick a date range"}

@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Popover as PopoverPrimitive } from 'radix-ui';
 import { format } from 'date-fns';
 import { boundsMatchers } from '@/ascendra-ui/components/date/bounds-matchers';
+import { clearOnKey, PickerClearButton } from '@/ascendra-ui/components/date/picker-clear-button';
 import { type CalendarProps } from '@/ascendra-ui/components/date/calendar';
 import { LuCalendar } from 'react-icons/lu';
 import { cn } from '@/ascendra-ui/shadcn';
@@ -26,6 +27,8 @@ interface DatePickerProps {
   /** Latest selectable day; later days are disabled. */
   maxDate?: Date;
   captionLayout?: CalendarProps['captionLayout'];
+  /** Show a × while a value is set (Backspace/Delete on the trigger too) — clears to undefined. */
+  showClear?: boolean;
 }
 
 function DatePicker({
@@ -43,8 +46,11 @@ function DatePicker({
   minDate,
   maxDate,
   captionLayout,
+  showClear = false,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
+  const clearVisible = showClear && !!value && !readOnly && !disabled;
+  const clear = () => onChange?.(undefined);
   const disabledDays = boundsMatchers(minDate, maxDate);
 
   return (
@@ -62,6 +68,7 @@ function DatePicker({
           type="button"
           disabled={disabled}
           aria-invalid={invalid || undefined}
+          onKeyDown={clearOnKey(clearVisible, clear)}
           data-slot="date-picker-trigger"
           className={cn(
             'flex h-8 w-full items-center gap-2 rounded-[.375rem] px-3 text-left text-sm transition',
@@ -87,7 +94,8 @@ function DatePicker({
           )}
         >
           <LuCalendar className="text-muted-foreground size-4 shrink-0" />
-          {value ? format(value, 'PPP') : placeholder}
+          <span className="min-w-0 truncate">{value ? format(value, 'PPP') : placeholder}</span>
+          {clearVisible && <PickerClearButton onClear={clear} />}
         </button>
       </PopoverPrimitive.Trigger>
       <PopoverPrimitive.Portal>
