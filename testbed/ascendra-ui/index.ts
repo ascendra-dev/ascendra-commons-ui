@@ -23,6 +23,7 @@ export * from './components/ui/button';
 export * from './components/ui/checkbox';
 export * from './components/ui/combobox';
 export * from './components/ui/dialog';
+export * from './components/ui/drawer';
 export * from './components/ui/dropdown-menu';
 export * from './components/ui/empty';
 export * from './components/ui/file-upload';
@@ -32,6 +33,7 @@ export * from './components/ui/input-group';
 export * from './components/ui/item';
 export * from './components/ui/color-picker';
 export * from './components/ui/command-palette';
+export * from './components/ui/popup-layer';
 export * from './components/ui/progress';
 export * from './components/ui/radio-group';
 export * from './components/ui/rich-text-editor';
@@ -40,6 +42,7 @@ export * from './components/ui/stepper';
 export * from './components/ui/select';
 export * from './components/ui/sheet';
 export * from './components/ui/sheet-navigator';
+export * from './components/ui/sort-field';
 export * from './components/ui/tooltip';
 export * from './components/ui/switch';
 export * from './components/ui/table';
@@ -201,6 +204,7 @@ export * from './providers/data-table-query/create-query-fn';
 export * from './providers/data-table-query/date-range-bounds';
 export * from './providers/data-table-query/date-expr';
 export * from './providers/data-table-query/query-trigger';
+export * from './utils/order-by.util';
 export type {
   PageMeta,
   CursorMeta,

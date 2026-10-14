@@ -4,6 +4,7 @@ import * as React from "react";
 import { Combobox as ComboboxPrimitive } from "@base-ui/react";
 
 import { cn } from "@/ascendra-ui/shadcn";
+import { usePopupTopInset, usePopupZIndex } from "./popup-layer";
 import { ChevronDownIcon, XIcon, CheckIcon } from "lucide-react";
 
 const ComboboxAnchorContext = React.createContext<{
@@ -21,6 +22,9 @@ type ComboboxRootType = {
 function ComboboxWrapper<Value, Multiple extends boolean | undefined = false>({
   readOnly,
   open,
+  // Base UI 1.2 leaves an uncontrolled `open` undefined without this, and its positioner then
+  // passes `undefined` to useScrollLock — whose `enabled = true` default locks the page while closed.
+  defaultOpen = false,
   onOpenChange,
   ...props
 }: ComboboxPrimitive.Root.Props<Value, Multiple> & { readOnly?: boolean }) {
@@ -29,6 +33,7 @@ function ComboboxWrapper<Value, Multiple extends boolean | undefined = false>({
     <ComboboxAnchorContext.Provider value={{ anchor, setAnchor, readOnly }}>
       <ComboboxPrimitive.Root
         open={readOnly ? false : open}
+        defaultOpen={defaultOpen}
         onOpenChange={readOnly ? () => {} : onOpenChange}
         {...props}
       />
@@ -178,6 +183,8 @@ function ComboboxContent({
   >) {
   const ctx = React.useContext(ComboboxAnchorContext);
   const finalAnchor = anchor || ctx?.anchor || undefined;
+  const z = usePopupZIndex();
+  const topInset = usePopupTopInset();
 
   return (
     <ComboboxPrimitive.Portal>
@@ -187,7 +194,10 @@ function ComboboxContent({
         align={align}
         alignOffset={alignOffset}
         anchor={finalAnchor}
-        className="isolate z-1001"
+        // base-ui's default padding is 5 on every side; the top also clears the page's top bars.
+        collisionPadding={{ top: Math.max(5, topInset), right: 5, bottom: 5, left: 5 }}
+        className="isolate"
+        style={{ zIndex: z }}
       >
         <ComboboxPrimitive.Popup
           data-slot="combobox-content"

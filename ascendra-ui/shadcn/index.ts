@@ -19,14 +19,14 @@
 //     (not yet needed; add back via shadcn CLI when a use-case arises)
 //   - skeleton  → ascendra-ui/components/ui/skeleton (wrapped with presets)
 //   - progress  → ascendra-ui/components/ui/progress (wrapped with size/color variants)
-//   - tooltip   → ascendra-ui/components/ui/tooltip (moved; z-1001 so it shows above sheets/dialogs)
+//   - tooltip   → ascendra-ui/components/ui/tooltip (moved; its popup layer follows sheets/dialogs — see popup-layer)
+//   - drawer    → ascendra-ui/components/ui/drawer (moved; lifts popups opened inside it above the panel)
 
 export * from "./components/ui/command";
 export * from "./components/ui/accordion";
 export * from "./components/ui/avatar";
 export * from "./components/ui/chart";
 export * from "./components/ui/collapsible";
-export * from "./components/ui/drawer";
 export * from "./components/ui/label";
 export * from "./components/ui/separator";
 export * from "./hooks/use-mobile";

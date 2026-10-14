@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { cn } from "@/ascendra-ui/shadcn";
+import { OverlayPopupLayer } from "./popup-layer";
 
 /* ── Overlay ──────────────────────────────────────────────────────────────── */
 
@@ -99,13 +100,13 @@ function DialogContent({
             "shadow-[0_1px_2px_rgba(0,0,0,0.08),0_0_2px_rgba(0,0,0,0.06)]",
           )}
         >
-          {innerChildren}
+          <OverlayPopupLayer>{innerChildren}</OverlayPopupLayer>
         </div>
 
         {/* DialogFooter renders outside the raised card, flat in the gray shell */}
         {footerChild && (
           <div data-slot="dialog-footer-wrapper" className="p-4">
-            {footerChild}
+            <OverlayPopupLayer>{footerChild}</OverlayPopupLayer>
           </div>
         )}
       </DialogPrimitive.Content>

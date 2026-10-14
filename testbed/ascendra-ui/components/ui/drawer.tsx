@@ -3,7 +3,8 @@
 import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
 
-import { cn } from "@/ascendra-ui/shadcn/lib/utils"
+import { cn } from "@/ascendra-ui/shadcn"
+import { OverlayPopupLayer } from "./popup-layer"
 
 function Drawer({
   ...props
@@ -62,7 +63,7 @@ function DrawerContent({
         {...props}
       >
         <div className="mx-auto mt-4 hidden h-1 w-[100px] shrink-0 rounded-full bg-muted group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />
-        {children}
+        <OverlayPopupLayer>{children}</OverlayPopupLayer>
       </DrawerPrimitive.Content>
     </DrawerPortal>
   )

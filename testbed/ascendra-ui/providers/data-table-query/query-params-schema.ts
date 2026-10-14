@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import type { FieldDef } from "./data-table-query.types";
 import { resolveDateBounds, resolveDateExpr } from "./date-expr";
+import { parseSortToken } from "@/ascendra-ui/utils/order-by.util";
 
 function beforeMessage(label: string, min: Date) {
   return `${label} can't be before ${format(min, "MMM d, yyyy")}`;
@@ -73,6 +74,26 @@ export function buildZodSchema(
             `Select at most ${field.maxItems} ${field.label}`,
           );
         schema = field.required ? s : s.optional();
+        break;
+      }
+      case "sort": {
+        let s = z.array(z.string());
+        if (field.required) s = s.min(1, `Select at least one ${field.label || "column"} to sort by`);
+        if (field.maxItems != null)
+          s = s.max(field.maxItems, `Sort by at most ${field.maxItems} columns`);
+        // Options aren't checked here — fieldOptions can replace them, and the form drops a column they no
+        // longer include. A token must still be well formed, and a column can't be sorted on twice.
+        const tokens = s.superRefine((value, ctx) => {
+          const seen = new Set<string>();
+          for (const token of value) {
+            const key = parseSortToken(token);
+            if (!key) return ctx.addIssue({ code: "custom", message: `"${token}" isn't a sort column` });
+            if (seen.has(key.field))
+              return ctx.addIssue({ code: "custom", message: `"${key.field}" is sorted on twice` });
+            seen.add(key.field);
+          }
+        });
+        schema = field.required ? tokens : tokens.optional();
         break;
       }
       case "date": {
@@ -167,6 +188,7 @@ export function buildDefaultValues(fields: FieldDef[]): Record<string, unknown> 
             : undefined;
         break;
       case "multiselect":
+      case "sort":
         defaults[field.name] = Array.isArray(value) ? value : [];
         break;
       case "checkbox":

@@ -527,7 +527,7 @@ function TableLookup<T extends Record<string, unknown>>({
                   >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent side="top" className="z-1001">
+                  <SelectContent side="top">
                     <SelectItem value="all">All</SelectItem>
                     {searchableColumns.map((col) => (
                       <SelectItem key={col.key} value={col.key}>

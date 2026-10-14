@@ -4,6 +4,7 @@ import * as React from "react";
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 
 import { cn } from "@/ascendra-ui/shadcn";
+import { PopupLayer, usePopupTopInset, usePopupZIndex } from "./popup-layer";
 import { CheckIcon, ChevronRightIcon } from "lucide-react";
 
 /** Non-modal by default, so the page keeps scrolling while a menu is open — pass `modal` to lock it. */
@@ -37,20 +38,29 @@ function DropdownMenuContent({
   className,
   align = "start",
   sideOffset = 4,
+  collisionPadding,
+  style,
+  children,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+  const z = usePopupZIndex();
+  const topInset = usePopupTopInset();
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         align={align}
+        collisionPadding={collisionPadding ?? { top: topInset }}
         className={cn(
-          "text-popover-foreground bg-secondary ring-foreground/10 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 z-1001 max-h-(--radix-dropdown-menu-content-available-height) w-(--radix-dropdown-menu-trigger-width) min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-lg p-1 shadow-[0_16px_36px_-6px_rgba(0,0,0,0.07),0_6px_16px_-2px_rgba(0,0,0,0.2)] ring-1 duration-100 data-[state=closed]:overflow-hidden",
+          "text-popover-foreground bg-secondary ring-foreground/10 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 max-h-(--radix-dropdown-menu-content-available-height) w-(--radix-dropdown-menu-trigger-width) min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-lg p-1 shadow-[0_16px_36px_-6px_rgba(0,0,0,0.07),0_6px_16px_-2px_rgba(0,0,0,0.2)] ring-1 duration-100 data-[state=closed]:overflow-hidden",
           className,
         )}
+        style={{ zIndex: z, ...style }}
         {...props}
-      />
+      >
+        <PopupLayer z={z}>{children}</PopupLayer>
+      </DropdownMenuPrimitive.Content>
     </DropdownMenuPrimitive.Portal>
   );
 }
@@ -244,17 +254,26 @@ function DropdownMenuSubTrigger({
 
 function DropdownMenuSubContent({
   className,
+  collisionPadding,
+  style,
+  children,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>) {
+  const z = usePopupZIndex();
+  const topInset = usePopupTopInset();
   return (
     <DropdownMenuPrimitive.SubContent
       data-slot="dropdown-menu-sub-content"
+      collisionPadding={collisionPadding ?? { top: topInset }}
       className={cn(
-        "bg-popover text-popover-foreground ring-foreground/10 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 z-1001 min-w-24 origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-lg p-1 shadow-lg ring-1 duration-100",
+        "bg-popover text-popover-foreground ring-foreground/10 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 min-w-24 origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-lg p-1 shadow-lg ring-1 duration-100",
         className,
       )}
+      style={{ zIndex: z, ...style }}
       {...props}
-    />
+    >
+      <PopupLayer z={z}>{children}</PopupLayer>
+    </DropdownMenuPrimitive.SubContent>
   );
 }
 

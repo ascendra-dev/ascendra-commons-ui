@@ -9,7 +9,10 @@ export type FieldType =
   | 'date'
   | 'daterange'
   | 'checkbox'
-  | 'radio';
+  | 'radio'
+  /** Columns to sort by, in priority order, each ascending or descending — a list of sort tokens
+   *  (`'amount'`, `'issuedAt:desc'`) ready for the `orderBy` param via `toOrderBy`. Options are the columns. */
+  | 'sort';
 
 export interface SelectOption {
   value: string;
@@ -49,7 +52,7 @@ export interface FieldDef {
   pattern?: string;
   /** text: message when `pattern` fails. Default "<label> is not in the expected format". */
   patternMessage?: string;
-  /** multiselect: most items that may be selected. */
+  /** multiselect / sort: most items that may be selected. */
   maxItems?: number;
   /** date / daterange: earliest allowed day, inclusive — e.g. 'today', '-1y', '2026-01-01'. */
   minDate?: DateExpr;

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 import { cn } from "@/ascendra-ui/shadcn";
+import { usePopupTopInset, usePopupZIndex } from "./popup-layer";
 
 // ─── Preset palette ───────────────────────────────────────────────────────────
 
@@ -136,6 +137,8 @@ export function ColorPicker({
   const [hsl, setHsl] = React.useState(() => hexToHsl(value));
   const [hexInput, setHexInput] = React.useState(value);
   const [open, setOpen] = React.useState(false);
+  const z = usePopupZIndex();
+  const topInset = usePopupTopInset();
 
   // Sync from outside
   React.useEffect(() => {
@@ -205,8 +208,9 @@ export function ColorPicker({
         <DropdownMenuPrimitive.Content
           sideOffset={6}
           align="start"
+          collisionPadding={{ top: topInset }}
           className={cn(
-            "z-200 w-56 rounded-lg p-3 outline-none",
+            "max-h-(--radix-dropdown-menu-content-available-height) w-56 overflow-y-auto rounded-lg p-3 outline-none",
             "bg-secondary text-foreground ring-1 ring-foreground/10",
             "shadow-[0_16px_36px_-6px_rgba(0,0,0,0.07),0_6px_16px_-2px_rgba(0,0,0,0.2)]",
             "data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2",
@@ -214,6 +218,7 @@ export function ColorPicker({
             "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             "duration-100",
           )}
+          style={{ zIndex: z }}
         >
           {/* Preview swatch */}
           <div className="mb-3 flex items-center gap-2">

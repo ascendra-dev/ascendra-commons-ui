@@ -10,6 +10,8 @@ import { DEFAULT_DATE_FORMAT, formatDateText, formatHint, parseDateText } from '
 import { type CalendarProps } from '@/ascendra-ui/components/date/calendar';
 import { LuCalendar } from 'react-icons/lu';
 import { cn } from '@/ascendra-ui/shadcn';
+import { PopupLayer, usePopupTopInset, usePopupZIndex } from '@/ascendra-ui/components/ui/popup-layer';
+import { scrollCalendarIntoRoom } from '@/ascendra-ui/components/date/scroll-calendar-into-room';
 import { Calendar } from '@/ascendra-ui/components/date/calendar';
 
 interface DatePickerProps {
@@ -40,6 +42,9 @@ interface DatePickerProps {
   dateFormat?: string;
 }
 
+/** Gap between the field and its calendar. */
+const CALENDAR_OFFSET = 6;
+
 function DatePicker({
   id,
   value,
@@ -60,6 +65,9 @@ function DatePicker({
   dateFormat = DEFAULT_DATE_FORMAT,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
+  const z = usePopupZIndex();
+  const topInset = usePopupTopInset();
+  const contentRef = React.useRef<HTMLDivElement>(null);
   const clearVisible = showClear && !!value && !readOnly && !disabled;
   const clear = () => onChange?.(undefined);
   const disabledDays = boundsMatchers(minDate, maxDate);
@@ -71,6 +79,8 @@ function DatePicker({
         if (readOnly) return;
         setOpen(next);
         if (!next) onBlur?.();
+        // One frame on, the calendar has rendered and can be measured.
+        else requestAnimationFrame(() => contentRef.current && scrollCalendarIntoRoom(contentRef.current, topInset, CALENDAR_OFFSET));
       }}
     >
       {editable ? (
@@ -114,9 +124,12 @@ function DatePicker({
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content
           align="start"
-          sideOffset={6}
+          sideOffset={CALENDAR_OFFSET}
+          collisionPadding={{ top: topInset }}
+          ref={contentRef}
+          style={{ zIndex: z }}
           className={cn(
-            'z-1001 overflow-hidden rounded-xl',
+            'overflow-hidden rounded-xl',
             'bg-white dark:bg-(--color-gray-1400)',
             'ring-1 ring-black/8 dark:ring-white/8',
             'shadow-[0_16px_36px_-6px_rgba(25,28,33,0.16),0_6px_16px_-2px_rgba(25,28,33,0.08)]',
@@ -128,22 +141,24 @@ function DatePicker({
             'duration-200'
           )}
         >
-          <Calendar
-            mode="single"
-            selected={value}
-            onSelect={(date) => {
-              onChange?.(date);
-              setOpen(false);
-            }}
-            defaultMonth={value}
-            disabled={disabledDays}
-            startMonth={
-              fromYear !== undefined ? new Date(fromYear, 0) : undefined
-            }
-            endMonth={toYear !== undefined ? new Date(toYear, 11) : undefined}
-            captionLayout={captionLayout}
-            autoFocus
-          />
+          <PopupLayer z={z}>
+            <Calendar
+              mode="single"
+              selected={value}
+              onSelect={(date) => {
+                onChange?.(date);
+                setOpen(false);
+              }}
+              defaultMonth={value}
+              disabled={disabledDays}
+              startMonth={
+                fromYear !== undefined ? new Date(fromYear, 0) : undefined
+              }
+              endMonth={toYear !== undefined ? new Date(toYear, 11) : undefined}
+              captionLayout={captionLayout}
+              autoFocus
+            />
+          </PopupLayer>
         </PopoverPrimitive.Content>
       </PopoverPrimitive.Portal>
     </PopoverPrimitive.Root>

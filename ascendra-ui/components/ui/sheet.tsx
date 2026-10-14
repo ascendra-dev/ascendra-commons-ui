@@ -4,6 +4,7 @@ import * as React from "react";
 import { Dialog as SheetPrimitive } from "radix-ui";
 import { X } from "lucide-react";
 import { cn } from "@/ascendra-ui/shadcn";
+import { OverlayPopupLayer } from "./popup-layer";
 import {
   TabsContext,
   useTabs,
@@ -153,7 +154,7 @@ function SheetContent({
         )}
         {...props}
       >
-        {children}
+        <OverlayPopupLayer>{children}</OverlayPopupLayer>
 
         {showCloseButton && (
           <SheetPrimitive.Close className="text-muted-foreground hover:bg-accent hover:text-foreground absolute top-4 right-4 rounded-md p-1 transition-colors">

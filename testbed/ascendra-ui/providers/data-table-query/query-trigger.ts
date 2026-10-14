@@ -54,6 +54,7 @@ function coerceFieldValue(field: FieldDef, value: TriggerParamValue): QueryParam
       if (typeof value === 'boolean') return value;
       return value === 'true' ? true : value === 'false' ? false : undefined;
     case 'multiselect':
+    case 'sort':
       if (Array.isArray(value)) return value;
       return typeof value === 'string' ? value.split(',').filter(Boolean) : undefined;
     case 'date':

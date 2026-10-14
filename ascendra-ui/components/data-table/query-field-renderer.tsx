@@ -37,6 +37,8 @@ import { DatePicker } from "@/ascendra-ui/components/date/date-picker";
 import { resolveDateBounds } from "@/ascendra-ui/providers/data-table-query/date-expr";
 import { DateRangePicker } from "@/ascendra-ui/components/date/date-range-picker";
 import { Checkbox } from "@/ascendra-ui/components/ui/checkbox";
+import { SortField } from "@/ascendra-ui/components/ui/sort-field";
+import { parseSortToken } from "@/ascendra-ui/utils/order-by.util";
 import {
   RadioGroup,
   RadioGroupItem,
@@ -74,7 +76,8 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
   // drop a selection that's no longer among them rather than leave an impossible filter in place.
   // Skipped while the list is empty, so a restored value survives options that haven't loaded yet.
   const optionValuesKey = resolvedOptions.map((o) => o.value).join("\u0000");
-  const isChoiceField = field.type === "select" || field.type === "multiselect";
+  const isChoiceField =
+    field.type === "select" || field.type === "multiselect" || field.type === "sort";
   useEffect(() => {
     if (!isChoiceField || optionValuesKey === "") return;
     const allowed = new Set(optionValuesKey.split("\u0000"));
@@ -83,10 +86,13 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
     if (typeof current === "string" && current !== "" && !allowed.has(current)) {
       setValue(field.name, undefined, opts);
     } else if (Array.isArray(current)) {
-      const kept = current.filter((v: string) => allowed.has(v));
+      // A sort token names its column before any `:desc`.
+      const columnOf = (v: string) =>
+        field.type === "sort" ? (parseSortToken(v)?.field ?? v) : v;
+      const kept = current.filter((v: string) => allowed.has(columnOf(v)));
       if (kept.length !== current.length) setValue(field.name, kept, opts);
     }
-  }, [optionValuesKey, isChoiceField, field.name, getValues, setValue]);
+  }, [optionValuesKey, isChoiceField, field.type, field.name, getValues, setValue]);
 
   const error = errors[field.name];
   const dateBounds = useMemo(
@@ -207,6 +213,26 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
               </Combobox>
             );
           }}
+        />
+      )}
+
+      {/* ── sort ─────────────────────────────────────────────────────── */}
+      {field.type === "sort" && (
+        <Controller
+          name={field.name}
+          control={control}
+          render={({ field: f }) => (
+            <SortField
+              id={inputId}
+              value={f.value ?? []}
+              onChange={f.onChange}
+              onBlur={f.onBlur}
+              options={resolvedOptions}
+              maxItems={field.maxItems}
+              placeholder={field.placeholder}
+              invalid={!!error}
+            />
+          )}
         />
       )}
 
