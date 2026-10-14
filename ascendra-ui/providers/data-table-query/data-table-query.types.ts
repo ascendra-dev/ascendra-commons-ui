@@ -81,7 +81,8 @@ export type QueryParamValues = Record<
   string | number | boolean | Date | DateRange | string[] | undefined
 >;
 
-export type QueryGroup = 'query' | 'user-query' | 'filter';
+/** `trigger` queries are never listed (dropdown or Manage Queries) — they run only via runQuery() or the URL. */
+export type QueryGroup = 'query' | 'user-query' | 'filter' | 'trigger';
 
 export interface QueryOptions {
   staleTime?: number;
@@ -111,6 +112,18 @@ export type QueryResult<T = unknown> = {
   /** False when totalBatches is a lower-bound estimate (e.g. cursor-walked), not a known count. Defaults to true. */
   totalBatchesExact?: boolean;
 };
+
+/** A param value passed to runQuery() or read from the URL. Dates also take a DateExpr (`'-7d'`, `'today'`,
+ *  `'2026-07-01'`) or an ISO timestamp; a URL value is always a string and is parsed by its field's type. */
+export type TriggerParamValue =
+  | string
+  | number
+  | boolean
+  | string[]
+  | Date
+  | { from: Date | string; to?: Date | string };
+
+export type TriggerParams = Record<string, TriggerParamValue | undefined>;
 
 /** Function that fetches rows for a query, receiving confirmed param values and the requested batch */
 export type QueryFn<T = unknown> = (
@@ -144,6 +157,8 @@ export interface SavedUserQuery {
 export interface QueryContextValue {
   queries: QueryDef[];
   activeQuery: QueryDef;
+  /** The query whose results are showing — may be a trigger or a query hidden in Manage Queries. */
+  confirmedQuery: QueryDef;
   confirmedQueryId: string;
   pendingQueryId: string | null;
   setActiveQueryId: (id: string) => void;
@@ -152,12 +167,13 @@ export interface QueryContextValue {
   cancelPending: () => void;
   /** False when the panel has no earlier run to return to (e.g. a filter query is active on first load). */
   canCancelPending: boolean;
-  /** True on the first render while localStorage preferences are being read. Use to suppress query-specific UI. */
+  /** True on the first render while localStorage preferences and the URL are being read. Use to suppress query-specific UI. */
   isInitializing: boolean;
   isLoading: boolean;
   isError: boolean;
   error: Error | null;
-  refetch: () => void;
+  /** Absent while a trigger error is showing — re-running bad trigger params can't succeed. */
+  refetch?: () => void;
   data: unknown[];
   confirmedParams: QueryParamValues | null;
   setConfirmedParams: (values: QueryParamValues) => void;
@@ -182,6 +198,14 @@ export interface QueryContextValue {
   toggleQueryEnabled: (id: string) => void;
   /** Reorder queries within a group by providing the new ordered list of IDs. */
   reorderQueriesInGroup: (group: QueryGroup, orderedIds: string[]) => void;
+  /**
+   * Runs a query, filter or trigger by id — including ones hidden in Manage Queries; saved user queries can't be
+   * triggered. A query takes no params. A filter/trigger's missing params fall back to their defaultValue. An unknown
+   * id, an unknown param, or a value that can't be parsed shows in the table's error state and nothing runs; a value
+   * that fails a validation rule only logs a warning — the run goes ahead and the backend decides. Returns whether
+   * it ran. The run is one-off: it isn't saved as the table's last run.
+   */
+  runQuery: (queryId: string, params?: TriggerParams) => boolean;
 }
 
 export interface DataTableQueryProviderProps<T = unknown> {
@@ -191,5 +215,8 @@ export interface DataTableQueryProviderProps<T = unknown> {
   /** Unique key used to persist last-run query params and last active query to localStorage.
    *  Omit to disable query state persistence. */
   tableId?: string;
+  /** Prefix of the URL params that trigger a query on load: `?q=<queryId>&q.<field>=<value>`. Default `'q'`.
+   *  Give each table on a page its own key. */
+  urlKey?: string;
   children: React.ReactNode;
 }

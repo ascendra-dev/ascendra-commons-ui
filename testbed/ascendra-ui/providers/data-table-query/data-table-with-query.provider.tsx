@@ -16,6 +16,9 @@ export interface DataTableWithQueryProviderProps<T extends object> {
   /** Unique key used to persist column order and visibility to localStorage.
    *  Omit to disable persistence (columns reset on page reload). */
   tableId?: string;
+  /** Prefix of the URL params that trigger a query on load: `?q=<queryId>&q.<field>=<value>`. Default `'q'`.
+   *  Give each table on a page its own key. */
+  urlKey?: string;
   children: React.ReactNode;
 }
 
@@ -28,6 +31,7 @@ export function DataTableWithQueryProvider<T extends object>({
   isLoading,
   getRowId,
   tableId,
+  urlKey,
   children,
 }: DataTableWithQueryProviderProps<T>) {
   return (
@@ -36,6 +40,7 @@ export function DataTableWithQueryProvider<T extends object>({
       queryFunctions={queryFunctions}
       fieldOptions={fieldOptions}
       tableId={tableId}
+      urlKey={urlKey}
     >
       <DataTableProvider columns={columns} data={data} isLoading={isLoading} getRowId={getRowId} tableId={tableId}>
         {children}

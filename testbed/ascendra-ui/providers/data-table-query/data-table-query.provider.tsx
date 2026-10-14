@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
   readTablePreferences,
@@ -19,7 +20,17 @@ import type {
   SavedUserQuery,
   QueryDef,
   QueryGroup,
+  TriggerParams,
 } from './data-table-query.types';
+import { isFieldDef } from './data-table-query.types';
+import { buildDefaultValues, buildZodSchema } from './query-params-schema';
+import {
+  coerceTriggerParams,
+  DEFAULT_QUERY_URL_KEY,
+  QueryTriggerError,
+  readQuerySearch,
+  stripQuerySearch,
+} from './query-trigger';
 
 const QueryContext = createContext<QueryContextValue | null>(null);
 
@@ -38,18 +49,44 @@ function applyGroupOrder(items: QueryDef[], order: string[]): QueryDef[] {
   return result;
 }
 
+/** Groups whose queries need confirmed params before they run. */
+function takesParams(group: QueryGroup) {
+  return group === 'filter' || group === 'trigger';
+}
+
+// Dev-only: how many mounted tables use each urlKey — two tables sharing one would both read the same URL params.
+const mountedUrlKeys = new Map<string, number>();
+
+/** Triggers a query whenever the URL gains this table's params after load — e.g. a same-page <Link>. */
+function QueryUrlListener({ urlKey, onTrigger }: { urlKey: string; onTrigger: (queryId: string, params: TriggerParams) => void }) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    // searchParams only signals a change — it can lag behind a strip we already did, so read the live URL.
+    const trigger = readQuerySearch(new URLSearchParams(window.location.search), urlKey);
+    if (!trigger) return;
+    stripQuerySearch(urlKey);
+    onTrigger(trigger.queryId, trigger.params);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, urlKey]);
+  return null;
+}
+
 export function DataTableQueryProvider<T = unknown>({
   queries: propQueries,
   queryFunctions,
   fieldOptions = {},
   tableId,
+  urlKey = DEFAULT_QUERY_URL_KEY,
   children,
 }: DataTableQueryProviderProps<T>) {
   const [activeId, setActiveId] = useState(propQueries[0].id);
   const [pendingQueryId, setPendingQueryId] = useState<string | null>(null);
   const [confirmedParamsState, setConfirmedParamsState] = useState<QueryParamValues | null>(null);
   const [currentBatch, setCurrentBatch] = useState(1);
-  const [isInitializing, setIsInitializing] = useState(!!tableId);
+  // Always starts true: the URL may name a query to run, and it has to be read before anything is fetched.
+  const [isInitializing, setIsInitializing] = useState(true);
+  // A trigger that couldn't run — shown in the error state instead of any results until another query is picked.
+  const [triggerError, setTriggerError] = useState<QueryTriggerError | null>(null);
   // The run that was showing before a filter query's param panel opened — restored by cancelPending().
   const [runBeforePending, setRunBeforePending] = useState<{ params: QueryParamValues | null; batch: number } | null>(null);
 
@@ -90,8 +127,8 @@ export function DataTableQueryProvider<T = unknown>({
     return result;
   }, [propQueries, presetGroupOrders]);
 
-  // allQueries: every query including disabled ones — for the manage dialog
-  const allQueries = useMemo<QueryDef[]>(() => {
+  // Every query that can be showing, triggers included — for looking up the active query
+  const lookupQueries = useMemo<QueryDef[]>(() => {
     const userQueryDefs: QueryDef[] = savedUserQueries
       .sort((a, b) => a.order - b.order)
       .map((q) => ({
@@ -103,10 +140,16 @@ export function DataTableQueryProvider<T = unknown>({
     return [...orderedPresetQueries, ...userQueryDefs];
   }, [orderedPresetQueries, savedUserQueries]);
 
+  // allQueries: every listed query including disabled ones — for the manage dialog
+  const allQueries = useMemo<QueryDef[]>(
+    () => lookupQueries.filter((q) => q.group !== 'trigger'),
+    [lookupQueries],
+  );
+
   // mergedQueries: only enabled queries — shown in dropdown and used for active query lookup
   const mergedQueries = useMemo<QueryDef[]>(() => {
     const disabledSet = new Set(disabledPresetIds);
-    const enabledPreset = orderedPresetQueries.filter((q) => !disabledSet.has(q.id));
+    const enabledPreset = orderedPresetQueries.filter((q) => q.group !== 'trigger' && !disabledSet.has(q.id));
     const enabledUserDefs: QueryDef[] = savedUserQueries
       .filter((q) => q.enabled)
       .sort((a, b) => a.order - b.order)
@@ -125,41 +168,100 @@ export function DataTableQueryProvider<T = unknown>({
     ...savedUserQueries.filter((q) => !q.enabled).map((q) => q.id),
   ], [disabledPresetIds, savedUserQueries]);
 
-  // Read localStorage after mount
-  useEffect(() => {
-    if (!tableId) return;
+  // Runs a query from code or the URL — see QueryContextValue.runQuery. Looks in the props, not the listed queries,
+  // so triggers and queries hidden in Manage Queries run too, and saved user queries don't.
+  const runQuery = useCallback((queryId: string, params: TriggerParams = {}): boolean => {
+    const query = propQueries.find((q) => q.id === queryId);
+    try {
+      if (!query) throw new QueryTriggerError(`There's no query "${queryId}" on this table.`);
+      const values = coerceTriggerParams(query, params);
 
-    const stored = readTablePreferences(tableId);
-
-    const loadedUserQueries = readSavedUserQueries(tableId);
-    // One-time hydration from localStorage after mount — starting from empty
-    // defaults and flipping isInitializing once done avoids an SSR/hydration
-    // mismatch, which a lazy useState initializer reading localStorage would
-    // cause instead (localStorage isn't available during server render).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSavedUserQueries(loadedUserQueries);
-
-    const presetPrefs = readPresetQueryPrefs(tableId);
-    setDisabledPresetIds(presetPrefs.disabledIds ?? []);
-    setPresetGroupOrders(presetPrefs.groupOrder ?? {});
-
-    const lastId = stored?.queryState?.lastConfirmedQueryId;
-    const userQueryIds = new Set(loadedUserQueries.map((q) => q.id));
-    const presetIds = new Set(propQueries.map((q) => q.id));
-    const allIds = new Set([...presetIds, ...userQueryIds]);
-
-    if (lastId && allIds.has(lastId)) {
-      if (userQueryIds.has(lastId)) {
-        const savedQ = loadedUserQueries.find((q) => q.id === lastId);
-        if (savedQ) setConfirmedParamsState(savedQ.params);
-      } else {
-        const lastQuery = propQueries.find((q) => q.id === lastId);
-        if (lastQuery?.group === 'filter') {
-          const raw = stored?.queryState?.lastRunParams?.[lastId];
-          if (raw) setConfirmedParamsState(deserializeParamValues(raw));
+      let confirmed: QueryParamValues | null = null;
+      if (takesParams(query.group)) {
+        const fields = (query.params ?? []).filter(isFieldDef);
+        const merged = { ...buildDefaultValues(fields), ...values } as QueryParamValues;
+        const result = buildZodSchema(fields).safeParse(merged);
+        if (!result.success) {
+          console.warn(
+            `runQuery("${queryId}"): params fail validation — running anyway.`,
+            result.error.issues.map((issue) => issue.message),
+          );
         }
+        confirmed = result.success ? (result.data as QueryParamValues) : merged;
+        // Reopening a filter's form shows what was triggered — in memory only, the run is one-off.
+        confirmedParamsCacheRef.current[query.id] = confirmed;
       }
-      setActiveId(lastId);
+
+      setTriggerError(null);
+      setActiveId(query.id);
+      setPendingQueryId(null);
+      setConfirmedParamsState(confirmed);
+      setCurrentBatch(1);
+      return true;
+    } catch (err) {
+      if (!(err instanceof QueryTriggerError)) throw err;
+      setTriggerError(err);
+      return false;
+    }
+  }, [propQueries]);
+
+  // Dev-only: warn when two mounted tables share a urlKey.
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return;
+    const count = (mountedUrlKeys.get(urlKey) ?? 0) + 1;
+    mountedUrlKeys.set(urlKey, count);
+    if (count > 1) {
+      console.error(
+        `DataTableQueryProvider: ${count} tables on this page use urlKey "${urlKey}" — give each its own urlKey so they don't read each other's URL params.`,
+      );
+    }
+    return () => {
+      mountedUrlKeys.set(urlKey, (mountedUrlKeys.get(urlKey) ?? 1) - 1);
+    };
+  }, [urlKey]);
+
+  // Read localStorage and the URL after mount
+  useEffect(() => {
+    if (tableId) {
+      const stored = readTablePreferences(tableId);
+
+      const loadedUserQueries = readSavedUserQueries(tableId);
+      // One-time hydration from localStorage after mount — starting from empty
+      // defaults and flipping isInitializing once done avoids an SSR/hydration
+      // mismatch, which a lazy useState initializer reading localStorage would
+      // cause instead (localStorage isn't available during server render).
+      setSavedUserQueries(loadedUserQueries);
+
+      const presetPrefs = readPresetQueryPrefs(tableId);
+      setDisabledPresetIds(presetPrefs.disabledIds ?? []);
+      setPresetGroupOrders(presetPrefs.groupOrder ?? {});
+
+      const lastId = stored?.queryState?.lastConfirmedQueryId;
+      const userQueryIds = new Set(loadedUserQueries.map((q) => q.id));
+      const presetIds = new Set(propQueries.map((q) => q.id));
+      const allIds = new Set([...presetIds, ...userQueryIds]);
+
+      if (lastId && allIds.has(lastId)) {
+        if (userQueryIds.has(lastId)) {
+          const savedQ = loadedUserQueries.find((q) => q.id === lastId);
+          if (savedQ) setConfirmedParamsState(savedQ.params);
+        } else {
+          const lastQuery = propQueries.find((q) => q.id === lastId);
+          if (lastQuery?.group === 'filter') {
+            const raw = stored?.queryState?.lastRunParams?.[lastId];
+            if (raw) setConfirmedParamsState(deserializeParamValues(raw));
+          }
+        }
+        setActiveId(lastId);
+      }
+    }
+
+    // A URL trigger wins over the last run restored above. Applying it in this same pass — before
+    // isInitializing flips — means nothing else is fetched first.
+    const trigger = readQuerySearch(new URLSearchParams(window.location.search), urlKey);
+    if (trigger) {
+      stripQuerySearch(urlKey);
+      runQuery(trigger.queryId, trigger.params);
     }
 
     setIsInitializing(false);
@@ -167,10 +269,13 @@ export function DataTableQueryProvider<T = unknown>({
   }, []);
 
   const displayId = pendingQueryId ?? activeId;
-  const activeQuery = allQueries.find((q) => q.id === displayId) ?? allQueries[0];
-  const confirmedQuery = allQueries.find((q) => q.id === activeId) ?? allQueries[0];
+  const activeQuery = lookupQueries.find((q) => q.id === displayId) ?? lookupQueries[0];
+  const confirmedQuery = lookupQueries.find((q) => q.id === activeId) ?? lookupQueries[0];
 
   const setActiveQueryId = useCallback((id: string) => {
+    // Triggers run only through runQuery.
+    if (propQueries.find((q) => q.id === id)?.group === 'trigger') return;
+    setTriggerError(null);
     const previousRun = { params: confirmedParamsState, batch: currentBatch };
     const panelWasOpen = !!confirmedQuery.params?.length && confirmedParamsState === null;
     setCurrentBatch(1);
@@ -348,9 +453,10 @@ export function DataTableQueryProvider<T = unknown>({
     return queryFunctions[activeId];
   })();
 
-  const enabled = !isInitializing && (confirmedQuery.group !== 'filter' || confirmedParamsState !== null);
+  const enabled =
+    !isInitializing && !triggerError && (!takesParams(confirmedQuery.group) || confirmedParamsState !== null);
 
-  const { data, isLoading, isError, error, refetch } = useQuery<QueryResult<T>, Error>({
+  const { data: queryData, isLoading, isError, error, refetch } = useQuery<QueryResult<T>, Error>({
     queryKey: ['data-table', activeId, confirmedParamsState, currentBatch],
     queryFn: () => queryFn!(confirmedParamsState ?? {}, currentBatch),
     enabled: !!queryFn && enabled,
@@ -360,6 +466,8 @@ export function DataTableQueryProvider<T = unknown>({
     refetchOnWindowFocus: confirmedQuery.queryOptions?.refetchOnWindowFocus,
   });
 
+  // A trigger error hides whatever is cached for the query still selected.
+  const data = triggerError ? undefined : queryData;
   const totalBatches = data?.totalBatches ?? null;
   const totalBatchesExact = data?.totalBatchesExact ?? true;
 
@@ -380,6 +488,7 @@ export function DataTableQueryProvider<T = unknown>({
       value={{
         queries: mergedQueries,
         activeQuery,
+        confirmedQuery,
         confirmedQueryId: activeId,
         pendingQueryId,
         setActiveQueryId,
@@ -388,9 +497,9 @@ export function DataTableQueryProvider<T = unknown>({
         canCancelPending,
         isInitializing,
         isLoading: isInitializing || isLoading,
-        isError,
-        error: error ?? null,
-        refetch,
+        isError: !!triggerError || isError,
+        error: triggerError ?? error ?? null,
+        refetch: triggerError ? undefined : refetch,
         data: (data?.data ?? []) as unknown[],
         confirmedParams: confirmedParamsState,
         setConfirmedParams,
@@ -410,9 +519,16 @@ export function DataTableQueryProvider<T = unknown>({
         disabledQueryIds,
         toggleQueryEnabled,
         reorderQueriesInGroup,
+        runQuery,
       }}
     >
       {children}
+      {/* Mounted after the first URL read, so it only sees later changes. Never renders on the server. */}
+      {!isInitializing && (
+        <Suspense fallback={null}>
+          <QueryUrlListener urlKey={urlKey} onTrigger={runQuery} />
+        </Suspense>
+      )}
     </QueryContext.Provider>
   );
 }
@@ -430,5 +546,5 @@ export function useOptionalQueryContext(): QueryContextValue | null {
 /** True while the active query's param form is showing (it has params, none confirmed yet) — the table chrome hides meanwhile. */
 export function useIsQueryParamPanelOpen(): boolean {
   const ctx = useOptionalQueryContext();
-  return !!ctx?.activeQuery.params?.length && ctx.confirmedParams === null;
+  return !!ctx && ctx.activeQuery.group !== 'trigger' && !!ctx.activeQuery.params?.length && ctx.confirmedParams === null;
 }

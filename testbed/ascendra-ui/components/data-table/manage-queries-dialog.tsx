@@ -17,19 +17,21 @@ import { useEffect, useRef, useState } from "react";
 import { LuSquareMinus, LuSquarePlay } from "react-icons/lu";
 import { RiDraggable } from "react-icons/ri";
 
-const GROUP_LABELS: Record<QueryGroup, string> = {
+type ListedGroup = Exclude<QueryGroup, "trigger">;
+
+const GROUP_LABELS: Record<ListedGroup, string> = {
   query: "Queries",
   "user-query": "My Queries",
   filter: "Filters",
 };
 
-const GROUP_ORDER: QueryGroup[] = ["query", "user-query", "filter"];
+const GROUP_ORDER: ListedGroup[] = ["query", "user-query", "filter"];
 
 interface LocalItem {
   id: string;
   title: string;
   description: string;
-  group: QueryGroup;
+  group: ListedGroup;
   enabled: boolean;
 }
 
@@ -52,7 +54,7 @@ export function ManageQueriesDialog({
   } = useQueryContext();
 
   const [localGroups, setLocalGroups] = useState<
-    Record<QueryGroup, LocalItem[]>
+    Record<ListedGroup, LocalItem[]>
   >({
     query: [],
     "user-query": [],
@@ -61,19 +63,20 @@ export function ManageQueriesDialog({
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   // Track dragged item — includes its group so we can prevent cross-group drops
-  const dragRef = useRef<{ id: string; group: QueryGroup } | null>(null);
+  const dragRef = useRef<{ id: string; group: ListedGroup } | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
 
   // Sync from context whenever the dialog opens
   useEffect(() => {
     if (!open) return;
     const disabledSet = new Set(disabledQueryIds);
-    const groups: Record<QueryGroup, LocalItem[]> = {
+    const groups: Record<ListedGroup, LocalItem[]> = {
       query: [],
       "user-query": [],
       filter: [],
     };
     for (const q of allQueries) {
+      if (q.group === "trigger") continue;
       groups[q.group].push({
         id: q.id,
         title: q.title,

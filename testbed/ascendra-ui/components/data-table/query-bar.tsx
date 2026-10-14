@@ -12,30 +12,48 @@ import {
   DropdownMenuTrigger,
 } from "@/ascendra-ui/components/ui/dropdown-menu";
 import { useQueryContext } from "@/ascendra-ui/providers/data-table-query/data-table-query.provider";
-import type { QueryGroup } from "@/ascendra-ui/providers/data-table-query/data-table-query.types";
+import type {
+  QueryDef,
+  QueryGroup,
+} from "@/ascendra-ui/providers/data-table-query/data-table-query.types";
 import { ChevronDown, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { LuLayoutList } from "react-icons/lu";
 import { ManageQueriesDialog } from "./manage-queries-dialog";
 
-const GROUP_LABELS: Record<QueryGroup, string> = {
+type ListedGroup = Exclude<QueryGroup, "trigger">;
+
+const GROUP_LABELS: Record<ListedGroup, string> = {
   query: "Queries",
   "user-query": "My Queries",
   filter: "Filters",
 };
 
-const GROUP_ORDER: QueryGroup[] = ["query", "user-query", "filter"];
+const GROUP_ORDER: ListedGroup[] = ["query", "user-query", "filter"];
 
 export function QueryBar() {
   const {
     queries,
+    confirmedQuery,
     confirmedQueryId,
     setActiveQueryId,
     isLoading,
     isInitializing,
   } = useQueryContext();
-  const confirmedQuery =
-    queries.find((q) => q.id === confirmedQueryId) ?? queries[0];
+  // A trigger, or a query hidden in Manage Queries, can be showing without being listed — it goes last in its own
+  // section (a trigger in Filters), selected like any other item.
+  const unlisted = queries.some((q) => q.id === confirmedQueryId)
+    ? null
+    : confirmedQuery;
+  const unlistedGroup =
+    unlisted?.group === "trigger" ? "filter" : unlisted?.group;
+  const sections = GROUP_ORDER.map((group) => ({
+    group,
+    items: [
+      ...queries.filter((q) => q.group === group),
+      ...(unlisted && unlistedGroup === group ? [unlisted] : []),
+    ],
+  })).filter((section) => section.items.length > 0);
 
   const [manageOpen, setManageOpen] = useState(false);
 
@@ -84,26 +102,15 @@ export function QueryBar() {
             value={confirmedQueryId}
             onValueChange={setActiveQueryId}
           >
-            {GROUP_ORDER.map((group, i) => {
-              const items = queries.filter((q) => q.group === group);
-              if (items.length === 0) return null;
-              return (
-                <div key={group}>
-                  {i > 0 && <DropdownMenuSeparator />}
-                  <DropdownMenuLabel>{GROUP_LABELS[group]}</DropdownMenuLabel>
-                  {items.map((query) => (
-                    <DropdownMenuRadioItem key={query.id} value={query.id}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{query.title}</span>
-                        <span className="text-muted-foreground text-xs">
-                          {query.description}
-                        </span>
-                      </div>
-                    </DropdownMenuRadioItem>
-                  ))}
-                </div>
-              );
-            })}
+            {sections.map(({ group, items }, i) => (
+              <div key={group}>
+                {i > 0 && <DropdownMenuSeparator />}
+                <DropdownMenuLabel>{GROUP_LABELS[group]}</DropdownMenuLabel>
+                {items.map((query) => (
+                  <QueryRadioItem key={query.id} query={query} />
+                ))}
+              </div>
+            ))}
           </DropdownMenuRadioGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => setManageOpen(true)}>
@@ -115,5 +122,18 @@ export function QueryBar() {
 
       <ManageQueriesDialog open={manageOpen} onOpenChange={setManageOpen} />
     </div>
+  );
+}
+
+function QueryRadioItem({ query }: { query: QueryDef }) {
+  return (
+    <DropdownMenuRadioItem value={query.id}>
+      <div className="flex flex-col">
+        <span className="font-medium">{query.title}</span>
+        <span className="text-muted-foreground text-xs">
+          {query.description}
+        </span>
+      </div>
+    </DropdownMenuRadioItem>
   );
 }

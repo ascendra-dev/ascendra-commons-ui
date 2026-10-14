@@ -34,7 +34,7 @@ export function DataTableColumnManager({ icon = false }: DataTableColumnManagerP
   }
 
   return (
-    <DropdownMenu modal={false}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild className="group">
         <Button
           variant="secondary"
