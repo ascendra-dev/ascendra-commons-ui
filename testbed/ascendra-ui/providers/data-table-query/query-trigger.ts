@@ -152,6 +152,20 @@ function encodeParam(value: TriggerParamValue): string {
   return String(value);
 }
 
+/** A run's param values as trigger params — unset values and ranges without a start are left out. */
+export function toTriggerParams(values: QueryParamValues): TriggerParams {
+  const params: TriggerParams = {};
+  for (const [name, value] of Object.entries(values)) {
+    if (value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) continue;
+    if (typeof value === 'object' && !(value instanceof Date) && !Array.isArray(value)) {
+      if (value.from) params[name] = { from: value.from, to: value.to };
+      continue;
+    }
+    params[name] = value;
+  }
+  return params;
+}
+
 /**
  * The search string (no leading `?`) that triggers `queryId` with `params` on a page whose table uses `urlKey` —
  * e.g. `href={\`/transactions?${buildQuerySearch('by-status', { status: ['failed'] })}\`}`.

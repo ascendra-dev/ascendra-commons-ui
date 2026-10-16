@@ -25,11 +25,13 @@ import type {
 import { isFieldDef } from './data-table-query.types';
 import { buildDefaultValues, buildZodSchema } from './query-params-schema';
 import {
+  buildQuerySearch,
   coerceTriggerParams,
   DEFAULT_QUERY_URL_KEY,
   QueryTriggerError,
   readQuerySearch,
   stripQuerySearch,
+  toTriggerParams,
 } from './query-trigger';
 
 const QueryContext = createContext<QueryContextValue | null>(null);
@@ -81,14 +83,23 @@ export function DataTableQueryProvider<T = unknown>({
 }: DataTableQueryProviderProps<T>) {
   const [activeId, setActiveId] = useState(propQueries[0].id);
   const [pendingQueryId, setPendingQueryId] = useState<string | null>(null);
-  const [confirmedParamsState, setConfirmedParamsState] = useState<QueryParamValues | null>(null);
+  const [confirmedParamsState, setConfirmedParamsRaw] = useState<QueryParamValues | null>(null);
+  const [mutedParams, setMutedParams] = useState<string[]>([]);
   const [currentBatch, setCurrentBatch] = useState(1);
   // Always starts true: the URL may name a query to run, and it has to be read before anything is fetched.
   const [isInitializing, setIsInitializing] = useState(true);
   // A trigger that couldn't run — shown in the error state instead of any results until another query is picked.
   const [triggerError, setTriggerError] = useState<QueryTriggerError | null>(null);
   // The run that was showing before a filter query's param panel opened — restored by cancelPending().
-  const [runBeforePending, setRunBeforePending] = useState<{ params: QueryParamValues | null; batch: number } | null>(null);
+  const [runBeforePending, setRunBeforePending] = useState<
+    { params: QueryParamValues | null; muted: string[]; batch: number } | null
+  >(null);
+
+  // Every new run starts unmuted — mutes belong to the run they were made on.
+  function setConfirmedParamsState(params: QueryParamValues | null, muted: string[] = []) {
+    setConfirmedParamsRaw(params);
+    setMutedParams(muted);
+  }
 
   // Saved user queries
   const savedUserQueriesRef = useRef<SavedUserQuery[]>([]);
@@ -276,7 +287,7 @@ export function DataTableQueryProvider<T = unknown>({
     // Triggers run only through runQuery.
     if (propQueries.find((q) => q.id === id)?.group === 'trigger') return;
     setTriggerError(null);
-    const previousRun = { params: confirmedParamsState, batch: currentBatch };
+    const previousRun = { params: confirmedParamsState, muted: mutedParams, batch: currentBatch };
     const panelWasOpen = !!confirmedQuery.params?.length && confirmedParamsState === null;
     setCurrentBatch(1);
     setConfirmedParamsState(null);
@@ -304,7 +315,7 @@ export function DataTableQueryProvider<T = unknown>({
       setPendingQueryId(null);
       if (tableId) writeQueryRunPreferences(tableId, id, {});
     }
-  }, [propQueries, tableId, confirmedParamsState, currentBatch, confirmedQuery, pendingQueryId]);
+  }, [propQueries, tableId, confirmedParamsState, mutedParams, currentBatch, confirmedQuery, pendingQueryId]);
 
   const confirmPending = useCallback(() => {
     if (pendingQueryId) {
@@ -317,7 +328,7 @@ export function DataTableQueryProvider<T = unknown>({
 
   const cancelPending = useCallback(() => {
     if (pendingQueryId === null || runBeforePending === null) return;
-    setConfirmedParamsState(runBeforePending.params);
+    setConfirmedParamsState(runBeforePending.params, runBeforePending.muted);
     setCurrentBatch(runBeforePending.batch);
     setPendingQueryId(null);
   }, [pendingQueryId, runBeforePending]);
@@ -444,21 +455,50 @@ export function DataTableQueryProvider<T = unknown>({
     }
   }, [tableId]);
 
-  // Resolve query function — user queries delegate to their source filter's function
-  const queryFn = (() => {
-    if (confirmedQuery.group === 'user-query') {
-      const savedQ = savedUserQueries.find((q) => q.id === activeId);
-      return savedQ ? queryFunctions[savedQ.sourceQueryId] : undefined;
-    }
-    return queryFunctions[activeId];
+  // The preset behind the run — a saved user query runs its source filter's function with that filter's fields.
+  const runSourceQuery = (() => {
+    if (confirmedQuery.group !== 'user-query') return confirmedQuery;
+    const sourceId = savedUserQueries.find((q) => q.id === activeId)?.sourceQueryId;
+    return propQueries.find((q) => q.id === sourceId) ?? confirmedQuery;
   })();
+  const queryFn = confirmedQuery.group === 'user-query' && runSourceQuery === confirmedQuery
+    ? undefined
+    : queryFunctions[runSourceQuery.id];
+
+  // What the run fetches with: its params minus the muted fields.
+  const effectiveParams = useMemo<QueryParamValues | null>(() => {
+    if (!confirmedParamsState || !mutedParams.length) return confirmedParamsState;
+    const params = { ...confirmedParamsState };
+    for (const name of mutedParams) delete params[name];
+    return params;
+  }, [confirmedParamsState, mutedParams]);
+
+  const toggleParamMuted = useCallback((name: string) => {
+    const field = (runSourceQuery.params ?? []).filter(isFieldDef).find((f) => f.name === name);
+    if (!field || field.required) return;
+    setMutedParams((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]));
+    setCurrentBatch(1);
+  }, [runSourceQuery]);
+
+  const getRunLink = useCallback((): string | null => {
+    if (isInitializing || triggerError || pendingQueryId !== null) return null;
+    if (takesParams(runSourceQuery.group) && !effectiveParams) return null;
+    // Keeps the page's other params — only this table's are replaced.
+    const url = new URL(window.location.href);
+    for (const key of [...new Set(url.searchParams.keys())]) {
+      if (key === urlKey || key.startsWith(`${urlKey}.`)) url.searchParams.delete(key);
+    }
+    const run = new URLSearchParams(buildQuerySearch(runSourceQuery.id, toTriggerParams(effectiveParams ?? {}), urlKey));
+    for (const [key, value] of run) url.searchParams.append(key, value);
+    return url.toString();
+  }, [isInitializing, triggerError, pendingQueryId, runSourceQuery, effectiveParams, urlKey]);
 
   const enabled =
     !isInitializing && !triggerError && (!takesParams(confirmedQuery.group) || confirmedParamsState !== null);
 
   const { data: queryData, isLoading, isError, error, refetch } = useQuery<QueryResult<T>, Error>({
-    queryKey: ['data-table', activeId, confirmedParamsState, currentBatch],
-    queryFn: () => queryFn!(confirmedParamsState ?? {}, currentBatch),
+    queryKey: ['data-table', activeId, effectiveParams, currentBatch],
+    queryFn: () => queryFn!(effectiveParams ?? {}, currentBatch),
     enabled: !!queryFn && enabled,
     staleTime: confirmedQuery.queryOptions?.staleTime,
     retry: confirmedQuery.queryOptions?.retry,
@@ -501,8 +541,13 @@ export function DataTableQueryProvider<T = unknown>({
         error: triggerError ?? error ?? null,
         refetch: triggerError ? undefined : refetch,
         data: (data?.data ?? []) as unknown[],
-        confirmedParams: confirmedParamsState,
+        confirmedParams: effectiveParams,
         setConfirmedParams,
+        runParams: confirmedParamsState,
+        runSourceQuery,
+        mutedParams,
+        toggleParamMuted,
+        getRunLink,
         currentBatch,
         totalBatches,
         totalBatchesExact,

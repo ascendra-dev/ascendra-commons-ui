@@ -178,8 +178,20 @@ export interface QueryContextValue {
   /** Absent while a trigger error is showing — re-running bad trigger params can't succeed. */
   refetch?: () => void;
   data: unknown[];
+  /** The params the run fetches with — `runParams` minus any muted fields. Use this to export or re-fetch. */
   confirmedParams: QueryParamValues | null;
   setConfirmedParams: (values: QueryParamValues) => void;
+  /** The run's params as confirmed, muted fields included — what the run's criteria show. */
+  runParams: QueryParamValues | null;
+  /** The preset query whose fields the run uses — the confirmed query itself, or a saved user query's source. */
+  runSourceQuery: QueryDef;
+  /** Fields left out of this run without changing its params. Cleared by the next run. */
+  mutedParams: string[];
+  /** Mutes or unmutes one of the run's fields and re-fetches from batch 1. Required fields can't be muted. */
+  toggleParamMuted: (name: string) => void;
+  /** A link to this page that re-runs what's showing — the run's preset query (a saved user query's source filter)
+   *  with its unmuted params, dates fixed. Null while there's no run to link to. */
+  getRunLink: () => string | null;
   currentBatch: number;
   totalBatches: number | null;
   /** False when totalBatches is a lower-bound estimate, not a known count — see QueryResult.totalBatchesExact. */
