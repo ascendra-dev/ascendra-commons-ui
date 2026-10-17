@@ -5,6 +5,7 @@
  * Usage:
  *   node ascendra.js update       Pull the latest ascendra-ui/ folder from the public repo,
  *                                 into BOTH copies this project keeps
+ *   node ascendra.js update --yes Same, without the confirmation prompt (also works with no TTY)
  *
  * This is a one-off project, already set up — there is no `setup` command here (see
  * ascendra-ui/ascendra.js in the sibling ascendra-ui repo for that; it's for turning a fresh
@@ -27,7 +28,8 @@
  * and delete the temp directory. There is no version to track — it always takes whatever is
  * currently on the source repo's default branch. It never touches either package.json — install
  * any new dependency yourself after reviewing the diff. Refuses to run non-interactively (no TTY),
- * since there'd be no way to confirm.
+ * since there'd be no way to confirm — unless `--yes` is passed, which skips the prompt (for scripted
+ * or agent-run syncs; the paths and warnings are still printed).
  */
 
 const { execSync } = require("child_process");
@@ -50,7 +52,7 @@ function ask(question) {
   });
 }
 
-async function update() {
+async function update({ yes }) {
   const commitsUrl = SOURCE_REPO.replace(/\.git$/, "") + "/commits";
 
   console.log("This will DELETE AND REPLACE ascendra-ui/ at both:");
@@ -75,15 +77,19 @@ async function update() {
     // Not a git repo, or git unavailable — nothing to check.
   }
 
-  if (!process.stdin.isTTY) {
-    console.error("Non-interactive input — refusing to run update without a confirmation prompt. Aborting.");
-    process.exit(1);
-  }
+  if (yes) {
+    console.log("--yes given — continuing without a confirmation prompt.");
+  } else {
+    if (!process.stdin.isTTY) {
+      console.error("Non-interactive input — refusing to run update without a confirmation prompt (pass --yes to skip it). Aborting.");
+      process.exit(1);
+    }
 
-  const answer = await ask("Continue? [y/N]: ");
-  if (answer !== "y" && answer !== "yes") {
-    console.log("Aborted — nothing was changed.");
-    process.exit(0);
+    const answer = await ask("Continue? [y/N]: ");
+    if (answer !== "y" && answer !== "yes") {
+      console.log("Aborted — nothing was changed.");
+      process.exit(0);
+    }
   }
 
   console.log(`\nFetching the latest ascendra-ui/ from ${SOURCE_REPO} ...`);
@@ -113,15 +119,16 @@ async function update() {
   console.log("  in both this project and testbed/ if dependencies changed.\n");
 }
 
-const [, , command] = process.argv;
+const [, , command, ...flags] = process.argv;
 
 if (command === "update") {
-  update().catch((err) => {
+  update({ yes: flags.includes("--yes") || flags.includes("-y") }).catch((err) => {
     console.error(err.message);
     process.exit(1);
   });
 } else {
   console.log("Usage:");
-  console.log("  node ascendra.js update    (pulls the latest ascendra-ui/ into both vendored copies)");
+  console.log("  node ascendra.js update [--yes]    (pulls the latest ascendra-ui/ into both vendored copies;");
+  console.log("                                    --yes skips the confirmation prompt)");
   process.exit(1);
 }
