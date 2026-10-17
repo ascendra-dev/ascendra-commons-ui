@@ -448,9 +448,17 @@ export async function mockGetEvent(id: string): Promise<AuditEventDetail> {
  * compute from the in-memory array.
  */
 /** One entity's own trail is normally short enough to show in full — no pagination. */
-export async function mockEntityHistory(entityType: string, entityId: string): Promise<CursorListResponse<AuditEvent>> {
-  await delay(400);
-  return { data: sortNewestFirst(MOCK_AUDIT_EVENTS.filter((e) => e.entityType === entityType && e.entityId === entityId)), meta: {} };
+export async function mockEntityHistory(
+  entityType: string,
+  entityId: string,
+  query: { limit?: number; cursor?: string } = {},
+): Promise<CursorListResponse<AuditEvent>> {
+  await delay(3000);
+  const all = sortNewestFirst(MOCK_AUDIT_EVENTS.filter((e) => e.entityType === entityType && e.entityId === entityId));
+  // Same shape as the real endpoint: a page of `limit` (default 50), and an opaque cursor while more remain.
+  const start = query.cursor ? Number(query.cursor) : 0;
+  const end = start + (query.limit ?? 50);
+  return { data: all.slice(start, end), meta: end < all.length ? { nextCursor: String(end) } : {} };
 }
 
 /**
@@ -504,8 +512,16 @@ export async function mockCatalog(): Promise<AuditCatalogEntry[]> {
   return [...byEntity].map(([entityType, actions]) => ({ entityType, actions: [...actions].sort() }));
 }
 
-export async function mockTrace(correlationId: string): Promise<CursorListResponse<AuditEvent>> {
-  return { data: sortNewestFirst(MOCK_AUDIT_EVENTS.filter((e) => e.correlationId === correlationId)), meta: {} };
+export async function mockTrace(
+  correlationId: string,
+  query: { limit?: number; cursor?: string } = {},
+): Promise<CursorListResponse<AuditEvent>> {
+  await delay(3000);
+  const all = sortNewestFirst(MOCK_AUDIT_EVENTS.filter((e) => e.correlationId === correlationId));
+  // Same shape as the real endpoint: a page of `limit` (default 50), and an opaque cursor while more remain.
+  const start = query.cursor ? Number(query.cursor) : 0;
+  const end = start + (query.limit ?? 50);
+  return { data: all.slice(start, end), meta: end < all.length ? { nextCursor: String(end) } : {} };
 }
 
 // ─── Overview stats (synthetic, realistic-scale) ───────────────────────────
@@ -677,7 +693,7 @@ export async function mockTopActionsStats(window = '7d'): Promise<AuditTopAction
 }
 
 export async function mockActorActivity(actor: string): Promise<ActorActivitySummary> {
-  await delay(800);
+  await delay(3000);
   const events = MOCK_AUDIT_EVENTS.filter((e) => e.actor === actor);
   const byAction = new Map<string, { count: number; lastOccurredAt: string }>();
   for (const event of events) {

@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
 import {
   DataTable,
   DataTableBar,
@@ -54,7 +53,6 @@ import {
   auditFieldOptionsFor,
   auditQueryDefs,
 } from '@/ascendra-commons-ui/audit-logging.ui/queries';
-import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
 import {
   mockAuditQueryFunctions,
   mockCatalog,
@@ -63,6 +61,8 @@ import {
 import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { AuditEventDetailSheet } from '../_audit-event-detail-sheet';
 import { AuditActorActivitySheet } from '../_audit-actor-activity-sheet';
+import { AuditEntityHistorySheet } from '../_audit-entity-history-sheet';
+import { AuditTraceSheet } from '../_audit-trace-sheet';
 
 /** testbed has no live backend — using mock fetchers (see page.tsx's own comment upstream). */
 const queryFunctions = mockAuditQueryFunctions;
@@ -70,10 +70,20 @@ const fetchCatalog = mockCatalog;
 const exportEvents = mockExportEvents;
 
 
+type CellSheet =
+  | { kind: 'actor'; actor: string }
+  | { kind: 'entity'; entityType: string; entityId: string }
+  | { kind: 'trace'; correlationId: string };
+
 /** The primary filterable Audit Log feed. */
 export default function AuditLogListPage() {
   const [selected, setSelected] = useState<AuditEvent | null>(null);
-  const [selectedActor, setSelectedActor] = useState<string | null>(null);
+  // The actor / entity / trace sheet opened from a cell. One sheet at a time: opening any sheet closes the other.
+  const [cellSheet, setCellSheet] = useState<CellSheet | null>(null);
+  const openCellSheet = (sheet: CellSheet) => {
+    setSelected(null);
+    setCellSheet(sheet);
+  };
   const catalog = useQuery({ queryKey: ['audit-catalog'], queryFn: fetchCatalog, staleTime: Infinity });
   const fieldOptions = useMemo(() => auditFieldOptionsFor(catalog.data ?? []), [catalog.data]);
 
@@ -143,8 +153,7 @@ export default function AuditLogListPage() {
                           active={row.id === selected?.id}
                           className="cursor-pointer"
                           onClick={() => {
-                            // One sheet at a time — a record replaces an open actor sheet.
-                            setSelectedActor(null);
+                            setCellSheet(null);
                             setSelected(row);
                           }}
                         >
@@ -165,10 +174,8 @@ export default function AuditLogListPage() {
                               type="button"
                               className="cursor-pointer hover:underline"
                               onClick={(e) => {
-                                // Opens the actor sheet in place of the row's record sheet.
                                 e.stopPropagation();
-                                setSelected(null);
-                                setSelectedActor(row.actor);
+                                openCellSheet({ kind: 'actor', actor: row.actor });
                               }}
                             >
                               <DataTableHighlight
@@ -197,13 +204,13 @@ export default function AuditLogListPage() {
                               >
                                 {row.entityType}
                               </SimpleBadge>
-                              <Link
-                                href={auditLogLinks.entityHistory(
-                                  row.entityType,
-                                  row.entityId,
-                                )}
-                                className="hover:underline"
-                                onClick={(e) => e.stopPropagation()}
+                              <button
+                                type="button"
+                                className="w-fit cursor-pointer text-left hover:underline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openCellSheet({ kind: 'entity', entityType: row.entityType, entityId: row.entityId });
+                                }}
                               >
                                 <IdText
                                   value={row.entityId}
@@ -212,7 +219,7 @@ export default function AuditLogListPage() {
                                   className="text-muted-foreground text-xs"
                                   showTooltip={false}
                                 />
-                              </Link>
+                              </button>
                             </div>
                           </DataTableCell>
                           <DataTableCell column="tenantId">
@@ -241,10 +248,13 @@ export default function AuditLogListPage() {
                             </WithEmptyValue>
                           </DataTableCell>
                           <DataTableCell column="correlationId">
-                            <Link
-                              href={auditLogLinks.trace(row.correlationId)}
-                              className="hover:underline"
-                              onClick={(e) => e.stopPropagation()}
+                            <button
+                              type="button"
+                              className="cursor-pointer text-left hover:underline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openCellSheet({ kind: 'trace', correlationId: row.correlationId });
+                              }}
                             >
                               <IdText
                                 value={row.correlationId}
@@ -252,7 +262,7 @@ export default function AuditLogListPage() {
                                 copyable={false}
                                 showTooltip={false}
                               />
-                            </Link>
+                            </button>
                           </DataTableCell>
                           <DataTableCell column="application">
                             <DataTableHighlight
@@ -298,10 +308,23 @@ export default function AuditLogListPage() {
                     }
                   />
                 )}
-                {selectedActor && (
+                {cellSheet?.kind === 'actor' && (
                   <AuditActorActivitySheet
-                    actor={selectedActor}
-                    onClose={() => setSelectedActor(null)}
+                    actor={cellSheet.actor}
+                    onClose={() => setCellSheet(null)}
+                  />
+                )}
+                {cellSheet?.kind === 'entity' && (
+                  <AuditEntityHistorySheet
+                    entityType={cellSheet.entityType}
+                    entityId={cellSheet.entityId}
+                    onClose={() => setCellSheet(null)}
+                  />
+                )}
+                {cellSheet?.kind === 'trace' && (
+                  <AuditTraceSheet
+                    correlationId={cellSheet.correlationId}
+                    onClose={() => setCellSheet(null)}
                   />
                 )}
               </DataTableWithQueryProvider>
