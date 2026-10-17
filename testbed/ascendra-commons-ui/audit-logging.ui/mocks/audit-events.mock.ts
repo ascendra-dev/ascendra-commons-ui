@@ -677,6 +677,7 @@ export async function mockTopActionsStats(window = '7d'): Promise<AuditTopAction
 }
 
 export async function mockActorActivity(actor: string): Promise<ActorActivitySummary> {
+  await delay(800);
   const events = MOCK_AUDIT_EVENTS.filter((e) => e.actor === actor);
   const byAction = new Map<string, { count: number; lastOccurredAt: string }>();
   for (const event of events) {

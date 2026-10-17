@@ -62,6 +62,7 @@ import {
 } from '@/ascendra-commons-ui/audit-logging.ui/mocks';
 import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { AuditEventDetailSheet } from '../_audit-event-detail-sheet';
+import { AuditActorActivitySheet } from '../_audit-actor-activity-sheet';
 
 /** testbed has no live backend — using mock fetchers (see page.tsx's own comment upstream). */
 const queryFunctions = mockAuditQueryFunctions;
@@ -72,6 +73,7 @@ const exportEvents = mockExportEvents;
 /** The primary filterable Audit Log feed. */
 export default function AuditLogListPage() {
   const [selected, setSelected] = useState<AuditEvent | null>(null);
+  const [selectedActor, setSelectedActor] = useState<string | null>(null);
   const catalog = useQuery({ queryKey: ['audit-catalog'], queryFn: fetchCatalog, staleTime: Infinity });
   const fieldOptions = useMemo(() => auditFieldOptionsFor(catalog.data ?? []), [catalog.data]);
 
@@ -140,7 +142,11 @@ export default function AuditLogListPage() {
                           key={row.id}
                           active={row.id === selected?.id}
                           className="cursor-pointer"
-                          onClick={() => setSelected(row)}
+                          onClick={() => {
+                            // One sheet at a time — a record replaces an open actor sheet.
+                            setSelectedActor(null);
+                            setSelected(row);
+                          }}
                         >
                           <DataTableCell
                             column="occurredAt"
@@ -155,17 +161,22 @@ export default function AuditLogListPage() {
                             />
                           </DataTableCell>
                           <DataTableCell column="actor">
-                            <Link
-                              href={auditLogLinks.actorActivity(row.actor)}
-                              className="hover:underline"
-                              onClick={(e) => e.stopPropagation()}
+                            <button
+                              type="button"
+                              className="cursor-pointer hover:underline"
+                              onClick={(e) => {
+                                // Opens the actor sheet in place of the row's record sheet.
+                                e.stopPropagation();
+                                setSelected(null);
+                                setSelectedActor(row.actor);
+                              }}
                             >
                               <DataTableHighlight
                                 text={row.actor}
                                 item={row}
                                 itemKey="actor"
                               />
-                            </Link>
+                            </button>
                           </DataTableCell>
                           <DataTableCell column="action">
                             <SimpleBadge>
@@ -285,6 +296,12 @@ export default function AuditLogListPage() {
                         onSelect={setSelected}
                       />
                     }
+                  />
+                )}
+                {selectedActor && (
+                  <AuditActorActivitySheet
+                    actor={selectedActor}
+                    onClose={() => setSelectedActor(null)}
                   />
                 )}
               </DataTableWithQueryProvider>
