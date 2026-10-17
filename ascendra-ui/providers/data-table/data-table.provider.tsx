@@ -38,6 +38,7 @@ export function DataTableProvider<T extends object>({
   columns: initialColumns,
   isLoading: isLoadingProp,
   getRowId,
+  selectable = false,
   tableId,
   children,
 }: DataTableProviderProps<T>) {
@@ -113,7 +114,7 @@ export function DataTableProvider<T extends object>({
     isAllDataSelected,
     isIndeterminate,
     selectionEnabled,
-  } = useSelection(pagedData, sortedData, getRowId);
+  } = useSelection(pagedData, sortedData, getRowId, selectable);
 
   // Clear stale selections whenever the search/filter query changes.
   // filteredData identity only changes on search or filter updates, not on sort or page navigation.

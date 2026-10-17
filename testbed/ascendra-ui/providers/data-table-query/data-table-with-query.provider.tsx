@@ -13,6 +13,8 @@ export interface DataTableWithQueryProviderProps<T extends object> {
   data?: T[];
   isLoading?: boolean;
   getRowId?: (row: T) => string;
+  /** Turns on row selection — see DataTableProviderProps.selectable. */
+  selectable?: boolean;
   /** Unique key used to persist column order and visibility to localStorage.
    *  Omit to disable persistence (columns reset on page reload). */
   tableId?: string;
@@ -30,6 +32,7 @@ export function DataTableWithQueryProvider<T extends object>({
   data,
   isLoading,
   getRowId,
+  selectable,
   tableId,
   urlKey,
   children,
@@ -42,7 +45,7 @@ export function DataTableWithQueryProvider<T extends object>({
       tableId={tableId}
       urlKey={urlKey}
     >
-      <DataTableProvider columns={columns} data={data} isLoading={isLoading} getRowId={getRowId} tableId={tableId}>
+      <DataTableProvider columns={columns} data={data} isLoading={isLoading} getRowId={getRowId} selectable={selectable} tableId={tableId}>
         {children}
       </DataTableProvider>
     </DataTableQueryProvider>

@@ -165,7 +165,11 @@ export interface DataTableProviderProps<T extends object> {
   data?: T[];
   columns: ColumnDef<T>[];
   isLoading?: boolean;
+  /** A stable unique id per row — for row selection, DataTableSheetNavigator and the active-row highlight. */
   getRowId?: (row: T) => string;
+  /** Turns on row selection: the checkbox components and DataTableHeadAction's Select all / Clear all. Needs
+   *  getRowId. Off by default — a getRowId given only for the sheet navigator doesn't make rows selectable. */
+  selectable?: boolean;
   /** Unique key used to persist column order and visibility to localStorage.
    *  Omit to disable persistence (columns reset on page reload). */
   tableId?: string;

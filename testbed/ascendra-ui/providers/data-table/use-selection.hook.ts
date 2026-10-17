@@ -6,6 +6,7 @@ export function useSelection<T>(
   pagedData: T[],
   allData: T[],
   getRowId: ((row: T) => string) | undefined,
+  selectable: boolean,
 ) {
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
@@ -82,7 +83,8 @@ export function useSelection<T>(
     [pagedData, selectedRows, getRowId, isAllSelected],
   );
 
-  const selectionEnabled = getRowId !== undefined;
+  // Opt-in, and needs row ids to select by.
+  const selectionEnabled = selectable && getRowId !== undefined;
 
   return {
     selectedRows,

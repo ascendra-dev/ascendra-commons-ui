@@ -44,6 +44,11 @@ export function DataTableHeadAction({
   const selectionCount = selectionEnabled ? selectedRows.size : 0;
   const hasChildren = React.Children.count(children) > 0;
 
+  // Nothing to offer (no selection, no items) — keep the column's header cell, but no menu.
+  if (!selectionEnabled && !hasChildren) {
+    return <th data-slot="table-head" className="py-3 pr-6 pl-5 w-12" />;
+  }
+
   return (
     <HeadActionContext.Provider value={{ onAction, selectedRowIds }}>
       <th data-slot="table-head" className="py-3 pr-6 pl-5 w-12">
@@ -58,13 +63,13 @@ export function DataTableHeadAction({
               align="end"
               onCloseAutoFocus={(e) => e.preventDefault()}
             >
-              <DropdownMenuLabel>
-                {selectionCount} {selectionCount === 1 ? "row" : "rows"}{" "}
-                selected
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
               {selectionEnabled && (
                 <>
+                  <DropdownMenuLabel>
+                    {selectionCount} {selectionCount === 1 ? "row" : "rows"}{" "}
+                    selected
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     disabled={isAllDataSelected}
                     onSelect={selectAllData}
