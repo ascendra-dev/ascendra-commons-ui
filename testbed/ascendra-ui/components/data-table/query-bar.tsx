@@ -23,19 +23,19 @@ import {
   type QueryOrderBy,
 } from "@/ascendra-ui/providers/data-table-query/query-criteria";
 import { cn } from "@/ascendra-ui/shadcn";
-import { SimpleBadge } from "@/ascendra-ui/components/common-ui/simple-badge";
 import {
   ArrowDown,
   ArrowUp,
   ChevronDown,
   Loader2,
-  RotateCcw,
   Sparkles,
-  X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { LuCopy, LuCopyCheck, LuLayoutList } from "react-icons/lu";
 import { toast } from "@/ascendra-ui/components/common-ui/toast";
+import { IoArrowBackCircleOutline } from "react-icons/io5";
+import { RxCrossCircled } from "react-icons/rx";
+import { FilterChip, FilterChipValue } from "./filter-chip";
 import { formatSortToken, parseSortToken } from "@/ascendra-ui/utils/order-by.util";
 import {
   Tooltip,
@@ -122,9 +122,15 @@ export function QueryBar() {
                   {confirmedQuery.description}
                 </span>
                 {appliedCount > 0 && (
-                  <SimpleBadge variant="secondary">
-                    {appliedCount} {appliedCount === 1 ? "criterion" : "criteria"}
-                  </SimpleBadge>
+                  // The criteria chips' pill, slimmed so it doesn't add to the bar's height.
+                  <FilterChip
+                    className="shrink-0 py-0 leading-4"
+                    label={
+                      <span className="text-muted-foreground">
+                        {appliedCount} {appliedCount === 1 ? "criterion" : "criteria"}
+                      </span>
+                    }
+                  />
                 )}
               </span>
             )}
@@ -183,14 +189,15 @@ function QueryRadioItem({
 }) {
   const hasCriteria = !!criteria && (criteria.criteria.length > 0 || !!criteria.orderBy);
   return (
-    // The tick sits on the title row (h-5 = its line height), not centred on the whole item.
-    <DropdownMenuRadioItem
-      value={query.id}
-      className="items-start [&>[data-slot=dropdown-menu-radio-item-indicator]]:h-5"
-    >
+    // No tick: the selected item shows the closed bar's sparkle before its title (plus its copy-link button and
+    // criteria) — no background, so hover stays the only highlight. pr-2: no tick needs the room on the right.
+    <DropdownMenuRadioItem value={query.id} className="items-start pr-2" indicator={null}>
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="flex items-center justify-between gap-2">
-          <span className="font-medium">{query.title}</span>
+          <span className="flex items-center gap-2 font-medium">
+            {criteria && <Sparkles className="text-muted-foreground size-3 shrink-0" strokeWidth={2} />}
+            {query.title}
+          </span>
           {criteria && <CopyRunLinkButton />}
         </span>
         <span className="text-muted-foreground text-xs">
@@ -211,55 +218,54 @@ function RunCriteria({
   criteria: QueryCriteria;
   onRunChanged: () => void;
 }) {
-  const { mutedParams } = useQueryContext();
+  const { mutedParams, toggleParamMuted } = useQueryContext();
   const orderByMuted = !!orderBy && mutedParams.includes(orderBy.name);
+
+  // The chip's icon + label mutes or restores it, then closes the menu — without selecting the item it sits in.
+  // The item selects on pointer-up/click, so neither may reach it, or it would re-run the query.
+  const stop = (e: React.SyntheticEvent) => e.stopPropagation();
+  const muteAction = (name: string, label: string, muted: boolean) => ({
+    icon: muted ? <IoArrowBackCircleOutline /> : <RxCrossCircled />,
+    "aria-label": muted ? `Restore ${label}` : `Mute ${label}`,
+    onPointerDown: stop,
+    onPointerUp: stop,
+    onClick: (e: React.MouseEvent) => {
+      e.stopPropagation();
+      toggleParamMuted(name);
+      onRunChanged();
+    },
+  });
 
   return (
     <div className="mt-1.5 flex flex-wrap items-center gap-1">
       {criteria.map((criterion) => {
         const muted = mutedParams.includes(criterion.name);
-        // The tooltip repeats only the value — a checkbox criterion has none, so its label.
-        const fullText = criterion.text || criterion.label;
         return (
-          <SimpleBadge
+          <FilterChip
             key={criterion.name}
-            variant="secondary"
-            // SimpleBadge centres its content in an inner span — let that span shrink so long text truncates.
-            className="max-w-full justify-start [&>span]:min-w-0"
+            label={
+              <span className={cn("text-muted-foreground", muted && MUTED_CLASS)}>{criterion.label}</span>
+            }
+            // Required fields can't be muted — the run needs them.
+            action={criterion.required ? undefined : muteAction(criterion.name, criterion.label, muted)}
           >
-            <TruncatedText
-              fullText={fullText}
-              className={cn(muted && "line-through opacity-60")}
-            >
-              {criterion.text ? (
-                <>
-                  {criterion.label}:{" "}
-                  <span className="text-foreground">{criterion.text}</span>
-                </>
-              ) : (
-                <span className="text-foreground">{criterion.label}</span>
-              )}
-            </TruncatedText>
-            {!criterion.required && (
-              <MuteButton
-                name={criterion.name}
-                label={criterion.label}
-                muted={muted}
-                onToggled={onRunChanged}
-              />
+            {/* A checkbox criterion has no value — just its label. */}
+            {criterion.text && (
+              <FilterChipValue>
+                <TruncatedText fullText={criterion.text} className={cn("text-foreground", muted && MUTED_CLASS)}>
+                  {criterion.text}
+                </TruncatedText>
+              </FilterChipValue>
             )}
-          </SimpleBadge>
+          </FilterChip>
         );
       })}
       {orderBy && (
-        <span className="text-muted-foreground ml-1 inline-flex items-center gap-1.5 text-xs">
-          <span className="shrink-0">{orderBy.label}</span>
-          <span
-            className={cn(
-              "flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5",
-              orderByMuted && "line-through opacity-60",
-            )}
-          >
+        <FilterChip
+          label={<span className={cn("text-muted-foreground", orderByMuted && MUTED_CLASS)}>{orderBy.label}</span>}
+          action={orderBy.required ? undefined : muteAction(orderBy.name, orderBy.label, orderByMuted)}
+        >
+          <FilterChipValue className={cn("flex-wrap gap-x-1.5 gap-y-0.5", orderByMuted && MUTED_CLASS)}>
             {orderBy.columns.map((column, i) => (
               <span key={i} className="text-foreground inline-flex items-center gap-0.5">
                 {i > 0 && <span className="text-muted-foreground/60 mr-1">·</span>}
@@ -273,20 +279,15 @@ function RunCriteria({
                 />
               </span>
             ))}
-          </span>
-          {!orderBy.required && (
-            <MuteButton
-              name={orderBy.name}
-              label={orderBy.label}
-              muted={orderByMuted}
-              onToggled={onRunChanged}
-            />
-          )}
-        </span>
+          </FilterChipValue>
+        </FilterChip>
       )}
     </div>
   );
 }
+
+/** How a muted criterion shows — struck through, faded. */
+const MUTED_CLASS = "line-through opacity-60";
 
 /** Truncates with "…" and shows the full text in a tooltip — only when it's actually cut off. */
 function TruncatedText({
@@ -320,6 +321,7 @@ const COPIED_MS = 1500;
 function CopyRunLinkButton() {
   const { getRunLink } = useQueryContext();
   const [copied, setCopied] = useState(false);
+  const [hovered, setHovered] = useState(false);
   useEffect(() => {
     if (!copied) return;
     const timer = setTimeout(() => setCopied(false), COPIED_MS);
@@ -330,8 +332,8 @@ function CopyRunLinkButton() {
   // The menu item selects on pointer-up/click — keep both from reaching it.
   const stop = (e: React.SyntheticEvent) => e.stopPropagation();
   return (
-    // Controlled: the tooltip is only the "copied" confirmation — it never opens on hover.
-    <Tooltip open={copied}>
+    // Hover says what it does; after a copy the same tooltip confirms it, until COPIED_MS passes.
+    <Tooltip open={hovered || copied} onOpenChange={setHovered}>
       <TooltipTrigger asChild>
         <button
           type="button"
@@ -354,12 +356,12 @@ function CopyRunLinkButton() {
           <Icon className={cn("size-3.5", copied && "text-green-600")} />
         </button>
       </TooltipTrigger>
-      <TooltipContent side="top">Query link copied to clipboard</TooltipContent>
+      <TooltipContent side="top">{copied ? "Query link copied to clipboard" : "Copy query link"}</TooltipContent>
     </Tooltip>
   );
 }
 
-/** Flips one sort column between ascending and descending and re-runs — then closes the menu, like MuteButton. */
+/** Flips one sort column between ascending and descending and re-runs — then closes the menu, like the mute action. */
 function SortDirectionButton({
   name,
   column,
@@ -381,7 +383,7 @@ function SortDirectionButton({
     <button
       type="button"
       aria-label={`Sort ${column.label} ${next}`}
-      className="hover:bg-muted inline-flex shrink-0 cursor-pointer items-center justify-center rounded-sm p-0.5"
+      className="hover:bg-background inline-flex shrink-0 cursor-pointer items-center justify-center rounded-sm p-0.5"
       onPointerDown={stop}
       onPointerUp={stop}
       onClick={(e) => {
@@ -396,40 +398,6 @@ function SortDirectionButton({
       }}
     >
       <Arrow className="size-3" strokeWidth={2} />
-    </button>
-  );
-}
-
-/** Mutes or restores one criterion, then closes the menu — without selecting the item it sits in. */
-function MuteButton({
-  name,
-  label,
-  muted,
-  onToggled,
-}: {
-  name: string;
-  label: string;
-  muted: boolean;
-  onToggled: () => void;
-}) {
-  const { toggleParamMuted } = useQueryContext();
-  const Icon = muted ? RotateCcw : X;
-  // The menu item selects on pointer-up/click — keep both from reaching it, or it would re-run the query.
-  const stop = (e: React.SyntheticEvent) => e.stopPropagation();
-  return (
-    <button
-      type="button"
-      aria-label={muted ? `Restore ${label}` : `Mute ${label}`}
-      className="hover:text-foreground hover:bg-muted inline-flex shrink-0 cursor-pointer items-center justify-center rounded-sm p-0.5"
-      onPointerDown={stop}
-      onPointerUp={stop}
-      onClick={(e) => {
-        e.stopPropagation();
-        toggleParamMuted(name);
-        onToggled();
-      }}
-    >
-      <Icon className="size-3" strokeWidth={2} />
     </button>
   );
 }

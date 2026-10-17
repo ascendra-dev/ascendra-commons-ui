@@ -146,9 +146,12 @@ function DropdownMenuRadioItem({
   className,
   children,
   inset,
+  indicator = <CheckIcon />,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.RadioItem> & {
   inset?: boolean;
+  /** What marks the selected item. Default a check. */
+  indicator?: React.ReactNode;
 }) {
   return (
     <DropdownMenuPrimitive.RadioItem
@@ -165,7 +168,7 @@ function DropdownMenuRadioItem({
         data-slot="dropdown-menu-radio-item-indicator"
       >
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckIcon />
+          {indicator}
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
       {children}

@@ -9,6 +9,7 @@ import {
 } from '@/ascendra-ui/components/ui/dropdown-menu';
 import { cn } from '@/ascendra-ui/shadcn';
 import { RxCrossCircled } from 'react-icons/rx';
+import { FilterChip, FilterChipValue } from './filter-chip';
 
 interface DataTableFilterItemProps {
   columnKey: string;
@@ -28,22 +29,22 @@ export function DataTableFilterItem({
   onRemove,
 }: DataTableFilterItemProps) {
   return (
-    <div className="bg-muted flex items-center rounded-full border border-dashed border-gray-700/30 py-0.75 text-xs">
-      <div
-        className="flex cursor-pointer items-center gap-1 px-1.5"
-        onClick={() => onRemove(columnKey)}
-      >
-        <RxCrossCircled />
-        {label}
-      </div>
+    <FilterChip
+      label={label}
+      action={{
+        icon: <RxCrossCircled />,
+        'aria-label': `Remove ${label} filter`,
+        onClick: () => onRemove(columnKey),
+      }}
+    >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <div className="flex cursor-pointer items-center gap-1 border-l px-1.5">
+          <FilterChipValue className="cursor-pointer">
             <span className={cn(!value && 'text-muted-foreground')}>
               {value ?? 'Enter Value'}
             </span>
             <DropDownChevron />
-          </div>
+          </FilterChipValue>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           sideOffset={8}
@@ -65,6 +66,6 @@ export function DataTableFilterItem({
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
+    </FilterChip>
   );
 }
