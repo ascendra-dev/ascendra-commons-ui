@@ -16,7 +16,8 @@ export interface QueryCriterion {
 export interface QueryOrderBy {
   name: string;
   label: string;
-  columns: { label: string; direction: SortDirection }[];
+  /** `token` is the column's entry in the run's sort value — swap it to change that column. */
+  columns: { token: string; label: string; direction: SortDirection }[];
   required: boolean;
 }
 
@@ -97,7 +98,7 @@ export function describeQueryCriteria(
       const columns = value.flatMap((token) => {
         const key = parseSortToken(token);
         if (!key) return [];
-        return [{ label: options.find((o) => o.value === key.field)?.label ?? key.field, direction: key.direction }];
+        return [{ token, label: options.find((o) => o.value === key.field)?.label ?? key.field, direction: key.direction }];
       });
       if (columns.length) result.orderBy = { name: field.name, label: field.label, columns, required };
       continue;

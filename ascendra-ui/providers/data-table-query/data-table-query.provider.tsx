@@ -480,6 +480,19 @@ export function DataTableQueryProvider<T = unknown>({
     setCurrentBatch(1);
   }, [runSourceQuery]);
 
+  const setRunParam = useCallback((name: string, value: QueryParamValues[string]) => {
+    if (!confirmedParamsState) return;
+    const params = { ...confirmedParamsState, [name]: value };
+    setConfirmedParamsRaw(params); // not setConfirmedParamsState — the run's mutes stay
+    setCurrentBatch(1);
+    if (!takesParams(confirmedQuery.group)) return;
+    confirmedParamsCacheRef.current[activeId] = params;
+    const draft = draftCacheRef.current[activeId];
+    if (draft) draftCacheRef.current[activeId] = { ...draft, [name]: value };
+    // A trigger run is one-off — only a filter's run is saved as the table's last run.
+    if (tableId && confirmedQuery.group === 'filter') writeQueryRunPreferences(tableId, activeId, params);
+  }, [confirmedParamsState, confirmedQuery, activeId, tableId]);
+
   const getRunLink = useCallback((): string | null => {
     if (isInitializing || triggerError || pendingQueryId !== null) return null;
     if (takesParams(runSourceQuery.group) && !effectiveParams) return null;
@@ -547,6 +560,7 @@ export function DataTableQueryProvider<T = unknown>({
         runSourceQuery,
         mutedParams,
         toggleParamMuted,
+        setRunParam,
         getRunLink,
         currentBatch,
         totalBatches,

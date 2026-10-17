@@ -20,6 +20,7 @@ import { isFieldDef } from "@/ascendra-ui/providers/data-table-query/data-table-
 import {
   describeQueryCriteria,
   type QueryCriteria,
+  type QueryOrderBy,
 } from "@/ascendra-ui/providers/data-table-query/query-criteria";
 import { cn } from "@/ascendra-ui/shadcn";
 import { SimpleBadge } from "@/ascendra-ui/components/common-ui/simple-badge";
@@ -32,9 +33,10 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LuCopy, LuCopyCheck, LuLayoutList } from "react-icons/lu";
 import { toast } from "@/ascendra-ui/components/common-ui/toast";
+import { formatSortToken, parseSortToken } from "@/ascendra-ui/utils/order-by.util";
 import {
   Tooltip,
   TooltipContent,
@@ -150,7 +152,7 @@ export function QueryBar() {
                     key={query.id}
                     query={query}
                     criteria={query.id === confirmedQueryId ? runCriteria : null}
-                    onMuteToggled={() => setMenuOpen(false)}
+                    onRunChanged={() => setMenuOpen(false)}
                   />
                 ))}
               </div>
@@ -172,12 +174,12 @@ export function QueryBar() {
 function QueryRadioItem({
   query,
   criteria,
-  onMuteToggled,
+  onRunChanged,
 }: {
   query: QueryDef;
   /** The run's criteria — only on the selected item. */
   criteria: QueryCriteria | null;
-  onMuteToggled: () => void;
+  onRunChanged: () => void;
 }) {
   const hasCriteria = !!criteria && (criteria.criteria.length > 0 || !!criteria.orderBy);
   return (
@@ -195,7 +197,7 @@ function QueryRadioItem({
           {query.description}
         </span>
         {hasCriteria && (
-          <RunCriteria criteria={criteria} onMuteToggled={onMuteToggled} />
+          <RunCriteria criteria={criteria} onRunChanged={onRunChanged} />
         )}
       </div>
     </DropdownMenuRadioItem>
@@ -204,33 +206,31 @@ function QueryRadioItem({
 
 function RunCriteria({
   criteria: { criteria, orderBy },
-  onMuteToggled,
+  onRunChanged,
 }: {
   criteria: QueryCriteria;
-  onMuteToggled: () => void;
+  onRunChanged: () => void;
 }) {
   const { mutedParams } = useQueryContext();
   const orderByMuted = !!orderBy && mutedParams.includes(orderBy.name);
-  const orderByText = orderBy?.columns
-    .map((c) => `${c.label} ${c.direction === "desc" ? "descending" : "ascending"}`)
-    .join(", ");
 
   return (
     <div className="mt-1.5 flex flex-wrap items-center gap-1">
       {criteria.map((criterion) => {
         const muted = mutedParams.includes(criterion.name);
-        const title = criterion.text
-          ? `${criterion.label}: ${criterion.text}`
-          : criterion.label;
+        // The tooltip repeats only the value — a checkbox criterion has none, so its label.
+        const fullText = criterion.text || criterion.label;
         return (
           <SimpleBadge
             key={criterion.name}
             variant="secondary"
-            title={title}
             // SimpleBadge centres its content in an inner span — let that span shrink so long text truncates.
-            className="max-w-64 justify-start [&>span]:min-w-0"
+            className="max-w-full justify-start [&>span]:min-w-0"
           >
-            <span className={cn("min-w-0 truncate", muted && "line-through opacity-60")}>
+            <TruncatedText
+              fullText={fullText}
+              className={cn(muted && "line-through opacity-60")}
+            >
               {criterion.text ? (
                 <>
                   {criterion.label}:{" "}
@@ -239,13 +239,13 @@ function RunCriteria({
               ) : (
                 <span className="text-foreground">{criterion.label}</span>
               )}
-            </span>
+            </TruncatedText>
             {!criterion.required && (
               <MuteButton
                 name={criterion.name}
                 label={criterion.label}
                 muted={muted}
-                onToggled={onMuteToggled}
+                onToggled={onRunChanged}
               />
             )}
           </SimpleBadge>
@@ -255,34 +255,62 @@ function RunCriteria({
         <span className="text-muted-foreground ml-1 inline-flex items-center gap-1.5 text-xs">
           <span className="shrink-0">{orderBy.label}</span>
           <span
-            title={orderByText}
             className={cn(
               "flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5",
               orderByMuted && "line-through opacity-60",
             )}
           >
-            {orderBy.columns.map((column, i) => {
-              const Arrow = column.direction === "desc" ? ArrowDown : ArrowUp;
-              return (
-                <span key={i} className="text-foreground inline-flex items-center gap-0.5">
-                  {i > 0 && <span className="text-muted-foreground/60 mr-1">·</span>}
-                  {column.label}
-                  <Arrow className="size-3" strokeWidth={2} />
-                </span>
-              );
-            })}
+            {orderBy.columns.map((column, i) => (
+              <span key={i} className="text-foreground inline-flex items-center gap-0.5">
+                {i > 0 && <span className="text-muted-foreground/60 mr-1">·</span>}
+                {column.label}
+                <SortDirectionButton
+                  name={orderBy.name}
+                  column={column}
+                  // A muted sort isn't part of the run — nothing to flip.
+                  disabled={orderByMuted}
+                  onToggled={onRunChanged}
+                />
+              </span>
+            ))}
           </span>
           {!orderBy.required && (
             <MuteButton
               name={orderBy.name}
               label={orderBy.label}
               muted={orderByMuted}
-              onToggled={onMuteToggled}
+              onToggled={onRunChanged}
             />
           )}
         </span>
       )}
     </div>
+  );
+}
+
+/** Truncates with "…" and shows the full text in a tooltip — only when it's actually cut off. */
+function TruncatedText({
+  fullText,
+  className,
+  children,
+}: {
+  fullText: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [open, setOpen] = useState(false);
+  const isTruncated = () =>
+    !!ref.current && ref.current.scrollWidth > ref.current.clientWidth;
+  return (
+    <Tooltip open={open} onOpenChange={(next) => setOpen(next && isTruncated())}>
+      <TooltipTrigger asChild>
+        <span ref={ref} className={cn("min-w-0 truncate", className)}>
+          {children}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent side="top">{fullText}</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -331,6 +359,47 @@ function CopyRunLinkButton() {
   );
 }
 
+/** Flips one sort column between ascending and descending and re-runs — then closes the menu, like MuteButton. */
+function SortDirectionButton({
+  name,
+  column,
+  disabled,
+  onToggled,
+}: {
+  name: string;
+  column: QueryOrderBy["columns"][number];
+  disabled: boolean;
+  onToggled: () => void;
+}) {
+  const { runParams, setRunParam } = useQueryContext();
+  const Arrow = column.direction === "desc" ? ArrowDown : ArrowUp;
+  const next = column.direction === "desc" ? "ascending" : "descending";
+  // The menu item selects on pointer-up/click — keep both from reaching it.
+  const stop = (e: React.SyntheticEvent) => e.stopPropagation();
+  if (disabled) return <Arrow className="size-3" strokeWidth={2} />;
+  return (
+    <button
+      type="button"
+      aria-label={`Sort ${column.label} ${next}`}
+      className="hover:bg-muted inline-flex shrink-0 cursor-pointer items-center justify-center rounded-sm p-0.5"
+      onPointerDown={stop}
+      onPointerUp={stop}
+      onClick={(e) => {
+        e.stopPropagation();
+        const tokens = runParams?.[name];
+        if (!Array.isArray(tokens)) return;
+        const key = parseSortToken(column.token);
+        if (!key) return;
+        const flipped = formatSortToken({ ...key, direction: key.direction === "desc" ? "asc" : "desc" });
+        setRunParam(name, tokens.map((t) => (t === column.token ? flipped : t)));
+        onToggled();
+      }}
+    >
+      <Arrow className="size-3" strokeWidth={2} />
+    </button>
+  );
+}
+
 /** Mutes or restores one criterion, then closes the menu — without selecting the item it sits in. */
 function MuteButton({
   name,
@@ -351,7 +420,6 @@ function MuteButton({
     <button
       type="button"
       aria-label={muted ? `Restore ${label}` : `Mute ${label}`}
-      title={muted ? `Restore ${label}` : `Mute ${label}`}
       className="hover:text-foreground hover:bg-muted inline-flex shrink-0 cursor-pointer items-center justify-center rounded-sm p-0.5"
       onPointerDown={stop}
       onPointerUp={stop}

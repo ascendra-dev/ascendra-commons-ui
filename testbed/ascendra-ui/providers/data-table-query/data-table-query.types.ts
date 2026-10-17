@@ -189,6 +189,9 @@ export interface QueryContextValue {
   mutedParams: string[];
   /** Mutes or unmutes one of the run's fields and re-fetches from batch 1. Required fields can't be muted. */
   toggleParamMuted: (name: string) => void;
+  /** Re-runs what's showing with one param changed, from batch 1 — mutes kept. A saved user query itself never
+   *  changes; a filter's change is remembered as its last run (and shows when its form reopens). */
+  setRunParam: (name: string, value: QueryParamValues[string]) => void;
   /** A link to this page that re-runs what's showing — the run's preset query (a saved user query's source filter)
    *  with its unmuted params, dates fixed. Null while there's no run to link to. */
   getRunLink: () => string | null;
