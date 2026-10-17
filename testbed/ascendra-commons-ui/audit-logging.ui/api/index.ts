@@ -15,6 +15,5 @@ export type {
   AuditStatsKpis,
   AuditTenantCount,
   AuditTopActionsStats,
-  EntityNeighbors,
   FieldDiffEntry,
 } from './audit-api.types';

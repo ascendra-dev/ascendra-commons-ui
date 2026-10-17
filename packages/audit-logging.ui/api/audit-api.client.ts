@@ -7,7 +7,6 @@ import type {
   AuditEvent,
   AuditEventDetail,
   AuditStats,
-  EntityNeighbors,
 } from './audit-api.types';
 
 type CursorPage = { limit?: number; cursor?: string };
@@ -48,20 +47,6 @@ export const auditApi = {
     return api.get<CursorListResponse<AuditEvent>>(
       `/audit/entities/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}/history`,
       query,
-    );
-  },
-
-  /**
-   * `tenantId` is the current entity's own tenant (the caller already has
-   * it from entityHistory's own records) — see EntityNeighbors' doc comment
-   * for the tenant-scoping rule this drives.
-   */
-  entityNeighbors(entityType: string, entityId: string, tenantId?: string | null): Promise<EntityNeighbors> {
-    const params: Record<string, string> = {};
-    if (tenantId !== undefined) params.tenantId = tenantId ?? 'null';
-    return api.get<EntityNeighbors>(
-      `/audit/entities/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}/neighbors`,
-      params,
     );
   },
 

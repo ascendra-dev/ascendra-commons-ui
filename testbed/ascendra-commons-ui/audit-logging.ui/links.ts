@@ -7,14 +7,11 @@
  * module README and `packages/observability`'s own README.
  *
  * `/observability/audit` itself is the Overview (nav.ts's target, the
- * module's landing page); `list` is one click away.
+ * module's landing page); `list` is one click away. A record's detail, an
+ * entity's history, a trace and an actor's activity are sheets on the list,
+ * not routes — so there's no link for them.
  */
 export const auditLogLinks = {
   list: () => '/observability/audit/events',
-  eventDetail: (id: string) => `/observability/audit/events/${encodeURIComponent(id)}`,
-  entityHistory: (entityType: string, entityId: string) =>
-    `/observability/audit/entities/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
-  trace: (correlationId: string) => `/observability/audit/trace/${encodeURIComponent(correlationId)}`,
-  actorActivity: (actor: string) => `/observability/audit/actors/${encodeURIComponent(actor)}`,
   retention: () => '/observability/audit/retention',
 };

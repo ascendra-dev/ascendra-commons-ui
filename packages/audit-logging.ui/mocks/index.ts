@@ -5,7 +5,6 @@ export {
   mockCatalog,
   mockGetEvent,
   mockEntityHistory,
-  mockEntityNeighbors,
   mockTrace,
   mockOverviewStats,
   mockTopActionsStats,

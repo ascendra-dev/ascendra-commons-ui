@@ -59,10 +59,10 @@ import {
   mockExportEvents,
 } from '@/ascendra-commons-ui/audit-logging.ui/mocks';
 import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
-import { AuditEventDetailSheet } from '../_audit-event-detail-sheet';
-import { AuditActorActivitySheet } from '../_audit-actor-activity-sheet';
-import { AuditEntityHistorySheet } from '../_audit-entity-history-sheet';
-import { AuditTraceSheet } from '../_audit-trace-sheet';
+import { AuditEventDetailSheet } from './_audit-event-detail-sheet';
+import { AuditActorActivitySheet } from './_audit-actor-activity-sheet';
+import { AuditEntityHistorySheet } from './_audit-entity-history-sheet';
+import { AuditTraceSheet } from './_audit-trace-sheet';
 
 /** testbed has no live backend — using mock fetchers (see page.tsx's own comment upstream). */
 const queryFunctions = mockAuditQueryFunctions;

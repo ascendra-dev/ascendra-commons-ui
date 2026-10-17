@@ -14,7 +14,6 @@ import type {
   AuditStats,
   AuditTenantCount,
   AuditTopActionsStats,
-  EntityNeighbors,
 } from '../api/audit-api.types';
 
 const NOW = Date.now();
@@ -455,46 +454,6 @@ export async function mockEntityHistory(
   const start = query.cursor ? Number(query.cursor) : 0;
   const end = start + (query.limit ?? 50);
   return { data: all.slice(start, end), meta: end < all.length ? { nextCursor: String(end) } : {} };
-}
-
-/**
- * See EntityNeighbors' own doc comment for what this actually orders by
- * (last activity per entity) and the tenant-scoping rule. `tenantId` here
- * is the CURRENT entity's own tenant, passed by the caller (which already
- * has it loaded) — not a filter the caller chooses independently.
- */
-export async function mockEntityNeighbors(
-  entityType: string,
-  entityId: string,
-  tenantId?: string | null,
-): Promise<EntityNeighbors> {
-  await delay(400);
-
-  const scoped = MOCK_AUDIT_EVENTS.filter((e) => {
-    if (e.entityType !== entityType) return false;
-    return tenantId ? e.tenantId === tenantId : true;
-  });
-
-  const lastActivityByEntity = new Map<string, number>();
-  for (const e of scoped) {
-    const t = new Date(e.occurredAt).getTime();
-    const prev = lastActivityByEntity.get(e.entityId);
-    if (prev === undefined || t > prev) lastActivityByEntity.set(e.entityId, t);
-  }
-
-  const entities = [...lastActivityByEntity.entries()]
-    .map(([id, lastActivity]) => ({ id, lastActivity }))
-    .sort((a, b) => a.lastActivity - b.lastActivity || a.id.localeCompare(b.id));
-
-  const index = entities.findIndex((e) => e.id === entityId);
-  const older = index > 0 ? entities[index - 1] : null;
-  const newer = index >= 0 && index < entities.length - 1 ? entities[index + 1] : null;
-
-  return {
-    newer: newer ? { entityId: newer.id } : null,
-    older: older ? { entityId: older.id } : null,
-    totalRecords: entities.length,
-  };
 }
 
 /** Grouped from the mock events themselves, so the filter selects always match what the mock can return. */

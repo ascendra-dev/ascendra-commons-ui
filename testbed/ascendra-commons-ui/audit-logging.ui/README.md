@@ -28,13 +28,15 @@ Admin/observability UI for `ascendra-commons`' `audit-logging.api`.
 - **`AuditEventDetailScreen`** — one record plus its field-level diff, as a
   `Sheet` (not a page — see AUI-003). Reached only by clicking a row
   (`GET /audit/events/:id`).
-- **`AuditEntityHistoryScreen`** / **`AuditTraceScreen`** ("Request / Job
-  Trace") — both a timeline (`_audit-event-timeline.tsx`, shared page-level
-  composition), reached only by clicking an entity or a correlation id.
-  Fixed-filter drill-ins, not the full query system (see `create-table.md`'s
-  decision tree).
-- **`AuditActorActivityScreen`** (`GET /audit/actors/:actor/activity`) —
-  reached only by clicking an actor. KV summary + by-action table.
+- **Actor activity / Entity history / Request / Job trace** — three read-only
+  sheets on the list (not pages), opened by clicking an actor, an entity id or
+  a correlation id — beside the list page in `events/`, like the record
+  detail sheet: `_audit-actor-activity-sheet.tsx`
+  (`GET /audit/actors/:actor/activity` — summary + by-action SimpleTable),
+  `_audit-entity-history-sheet.tsx` (`GET /audit/entities/:type/:id/history`)
+  and `_audit-trace-sheet.tsx` (`GET /audit/trace/:correlationId`). The two
+  timelines load older events by cursor, have no links inside (ids copy) and
+  are separate files on purpose — they're expected to diverge.
 - **`AuditRetentionScreen`** — reached via a button on the Overview screen.
   **Mock data only, always** — `GET /audit/retention` doesn't exist in
   `audit-logging.api` (marked "Proposed" in its own `mocks.html`); this
@@ -77,12 +79,11 @@ themselves `"use client"` (and use `useParams()` instead of the awaited
 `params` prop) for exactly this reason. A real vertical using the default
 (real API) fetchers is unaffected.
 
-**Timeline dots are colored by `entityType`, not module.** `mocks.html`'s own
-Trace mock colors dots by *module* (payments/invoicing/notification),
-illustrating a future unified cross-module trace `GET /audit/trace/:correlationId`
-doesn't provide today (it only returns `audit-logging`'s own records — see
-that endpoint's own README). `entityType` is the closest honestly-derivable
-substitute; revisit if a real cross-module trace ships.
+**Timeline dots are colored by the action's meaning** (`dotVariantForAction`
+in `shared/timeline`: created green, state change sky, failure amber, void /
+revoke rose, unknown gray), the same in both timeline sheets. `mocks.html`'s
+own Trace mock colors by *module*, for a future cross-module trace the API
+doesn't provide today; each trace event shows its entity instead.
 
 **Actor display name and `application` id are cross-repo gaps, not fixed
 here.** The API only returns an actor *id*, no persona/display name; there's

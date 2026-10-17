@@ -82,10 +82,9 @@ function buildDiffLines(
 }
 
 /**
- * Shared by every screen that lets a user drill into one record (Audit Log
- * list, Entity History, Trace timeline) — local overlay state on the
- * calling page, not a route. Only mounted while there's a record to show
- * (see call sites' `{selected && <AuditEventDetailSheet ... />}`), so
+ * One record's detail, opened by clicking a row in the Audit Log list —
+ * local overlay state on the list page, not a route. Only mounted while
+ * there's a record to show (`{selected && <AuditEventDetailSheet ... />}`), so
  * `record` is required and there's nothing to guard against internally.
  */
 export function AuditEventDetailSheet({
