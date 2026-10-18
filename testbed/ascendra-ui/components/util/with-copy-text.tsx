@@ -65,7 +65,8 @@ export function WithCopyText({
         ) : (
           <LuCopy
             className={cn(
-              'h-3.5 w-3.5 transition-opacity group-hover/row:opacity-100 group-hover/tt:opacity-100',
+              // Revealed on hover — and always shown on a touch screen, which has no hover.
+              'h-3.5 w-3.5 transition-opacity group-hover/row:opacity-100 group-hover/tt:opacity-100 pointer-coarse:opacity-100',
               !opaque && 'opacity-0'
             )}
           />
