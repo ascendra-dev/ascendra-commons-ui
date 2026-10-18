@@ -29,11 +29,10 @@ import {
   WithState,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
-import { mockActorActivity } from '@/ascendra-commons-ui/audit-logging.ui/mocks';
-import type { ActorActivitySummary } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { auditApi, type ActorActivitySummary } from '@/ascendra-commons-ui/audit-logging.ui/api';
 
-/** testbed has no live backend — using the mock fetcher (see page.tsx's own comment upstream). */
-const fetchActivity = mockActorActivity;
+/** The real audit API (`NEXT_PUBLIC_API_URL` — ascendra-commons-sandbox in the testbed). */
+const fetchActivity = auditApi.actorActivity;
 
 const PROPERTY_KEYS = ['First seen', 'Last seen', 'Total records', 'Tenants touched'];
 const SKELETON_ACTION_ROWS = 3;

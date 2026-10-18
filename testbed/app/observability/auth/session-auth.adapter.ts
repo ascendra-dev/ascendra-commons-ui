@@ -1,19 +1,32 @@
+import { api } from '@/ascendra-ui/lib/api';
 import type { SessionAuthAdapter } from './session-auth.port';
 
 /**
- * testbed has no real Supabase project wired (see packages/observability's
- * README) — this dev stand-in replaces the real Supabase-claims adapter so
- * nav filtering is actually visible/demoable. Toggle the constant below by
- * hand to see the Audit Log link appear/disappear, same manual-reconcile
- * pattern as swapping a screen's fetcher for a mock.
+ * For a backend that serves `ascendra-commons/authorization`'s session
+ * snapshot (`computeSessionSnapshot`, typically `GET /me` →
+ * `{ actor, allowedActions }`): one round-trip, permissions straight from the
+ * server's own authorizer. Any failure — signed out (401), backend down —
+ * reads as "holds nothing", so nav is hidden rather than shown and then
+ * refused (deny by default).
  */
-const DEV_ALLOWED_ACTIONS: string[] = ['audit.view'];
+export function createSessionSnapshotAdapter(
+  getSnapshot: () => Promise<{ allowedActions: string[] }>,
+): SessionAuthAdapter {
+  return {
+    async getAllowedActions() {
+      try {
+        return (await getSnapshot()).allowedActions;
+      } catch {
+        return [];
+      }
+    },
+  };
+}
 
-export const sessionAuthAdapter: SessionAuthAdapter = {
-  async getAllowedActions() {
-    return DEV_ALLOWED_ACTIONS;
-  },
-};
+/** The adapter this shell uses: the backend's `GET /me` (ascendra-commons-sandbox serves one). */
+export const sessionAuthAdapter = createSessionSnapshotAdapter(() =>
+  api.get<{ allowedActions: string[] }>('/me'),
+);
 
 /**
  * Reference implementation for the common case: permissions carried as

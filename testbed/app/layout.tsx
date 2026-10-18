@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/providers/app-providers";
+import { PersonaMenu } from "@/components/dev-sign-in/persona-menu";
 import {
   Header,
   HeaderActions,
   HeaderLink,
   HeaderLinks,
   MainContainer,
-  NameAvatar,
   Nav,
   NavLink,
   PageLayout,
@@ -50,7 +50,8 @@ export default function RootLayout({
               </HeaderLinks>
               <HeaderActions>
                 <ThemeToggle />
-                <NameAvatar href="#" name="Dev User" />
+                {/* Dev sign-in (testbed only) — a real app has its own account menu here. */}
+                <PersonaMenu />
               </HeaderActions>
             </Header>
             <Nav>

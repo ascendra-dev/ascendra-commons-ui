@@ -21,12 +21,11 @@ import {
   WithState,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
-import { mockEntityHistory } from '@/ascendra-commons-ui/audit-logging.ui/mocks';
-import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { auditApi, type AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { dotVariantForAction } from '@/ascendra-commons-ui/shared/timeline';
 
-/** testbed has no live backend — using the mock fetcher (see page.tsx's own comment upstream). */
-const fetchHistory = mockEntityHistory;
+/** The real audit API (`NEXT_PUBLIC_API_URL` — ascendra-commons-sandbox in the testbed). */
+const fetchHistory = auditApi.entityHistory;
 
 const PAGE_SIZE = 50;
 const SKELETON_ITEMS = 4;

@@ -52,22 +52,18 @@ import {
   auditEventColumns,
   auditFieldOptionsFor,
   auditQueryDefs,
+  auditQueryFunctions,
 } from '@/ascendra-commons-ui/audit-logging.ui/queries';
-import {
-  mockAuditQueryFunctions,
-  mockCatalog,
-  mockExportEvents,
-} from '@/ascendra-commons-ui/audit-logging.ui/mocks';
-import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { auditApi, type AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { AuditEventDetailSheet } from './_audit-event-detail-sheet';
 import { AuditActorActivitySheet } from './_audit-actor-activity-sheet';
 import { AuditEntityHistorySheet } from './_audit-entity-history-sheet';
 import { AuditTraceSheet } from './_audit-trace-sheet';
 
-/** testbed has no live backend — using mock fetchers (see page.tsx's own comment upstream). */
-const queryFunctions = mockAuditQueryFunctions;
-const fetchCatalog = mockCatalog;
-const exportEvents = mockExportEvents;
+/** The real audit API (`NEXT_PUBLIC_API_URL` — ascendra-commons-sandbox in the testbed). */
+const queryFunctions = auditQueryFunctions;
+const fetchCatalog = auditApi.catalog;
+const exportEvents = auditApi.exportEvents;
 
 
 type CellSheet =
