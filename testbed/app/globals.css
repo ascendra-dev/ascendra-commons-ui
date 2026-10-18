@@ -327,7 +327,9 @@
   * {
     @apply border-border outline-ring/50;
   }
-  html,
+  /* body only, never html: with html's overflow left visible, body's overflow applies to the viewport — so a scroll
+     lock (body overflow: hidden, set when a select / sheet / dialog opens) locks the viewport. Set on html too and
+     body becomes its own scroll container instead, and the sticky Nav jumps off screen on a scrolled page. */
   body {
     overflow-x: hidden; /* fallback for older browsers */
     overflow-x: clip; /* modern: doesn't create a scroll container, inner overflow-x:auto works correctly on iOS */
