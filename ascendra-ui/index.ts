@@ -164,6 +164,7 @@ export * from './components/util/scroll-to-top';
 export * from './components/util/theme-toggle';
 export * from './components/util/with-copy-text';
 export * from './components/util/with-empty-value';
+export * from './components/util/with-sheet-icon';
 export * from './components/util/with-tooltip';
 
 // Stepper
