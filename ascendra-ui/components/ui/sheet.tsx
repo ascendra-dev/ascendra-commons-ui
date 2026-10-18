@@ -350,8 +350,13 @@ function SheetSectionHeader({
 
 /* ── Properties ───────────────────────────────────────────────────────────── */
 
+/**
+ * Key / value rows. The key column defaults to `fit-content(140px)`: as wide as the sheet's longest key, never wider
+ * than 140px (a longer key wraps) — so short keys leave more room for the values, the same on every screen. Pass
+ * `keyWidth` (any grid track, e.g. "120px") to fix it instead.
+ */
 function SheetProperties({
-  keyWidth = "140px",
+  keyWidth = "fit-content(140px)",
   className,
   style,
   ...props
