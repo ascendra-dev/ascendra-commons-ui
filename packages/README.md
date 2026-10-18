@@ -25,10 +25,11 @@ ships from `ascendra-commons-ui`, not here."
   screens/       # list, detail, history, trace, admin forms — whichever this
                  # module needs; only the ones nav.ts points to are reachable
                  # from outside, the rest only via links.ts
-  mocks/         # fixtures + mock QueryFunctionMap, used by testbed/ and by
-                 # any consumer developing against this module before its
-                 # real API is wired up
 ```
+
+No `mocks/` folder: a module develops against the real API, run for real by
+`ascendra-commons-sandbox` (seeded history, dev sign-in) — mocks hid real
+mismatches with the backend until they were removed.
 
 Not every module needs every folder — a module with no admin mutations has
 no `admin` screens, a module whose one list fits a Simple Table has no

@@ -18,7 +18,7 @@ ascendra-commons-ui/
 ```
 
 See `packages/README.md` for the shape of a module package (`nav.ts`,
-`links.ts`, `api/`, `queries/`, `screens/`, `mocks/`) and the two conventions
+`links.ts`, `api/`, `queries/`, `screens/`) and the two conventions
 that keep "one dashboard link per module" real without becoming a hard rule.
 
 **`packages/observability/` is a distribution mirror, not a second edit location.**

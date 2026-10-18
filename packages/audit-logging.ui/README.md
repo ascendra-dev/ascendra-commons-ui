@@ -4,22 +4,16 @@ Admin/observability UI for `ascendra-commons`' `audit-logging.api`.
 
 ## Shipped
 
-- **`AuditOverviewScreen`** — the one nav.ts entry, the module's landing
-  page. Four KPI tiles (each with a `SimpleBadge` trend/delta vs. its prior
-  equivalent period — today vs. yesterday, the 7d/30d tiles vs. their own
-  prior window), a volume-by-day chart (past 30 days, explicit date range in
-  the subtitle), and one merged "Top actions" table (`Action | Count |
-  Actors`, matching `audit-logging.api/mocks.html`'s Overview section
-  exactly rather than splitting actions and actors into two tables) — with
-  buttons into the Audit Log list and Retention & Volume. Loads as **two
-  independent queries**, not one: `mockOverviewStats()` (KPI row + volume
-  chart) and `mockTopActionsStats()` (the table), each with its own
-  simulated delay, so a slow table never blocks the fast KPIs from showing
-  and vice versa. The real API is still proposed as one `GET /audit/stats`
-  endpoint (`audit-logging.api/mocks.html`) — this split is mock-layer-only
-  for now; see `AuditOverviewStats`/`AuditTopActionsStats`'s doc comments in
-  `api/audit-api.types.ts` for what changes when `ascendra-commons` is
-  updated to match.
+- **Overview** — the one nav.ts entry, the module's landing page. Four KPI
+  tiles (records in the past 24 hours / 7 days, distinct actors / entity
+  types in the past 30 days — each with its change vs. the equal period
+  before, or "new" when that period was empty), a volume-by-day chart (past
+  30 days), and a "Top actions" table ranked by (entity type, action) —
+  `Entity | Action | Count | Actors` — with buttons into the Audit Log list
+  and Retention & Volume. **Two independent queries**, one per endpoint:
+  `auditApi.overviewStats()` (`GET /audit/stats/overview` — KPIs + chart) and
+  `auditApi.topActions()` (`GET /audit/stats/top-actions`), so a slow table
+  never holds back the KPIs and vice versa.
 - **`AuditLogListScreen`** — the primary filterable feed (`GET /audit/events`).
   Two data-table-lab query scenarios: `Recent` (no filters) and `Advanced
   Filter` (every `AuditQuery` field combinable at once, not five
@@ -37,11 +31,11 @@ Admin/observability UI for `ascendra-commons`' `audit-logging.api`.
   and `_audit-trace-sheet.tsx` (`GET /audit/trace/:correlationId`). The two
   timelines load older events by cursor, have no links inside (ids copy) and
   are separate files on purpose — they're expected to diverge.
-- **`AuditRetentionScreen`** — reached via a button on the Overview screen.
-  **Mock data only, always** — `GET /audit/retention` doesn't exist in
-  `audit-logging.api` (marked "Proposed" in its own `mocks.html`); this
-  screen has no real fetcher to default to, a consumer must supply
-  placeholder `RetentionStats` explicitly.
+- **Retention & Volume** — reached via a button on the Overview screen
+  (`GET /audit/retention`): oldest record, records, table size (a whole-table
+  figure — "—" for a tenant admin) and a "kept indefinitely" tile
+  (`audit-logging` has no retention policy), plus a volume-by-month chart.
+  Read-only.
 
 ## Not built (flagged, not silently dropped)
 
@@ -61,23 +55,14 @@ unvisited batch. `totalBatches` is repurposed as a plain has-next-page
 signal (`currentBatch+1` while there's a `nextCursor`, `currentBatch` once
 there isn't), matching how `BatchNavigator` actually uses it.
 
-**`links.ts` hardcodes `/audit-log` as the base path.** A per-vertical
-configurable base is deferred until a second vertical actually needs a
-different mount point.
+**`links.ts` hardcodes `/observability/audit` as the base path** — where
+`packages/observability` mounts it. A per-vertical configurable base is
+deferred until a second vertical actually needs a different mount point.
 
-**The api client bypasses `ascendra-ui`'s `api.get<T>` helper.** That helper
-expects an `{ success, data, meta }` response envelope; `audit-logging.api`'s
-NestJS controllers return the DTO directly as the response body. `api/audit-api.client.ts`
-uses the raw `apiClient` axios instance instead. Worth resolving one way or
-the other before more modules copy this same workaround.
-
-**A consumer wiring a mock/override fetcher must do it from a Client
-Component.** Every screen takes its data-fetching function as an optional
-prop, defaulting to the real `api/` client. A function value can't cross the
-React Server Component boundary — `testbed`'s own route files mark
-themselves `"use client"` (and use `useParams()` instead of the awaited
-`params` prop) for exactly this reason. A real vertical using the default
-(real API) fetchers is unaffected.
+**No mock layer.** Every screen calls the real API through `api/` (via
+`ascendra-ui`'s `api` helper, which sends the session's bearer token).
+Develop against `ascendra-commons-sandbox`, which runs `audit-logging` for
+real with generated history — see `testbed/.env.example`.
 
 **Timeline dots are colored by the action's meaning** (`dotVariantForAction`
 in `shared/timeline`), the same in both timeline sheets: by the *words* in the
@@ -95,6 +80,6 @@ on the record sheet.)
 
 **Two `ascendra-ui` component gaps logged as `BACKLOG.md` suggestions, not
 built here:** a relative-time-with-tooltip display, and a monospace/uuid
-text component. Interim: `font-mono` classes applied inline. See this repo's
-own `reference/ascendra-ui/hard-instructions.md` for the full list of
-`ascendra-ui` usage corrections found while building this module.
+text component. Interim: `font-mono` classes applied inline. See
+`ascendra-framework/reference/ascendra-ui/hard-instructions.md` for the full
+list of `ascendra-ui` usage corrections found while building this module.

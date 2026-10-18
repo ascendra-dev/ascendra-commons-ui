@@ -51,11 +51,11 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
  * lg: 3 }` (per AUI-028) so the form actually reflows across 1/2/3 columns
  * instead of stacking one field per row regardless of screen size.
  * `tenantId` was previously missing here despite already being a real,
- * optional /audit/events filter — added along with its wiring in the mocks. occurredAfter/occurredBefore
+ * optional /audit/events filter. occurredAfter/occurredBefore
  * were previously two separate `date` fields; consolidated into one
  * `daterange` field (per AUI-038) since they're really one bounded range,
- * not two independent conditions — audit-query-functions.ts/the mock now
- * split it back into the two wire params (via dateRangeBounds).
+ * not two independent conditions — the api client splits it back into the
+ * two wire params (via dateRangeBounds).
  *
  * Every field carries `optional: true` — deliberate, even though all 7 are
  * uniformly optional (field-hint-guide.md's own form-authoring guidance
@@ -68,9 +68,9 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
  * entityType first so Action can narrow to it.
  *
  * No field claims a specific match algorithm (partial vs exact) in its
- * `info`/`description` — the mock's own matchesText does exact string
- * equality, but the real API's actual matching behavior isn't visible from
- * this codebase, so asserting one here could just be wrong. `placeholder`
+ * `info`/`description` — the API's matching behavior is the backend's
+ * business, not visible from this codebase, so asserting one here could just
+ * be wrong. `placeholder`
  * gives an example format instead. `correlationId` uses `description`
  * (not `info`) for its one explanatory line — `FieldHint` (which renders
  * `description`) safely reserves height on a bare call even when only one
