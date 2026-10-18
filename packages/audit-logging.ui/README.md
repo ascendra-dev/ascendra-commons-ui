@@ -87,11 +87,11 @@ verb, so any app's actions color with no setup — a removal or ending (`voided`
 own Trace mock colors by *module*, for a future cross-module trace the API
 doesn't provide today; each trace event shows its entity instead.
 
-**Actor display name and `application` id are cross-repo gaps, not fixed
-here.** The API only returns an actor *id*, no persona/display name; there's
-also no `application` seam on the read side (other modules carry one per
-`MODULE-STANDARD.md`). Both are `ascendra-commons` backend changes, out of
-this repo's scope — documented, not implemented.
+**Actor display name is a cross-repo gap, not fixed here.** The API only
+returns an actor *id*, no persona/display name — an `ascendra-commons`
+backend change, out of this repo's scope. (`application` is no longer a gap:
+every record carries it, shown as the list's optional Application column and
+on the record sheet.)
 
 **Two `ascendra-ui` component gaps logged as `BACKLOG.md` suggestions, not
 built here:** a relative-time-with-tooltip display, and a monospace/uuid

@@ -68,7 +68,7 @@ export function PersonaMenu() {
   const trigger = signedIn ? (
     <NameAvatar
       href="#"
-      name={current?.label ?? currentId}
+      name={current?.name ?? currentId}
       title={`Signed in as ${current?.label ?? currentId}`}
       aria-label="Switch dev persona"
       onClick={(e) => e.preventDefault()}

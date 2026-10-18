@@ -6,6 +6,8 @@ export interface DevPersona {
   id: string;
   persona: string;
   tenantId: string | null;
+  /** Short display name — the avatar's initials come from it. */
+  name: string;
   label: string;
 }
 
