@@ -1,6 +1,7 @@
 import { cn } from '@/ascendra-ui/shadcn';
 
-/* use class "w-fit" if do not require expanding */
+/* use class "w-fit" if do not require expanding — it then sits on the right (ml-auto), also when a
+   small screen wraps it onto its own line */
 export function PageHeaderAction({
   className,
   children,
@@ -9,7 +10,7 @@ export function PageHeaderAction({
   return (
     <div
       data-slot="page-header-action"
-      className={cn('w-full sm:w-fit', className)}
+      className={cn('ml-auto w-full sm:w-fit', className)}
       {...props}
     >
       {children}
