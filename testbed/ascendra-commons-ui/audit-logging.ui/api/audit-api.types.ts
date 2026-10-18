@@ -90,6 +90,23 @@ export interface AuditTopActionsStats {
   topActions: AuditTopAction[];
 }
 
+export interface AuditMonthlyCount {
+  /** YYYY-MM, UTC. */
+  month: string;
+  count: number;
+}
+
+/** GET /audit/retention — the Retention & Volume screen. Read-only: records are kept indefinitely. */
+export interface AuditRetentionStats {
+  /** null when there are no records. */
+  oldestRecordAt: string | null;
+  rowCount: number;
+  /** The whole table's on-disk size (every tenant, indexes included); null when scoped to one tenant. */
+  tableSizeBytes: number | null;
+  /** Every UTC month since the oldest record, oldest first — 0 on a quiet month. */
+  perMonth: AuditMonthlyCount[];
+}
+
 /** One (entity type, action) pair in the Actor activity sheet's "By action" table. */
 export interface ActorActionCount {
   entityType: string;

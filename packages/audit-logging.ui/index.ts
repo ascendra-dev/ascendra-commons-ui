@@ -8,6 +8,7 @@ export type {
   AuditEventDetail,
   AuditKpiValue,
   AuditOverviewStats,
+  AuditRetentionStats,
   AuditTopActionsStats,
   FieldDiffEntry,
 } from './api';

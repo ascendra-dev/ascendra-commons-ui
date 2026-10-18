@@ -7,6 +7,7 @@ import type {
   AuditEvent,
   AuditEventDetail,
   AuditOverviewStats,
+  AuditRetentionStats,
   AuditTopActionsStats,
 } from './audit-api.types';
 
@@ -76,6 +77,11 @@ export const auditApi = {
   /** GET /audit/stats/top-actions — the 10 most frequent (entity type, action) pairs. Same tenantId convention. */
   topActions(window = '7d', tenantId?: string | null): Promise<AuditTopActionsStats> {
     return api.get<AuditTopActionsStats>('/audit/stats/top-actions', statsParams(window, tenantId));
+  },
+
+  /** GET /audit/retention — oldest record, row count, table size, volume per month. Same tenantId convention as stats. */
+  retention(tenantId?: string | null): Promise<AuditRetentionStats> {
+    return api.get<AuditRetentionStats>('/audit/retention', tenantId === undefined ? {} : { tenantId: tenantId ?? 'null' });
   },
 
   /**
