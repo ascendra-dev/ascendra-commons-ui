@@ -29,15 +29,10 @@ import {
   WithState,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
-import { auditApi } from '@/ascendra-commons-ui/audit-logging.ui/api';
-import type { ActorActivitySummary } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { auditApi, type ActorActivitySummary } from '@/ascendra-commons-ui/audit-logging.ui/api';
 
-/**
- * The fetcher this sheet calls — real API by default. A consumer without a
- * live backend (e.g. testbed) swaps it for a mock from `audit-logging.ui/mocks`
- * instead of editing the body.
- */
-const fetchActivity = (actor: string) => auditApi.actorActivity(actor);
+/** The real audit API (`NEXT_PUBLIC_API_URL` — ascendra-commons-sandbox in the testbed). */
+const fetchActivity = auditApi.actorActivity;
 
 const PROPERTY_KEYS = ['First seen', 'Last seen', 'Total records', 'Tenants touched'];
 const SKELETON_ACTION_ROWS = 3;
@@ -165,13 +160,17 @@ function ActivitySummary({ data }: { data: ActorActivitySummary }) {
         <SheetSectionHeader>By action</SheetSectionHeader>
         <SimpleTable>
           <SimpleTableHeader>
+            <SimpleTableHead>Entity</SimpleTableHead>
             <SimpleTableHead>Action</SimpleTableHead>
             <SimpleTableHead className="text-right">Count</SimpleTableHead>
             <SimpleTableHead>Last</SimpleTableHead>
           </SimpleTableHeader>
           <SimpleTableBody>
             {data.byAction.map((row) => (
-              <SimpleTableRow key={row.action}>
+              <SimpleTableRow key={`${row.entityType}/${row.action}`}>
+                <SimpleTableCell>
+                  <SimpleBadge variant="secondary">{row.entityType}</SimpleBadge>
+                </SimpleTableCell>
                 <SimpleTableCell>
                   <SimpleBadge>{row.action}</SimpleBadge>
                 </SimpleTableCell>

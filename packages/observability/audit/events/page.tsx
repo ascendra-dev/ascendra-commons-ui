@@ -54,20 +54,15 @@ import {
   auditQueryDefs,
   auditQueryFunctions,
 } from '@/ascendra-commons-ui/audit-logging.ui/queries';
-import { auditApi } from '@/ascendra-commons-ui/audit-logging.ui/api';
-import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { auditApi, type AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { AuditEventDetailSheet } from './_audit-event-detail-sheet';
 import { AuditActorActivitySheet } from './_audit-actor-activity-sheet';
 import { AuditEntityHistorySheet } from './_audit-entity-history-sheet';
 import { AuditTraceSheet } from './_audit-trace-sheet';
 
-/**
- * The fetchers this page calls — real API by default. A consumer without
- * a live backend (e.g. testbed) swaps these for mocks from
- * `audit-logging.ui/mocks` instead of editing the page body.
- */
+/** The real audit API (`NEXT_PUBLIC_API_URL` — ascendra-commons-sandbox in the testbed). */
 const queryFunctions = auditQueryFunctions;
-const fetchCatalog = () => auditApi.catalog();
+const fetchCatalog = auditApi.catalog;
 const exportEvents = auditApi.exportEvents;
 
 

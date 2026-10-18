@@ -4,15 +4,12 @@ import { objectsToCsv } from '@/ascendra-ui/utils/common.util';
 import { diffFields } from '../api/audit-diff.util';
 import type {
   ActorActivitySummary,
-  AuditActionCount,
-  AuditActorCount,
   AuditCatalogEntry,
   AuditDailyCount,
   AuditEvent,
   AuditEventDetail,
   AuditOverviewStats,
-  AuditStats,
-  AuditTenantCount,
+  AuditTopAction,
   AuditTopActionsStats,
 } from '../api/audit-api.types';
 
@@ -501,17 +498,18 @@ function mulberry32(seed: number) {
   };
 }
 
+/** [entity type, verb-only action] — what the Top actions table ranks (the real API groups by both). */
 const STATS_ACTIONS = [
-  'invoice.status_changed',
-  'payment.settled',
-  'attachment.uploaded',
-  'role.assigned',
-  'invoice.created',
-  'payment-link.created',
-  'user.role_granted',
-  'notification.route_set',
-  'kyc_document.verified',
-  'payout.reversed',
+  ['invoice', 'status_changed'],
+  ['payment', 'settled'],
+  ['attachment', 'uploaded'],
+  ['user', 'role_granted'],
+  ['invoice', 'created'],
+  ['payment-link', 'created'],
+  ['user', 'role_revoked'],
+  ['channel_route', 'route_set'],
+  ['kyc_document', 'verified'],
+  ['payout', 'reversed'],
 ] as const;
 
 const STATS_ENTITY_TYPES = [
@@ -542,8 +540,9 @@ function generateDailyVolume(days: number, rng: () => number): number[] {
   return out;
 }
 
-function pctDelta(current: number, prior: number): number {
-  if (prior === 0) return current === 0 ? 0 : 100;
+/** Same rule as the real API: `null` when the prior period was empty. */
+function pctDelta(current: number, prior: number): number | null {
+  if (prior === 0) return null;
   return Math.round(((current - prior) / prior) * 1000) / 10;
 }
 
@@ -557,11 +556,10 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * `mockTopActionsStats` each call this and slice what they need — the
  * underlying data is shared so the two independently-loading sections still
  * agree with each other, but each function applies its own simulated delay,
- * so they resolve (and error, if ever wired to) independently. This is a
- * mock-layer-only split — see AuditOverviewStats/AuditTopActionsStats's own
- * doc comments in audit-api.types.ts for why AuditStats itself is unchanged.
+ * so they resolve (and error, if ever wired to) independently — like the real
+ * API's two endpoints.
  */
-function buildSyntheticStats(window: string): AuditStats {
+function buildSyntheticStats(window: string): AuditOverviewStats & AuditTopActionsStats {
   const rng = mulberry32(20260923);
   const totalDays = 60;
   const volumes = generateDailyVolume(totalDays, rng);
@@ -581,12 +579,10 @@ function buildSyntheticStats(window: string): AuditStats {
 
   const last7d = volumes.slice(53, 60);
   const prior7d = volumes.slice(46, 53);
-  const last30d = volumes.slice(30, 60);
 
-  const recordsToday = volumes[59];
-  const recordsYesterday = volumes[58];
+  const records24h = volumes[59];
+  const recordsPrior24h = volumes[58];
   const last7Total = sum(last7d);
-  const last30Total = sum(last30d);
 
   // Distinct actors / entity types touched — pool sizes picked to read like a
   // real multi-tenant console, not simulated at the individual-event level.
@@ -597,35 +593,18 @@ function buildSyntheticStats(window: string): AuditStats {
   const entityTypesPrior30 = STATS_ENTITY_TYPES.length - 1;
 
   const actionWeights = [0.24, 0.19, 0.14, 0.11, 0.09, 0.08, 0.06, 0.05, 0.03, 0.01];
-  const topActions: AuditActionCount[] = STATS_ACTIONS.map((action, i) => {
+  const topActions: AuditTopAction[] = STATS_ACTIONS.map(([entityType, action], i) => {
     const count = Math.round(last7Total * actionWeights[i]);
     const actors = Math.max(1, Math.round(count / (6 + rng() * 10)));
-    return { action, count, actors };
+    return { entityType, action, count, actors };
   }).sort((a, b) => b.count - a.count);
-
-  const topActors: AuditActorCount[] = [
-    { actor: 'svc_reconciler', count: Math.round(last7Total * 0.12) },
-    { actor: 'jane@acme.test', count: Math.round(last7Total * 0.07) },
-    { actor: 'admin@globex.test', count: Math.round(last7Total * 0.06) },
-    { actor: 'svc_notifier', count: Math.round(last7Total * 0.05) },
-    { actor: 'ops@meridian.test', count: Math.round(last7Total * 0.04) },
-  ];
-
-  const perTenant: AuditTenantCount[] = [
-    { tenantId: 'tenant_acme', count: Math.round(last30Total * 0.38) },
-    { tenantId: 'tenant_globex', count: Math.round(last30Total * 0.27) },
-    { tenantId: 'tenant_meridian', count: Math.round(last30Total * 0.19) },
-    { tenantId: null, count: Math.round(last30Total * 0.16) },
-  ];
 
   return {
     window,
     perDay,
     topActions,
-    topActors,
-    perTenant,
     kpis: {
-      recordsToday: { value: recordsToday, deltaPct: pctDelta(recordsToday, recordsYesterday) },
+      records24h: { value: records24h, deltaPct: pctDelta(records24h, recordsPrior24h) },
       records7d: { value: last7Total, deltaPct: pctDelta(last7Total, sum(prior7d)) },
       distinctActors30d: { value: distinctActors30, deltaPct: pctDelta(distinctActors30, distinctActorsPrior30) },
       entityTypes30d: { value: entityTypes30, deltaPct: pctDelta(entityTypes30, entityTypesPrior30) },
@@ -650,14 +629,16 @@ export async function mockTopActionsStats(window = '7d'): Promise<AuditTopAction
 export async function mockActorActivity(actor: string): Promise<ActorActivitySummary> {
   await delay(800);
   const events = MOCK_AUDIT_EVENTS.filter((e) => e.actor === actor);
-  const byAction = new Map<string, { count: number; lastOccurredAt: string }>();
+  // By (entity type, action), as the real API groups them.
+  const byAction = new Map<string, { entityType: string; action: string; count: number; lastOccurredAt: string }>();
   for (const event of events) {
-    const existing = byAction.get(event.action);
+    const key = `${event.entityType}\u0000${event.action}`;
+    const existing = byAction.get(key);
     if (existing) {
       existing.count += 1;
       if (event.occurredAt > existing.lastOccurredAt) existing.lastOccurredAt = event.occurredAt;
     } else {
-      byAction.set(event.action, { count: 1, lastOccurredAt: event.occurredAt });
+      byAction.set(key, { entityType: event.entityType, action: event.action, count: 1, lastOccurredAt: event.occurredAt });
     }
   }
   const sorted = sortNewestFirst(events);
@@ -667,9 +648,7 @@ export async function mockActorActivity(actor: string): Promise<ActorActivitySum
     lastSeen: events.length ? sorted[0].occurredAt : null,
     totalRecords: events.length,
     tenantsTouched: [...new Set(events.map((e) => e.tenantId))],
-    byAction: [...byAction.entries()]
-      .map(([action, v]) => ({ action, ...v }))
-      .sort((a, b) => b.count - a.count),
+    byAction: [...byAction.values()].sort((a, b) => b.count - a.count),
   };
 }
 

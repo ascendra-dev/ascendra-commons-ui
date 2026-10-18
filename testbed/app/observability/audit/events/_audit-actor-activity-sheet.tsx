@@ -160,13 +160,17 @@ function ActivitySummary({ data }: { data: ActorActivitySummary }) {
         <SheetSectionHeader>By action</SheetSectionHeader>
         <SimpleTable>
           <SimpleTableHeader>
+            <SimpleTableHead>Entity</SimpleTableHead>
             <SimpleTableHead>Action</SimpleTableHead>
             <SimpleTableHead className="text-right">Count</SimpleTableHead>
             <SimpleTableHead>Last</SimpleTableHead>
           </SimpleTableHeader>
           <SimpleTableBody>
             {data.byAction.map((row) => (
-              <SimpleTableRow key={row.action}>
+              <SimpleTableRow key={`${row.entityType}/${row.action}`}>
+                <SimpleTableCell>
+                  <SimpleBadge variant="secondary">{row.entityType}</SimpleBadge>
+                </SimpleTableCell>
                 <SimpleTableCell>
                   <SimpleBadge>{row.action}</SimpleBadge>
                 </SimpleTableCell>

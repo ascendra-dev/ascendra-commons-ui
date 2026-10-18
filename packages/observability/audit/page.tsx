@@ -51,10 +51,10 @@ import {
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { LuDatabase } from "react-icons/lu";
 import { auditLogLinks } from "@/ascendra-commons-ui/audit-logging.ui/links";
-import { auditApi } from "@/ascendra-commons-ui/audit-logging.ui/api";
-import type {
-  AuditStats,
-  AuditStatsKpis,
+import {
+  auditApi,
+  type AuditOverviewStats,
+  type AuditStatsKpis,
 } from "@/ascendra-commons-ui/audit-logging.ui/api";
 import {
   formatCount,
@@ -70,7 +70,11 @@ const chartConfig: ChartConfig = {
 
 /** Static per-tile copy — never depends on fetched data, so it renders immediately regardless of loading state. Only `value`/`deltaPct` (looked up by `key`) come from the query. */
 const KPI_DEFS = [
-  { key: "recordsToday", label: "Records today", comparedTo: "vs. yesterday" },
+  {
+    key: "records24h",
+    label: "Records (past 24 hours)",
+    comparedTo: "vs. prior 24 hours",
+  },
   {
     key: "records7d",
     label: "Records (past 7 days)",
@@ -94,63 +98,53 @@ const KPI_DEFS = [
 
 /**
  * The volume chart's loading-state data — real day labels (the "past 30
- * days" window is knowable client-side, independent of the fetch) paired
+ * days" window — 31 UTC days, as the API returns them — is knowable
+ * client-side, independent of the fetch) paired
  * with a flat placeholder count. A flat, equal value still renders real bar
  * shapes (unlike an all-zero placeholder, which renders zero-height, i.e.
  * invisible, bars) — styled muted + pulsing so it never reads as real data.
  */
-function buildPlaceholderPerDay(): AuditStats["perDay"] {
+function buildPlaceholderPerDay(): AuditOverviewStats["perDay"] {
   const today = new Date();
-  return Array.from({ length: 30 }, (_, i) => {
+  return Array.from({ length: 31 }, (_, i) => {
     const d = new Date(today);
-    d.setDate(d.getDate() - (29 - i));
+    d.setDate(d.getDate() - (30 - i));
     return { day: d.toISOString().slice(0, 10), count: 1 };
   });
 }
 
 /**
- * The one fetcher this page calls — real API by default. A consumer
- * without a live backend (e.g. testbed) swaps this for a mock from
- * `audit-logging.ui/mocks` instead of editing the page body.
- *
- * `GET /audit/stats` is still a single combined endpoint (see AuditStats's
- * own doc comment in audit-api.types.ts) — the mock layer splits delivery
- * into two independently-timed calls (AuditOverviewStats/AuditTopActionsStats)
- * so the KPI/chart section and the Top Actions table can show independent
- * loading states for UX polish. The real version below can't do that split
- * without a second real request against the same unsplit endpoint, so both
- * sections share this one query/one loading state instead; re-split this
- * once the real API actually exposes two endpoints (update both together,
- * per AuditStats's doc comment, at that point). One consequence: the Top
- * Actions table's window is now whatever `stats` is fetched with (30d, to
- * match the KPI row), not its own independent 7d window the mock used.
+ * The real audit API's two stats endpoints, one per useQuery hook below: the
+ * KPI row + volume chart load separately from the Top Actions table.
  */
-const fetchStats = (window?: string) => auditApi.stats(window);
+const fetchOverviewStats = auditApi.overviewStats;
+const fetchTopActions = auditApi.topActions;
 
 /** The Audit Log module's landing page — auditLoggingNav's one entry points here. */
 export default function AuditOverviewPage() {
   const router = useRouter();
   const placeholderPerDay = useMemo(() => buildPlaceholderPerDay(), []);
 
-  const stats = useQuery({
-    queryKey: ["audit-stats"],
-    queryFn: () => fetchStats("30d"),
+  const overview = useQuery({
+    queryKey: ["audit-overview-stats"],
+    queryFn: () => fetchOverviewStats("30d"),
+  });
+
+  const topActions = useQuery({
+    queryKey: ["audit-top-actions"],
+    queryFn: () => fetchTopActions("7d"),
   });
 
   const kpiRows = KPI_DEFS.map((def) => {
-    const kpi = stats.data?.kpis[def.key];
-    return { ...def, kpi, up: kpi ? kpi.deltaPct >= 0 : true };
+    const kpi = overview.data?.kpis[def.key];
+    return { ...def, kpi, up: (kpi?.deltaPct ?? 0) >= 0 };
   });
 
-  const volumeSubtitle = stats.data
-    ? `Past 30 days · ${formatDateTime(stats.data.perDay[0].day)} – ${formatDateTime(
-        stats.data.perDay[stats.data.perDay.length - 1].day,
+  const volumeSubtitle = overview.data
+    ? `Past 30 days · ${formatDateTime(overview.data.perDay[0].day)} – ${formatDateTime(
+        overview.data.perDay[overview.data.perDay.length - 1].day,
       )}`
     : "Past 30 days";
-
-  const topActionsSubtitle = stats.data
-    ? `Past ${stats.data.window} · ranked by record count`
-    : "Ranked by record count";
 
   return (
     <>
@@ -177,19 +171,19 @@ export default function AuditOverviewPage() {
       </PageHeader>
       <DashboardContent>
         {/*
-          KPI row + volume chart — audit-stats. WithError gates the whole
-          section on stats.isError vs. everything else, since KPIs and the
-          chart share one query — a single ErrorState replaces both rather
-          than duplicating the error 5 times across tiles. No "empty" state
-          here, since a KPI showing 0 or a chart with flat data isn't a
+          KPI row + volume chart — audit-overview-stats. WithError gates the
+          whole section on overview.isError vs. everything else, since KPIs
+          and the chart share one query — a single ErrorState replaces both
+          rather than duplicating the error 5 times across tiles. No "empty"
+          state here, since a KPI showing 0 or a chart with flat data isn't a
           broken/empty state the way a zero-row table is. Inside NormalState,
           the shells (Card/CardHeader/CardPanel, the real static label/
           caption text) are ALWAYS mounted; only the value+badge (per tile)
           and the chart body (via nested WithSkeleton blocks) swap between a
-          skeleton and real content — gating the whole block on `stats.data`
+          skeleton and real content — gating the whole block on `overview.data`
           instead is what used to cause the entire section to pop into
-          existence at once. `kpi?.value ?? 0`/`stats.data?.perDay ?? []`
-          (not `kpi!`/`stats.data!`) inside NormalState's children is
+          existence at once. `kpi?.value ?? 0`/`overview.data?.perDay ?? []`
+          (not `kpi!`/`overview.data!`) inside NormalState's children is
           required, not stylistic — those children are constructed eagerly
           regardless of NormalState's own `if`, so a non-null assertion here
           would throw during the exact loading state it's meant to skip.
@@ -209,18 +203,18 @@ export default function AuditOverviewPage() {
           gate in this tree.
         */}
         <WithError>
-          <ErrorState if={stats.isError}>
+          <ErrorState if={overview.isError}>
             <Card>
               <CardPanel>
                 <ErrorMessage
                   title="Failed to load overview"
-                  error={stats.error}
-                  onRetry={() => stats.refetch()}
+                  error={overview.error}
+                  onRetry={() => overview.refetch()}
                 />
               </CardPanel>
             </Card>
           </ErrorState>
-          <NormalState if={!stats.isError}>
+          <NormalState if={!overview.isError}>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               {kpiRows.map((row) => (
                 <Card key={row.key} className="h-full">
@@ -236,9 +230,14 @@ export default function AuditOverviewPage() {
                             <KpiValue>
                               {formatCount(row.kpi?.value ?? 0)}
                             </KpiValue>
-                            <KpiTrend direction={row.up ? "up" : "down"}>
-                              {formatSignedPercent(row.kpi?.deltaPct ?? 0)}
-                            </KpiTrend>
+                            {row.kpi?.deltaPct == null ? (
+                              // The prior period was empty — a percentage would mean nothing.
+                              <SimpleBadge variant="secondary">new</SimpleBadge>
+                            ) : (
+                              <KpiTrend direction={row.up ? "up" : "down"}>
+                                {formatSignedPercent(row.kpi.deltaPct)}
+                              </KpiTrend>
+                            )}
                           </NormalState>
                         </WithSkeleton>
                       </div>
@@ -259,7 +258,7 @@ export default function AuditOverviewPage() {
               <CardPanel>
                 <div className="p-5">
                   <WithSkeleton>
-                    <SkeletonState if={!stats.data}>
+                    <SkeletonState if={!overview.data}>
                       <ChartContainer
                         config={chartConfig}
                         className="h-56 w-full animate-pulse"
@@ -296,13 +295,13 @@ export default function AuditOverviewPage() {
                         </BarChart>
                       </ChartContainer>
                     </SkeletonState>
-                    <NormalState if={!!stats.data}>
+                    <NormalState if={!!overview.data}>
                       <ChartContainer
                         config={chartConfig}
                         className="h-56 w-full"
                       >
                         <BarChart
-                          data={stats.data?.perDay ?? []}
+                          data={overview.data?.perDay ?? []}
                           margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
                         >
                           <CartesianGrid
@@ -353,10 +352,8 @@ export default function AuditOverviewPage() {
         </WithError>
 
         {/*
-          Top actions — sliced from the same audit-stats query as the
-          section above (see fetchStats's own doc comment for why this isn't
-          independent the way the mock's two-call split is). Real
-          CardHeader + real TableHeader (static "Action/Count/Actors"
+          Top actions — audit-top-actions, independent of the section above.
+          Real CardHeader + real TableHeader (static "Action/Count/Actors"
           labels) stay mounted throughout; only the body area swaps between
           real rows and one of DataTableLoadingBody/DataTableErrorBody/
           DataTableEmptyBody — the real ascendra-ui components, used
@@ -374,21 +371,27 @@ export default function AuditOverviewPage() {
           <div className="col-span-12">
             <CardHeader>
               <CardHeaderTitle>Top actions</CardHeaderTitle>
-              <CardHeaderSubtitle>{topActionsSubtitle}</CardHeaderSubtitle>
+              <CardHeaderSubtitle>
+                Past 7 days · ranked by record count
+              </CardHeaderSubtitle>
             </CardHeader>
             <TableWrapper>
               <Table scrollable horizontal vertical height={300}>
                 <TableHeader>
                   <TableHeaderRow>
+                    <TableHead>Entity</TableHead>
                     <TableHead>Action</TableHead>
                     <TableHead>Count</TableHead>
                     <TableHead>Actors</TableHead>
                   </TableHeaderRow>
                 </TableHeader>
-                {stats.data && stats.data.topActions.length > 0 && (
+                {topActions.data && topActions.data.topActions.length > 0 && (
                   <TableBody>
-                    {stats.data.topActions.map((row) => (
-                      <TableRow key={row.action}>
+                    {topActions.data.topActions.map((row) => (
+                      <TableRow key={`${row.entityType}/${row.action}`}>
+                        <TableCell>
+                          <SimpleBadge variant="secondary">{row.entityType}</SimpleBadge>
+                        </TableCell>
                         <TableCell>
                           <SimpleBadge>{row.action}</SimpleBadge>
                         </TableCell>
@@ -404,22 +407,22 @@ export default function AuditOverviewPage() {
                 )}
               </Table>
               <DataTableLoadingBody
-                isLoading={stats.isLoading}
+                isLoading={topActions.isLoading}
                 className="h-65"
               />
               <DataTableErrorBody
-                isError={stats.isError}
-                error={stats.error}
-                onRetry={() => stats.refetch()}
+                isError={topActions.isError}
+                error={topActions.error}
+                onRetry={() => topActions.refetch()}
                 className="h-65"
               />
               <DataTableEmptyBody
-                isLoading={stats.isLoading}
+                isLoading={topActions.isLoading}
                 isEmpty={
-                  !!stats.data && stats.data.topActions.length === 0
+                  !!topActions.data && topActions.data.topActions.length === 0
                 }
                 title="No actions recorded"
-                description="No audit activity in this window."
+                description="No audit activity in the past 7 days."
                 className="h-65"
               />
               <CardFooter className="border-t-0 pt-0"></CardFooter>

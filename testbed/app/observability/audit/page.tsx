@@ -52,12 +52,9 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { LuDatabase } from "react-icons/lu";
 import { auditLogLinks } from "@/ascendra-commons-ui/audit-logging.ui/links";
 import {
-  mockOverviewStats,
-  mockTopActionsStats,
-} from "@/ascendra-commons-ui/audit-logging.ui/mocks";
-import type {
-  AuditOverviewStats,
-  AuditStatsKpis,
+  auditApi,
+  type AuditOverviewStats,
+  type AuditStatsKpis,
 } from "@/ascendra-commons-ui/audit-logging.ui/api";
 import {
   formatCount,
@@ -73,7 +70,11 @@ const chartConfig: ChartConfig = {
 
 /** Static per-tile copy — never depends on fetched data, so it renders immediately regardless of loading state. Only `value`/`deltaPct` (looked up by `key`) come from the query. */
 const KPI_DEFS = [
-  { key: "recordsToday", label: "Records today", comparedTo: "vs. yesterday" },
+  {
+    key: "records24h",
+    label: "Records (past 24 hours)",
+    comparedTo: "vs. prior 24 hours",
+  },
   {
     key: "records7d",
     label: "Records (past 7 days)",
@@ -97,29 +98,27 @@ const KPI_DEFS = [
 
 /**
  * The volume chart's loading-state data — real day labels (the "past 30
- * days" window is knowable client-side, independent of the fetch) paired
+ * days" window — 31 UTC days, as the API returns them — is knowable
+ * client-side, independent of the fetch) paired
  * with a flat placeholder count. A flat, equal value still renders real bar
  * shapes (unlike an all-zero placeholder, which renders zero-height, i.e.
  * invisible, bars) — styled muted + pulsing so it never reads as real data.
  */
 function buildPlaceholderPerDay(): AuditOverviewStats["perDay"] {
   const today = new Date();
-  return Array.from({ length: 30 }, (_, i) => {
+  return Array.from({ length: 31 }, (_, i) => {
     const d = new Date(today);
-    d.setDate(d.getDate() - (29 - i));
+    d.setDate(d.getDate() - (30 - i));
     return { day: d.toISOString().slice(0, 10), count: 1 };
   });
 }
 
 /**
- * testbed has no live backend — using the mock fetchers. Two independent
- * calls, matching the two independent useQuery hooks below: the KPI
- * row + volume chart load separately from the Top Actions table (see the
- * doc comments on AuditOverviewStats/AuditTopActionsStats in
- * audit-api.types.ts for why this is a mock-layer-only split for now).
+ * The real audit API's two stats endpoints, one per useQuery hook below: the
+ * KPI row + volume chart load separately from the Top Actions table.
  */
-const fetchOverviewStats = mockOverviewStats;
-const fetchTopActions = mockTopActionsStats;
+const fetchOverviewStats = auditApi.overviewStats;
+const fetchTopActions = auditApi.topActions;
 
 /** The Audit Log module's landing page — auditLoggingNav's one entry points here. */
 export default function AuditOverviewPage() {
@@ -138,7 +137,7 @@ export default function AuditOverviewPage() {
 
   const kpiRows = KPI_DEFS.map((def) => {
     const kpi = overview.data?.kpis[def.key];
-    return { ...def, kpi, up: kpi ? kpi.deltaPct >= 0 : true };
+    return { ...def, kpi, up: (kpi?.deltaPct ?? 0) >= 0 };
   });
 
   const volumeSubtitle = overview.data
@@ -231,9 +230,14 @@ export default function AuditOverviewPage() {
                             <KpiValue>
                               {formatCount(row.kpi?.value ?? 0)}
                             </KpiValue>
-                            <KpiTrend direction={row.up ? "up" : "down"}>
-                              {formatSignedPercent(row.kpi?.deltaPct ?? 0)}
-                            </KpiTrend>
+                            {row.kpi?.deltaPct == null ? (
+                              // The prior period was empty — a percentage would mean nothing.
+                              <SimpleBadge variant="secondary">new</SimpleBadge>
+                            ) : (
+                              <KpiTrend direction={row.up ? "up" : "down"}>
+                                {formatSignedPercent(row.kpi.deltaPct)}
+                              </KpiTrend>
+                            )}
                           </NormalState>
                         </WithSkeleton>
                       </div>
@@ -375,6 +379,7 @@ export default function AuditOverviewPage() {
               <Table scrollable horizontal vertical height={300}>
                 <TableHeader>
                   <TableHeaderRow>
+                    <TableHead>Entity</TableHead>
                     <TableHead>Action</TableHead>
                     <TableHead>Count</TableHead>
                     <TableHead>Actors</TableHead>
@@ -383,7 +388,10 @@ export default function AuditOverviewPage() {
                 {topActions.data && topActions.data.topActions.length > 0 && (
                   <TableBody>
                     {topActions.data.topActions.map((row) => (
-                      <TableRow key={row.action}>
+                      <TableRow key={`${row.entityType}/${row.action}`}>
+                        <TableCell>
+                          <SimpleBadge variant="secondary">{row.entityType}</SimpleBadge>
+                        </TableCell>
                         <TableCell>
                           <SimpleBadge>{row.action}</SimpleBadge>
                         </TableCell>

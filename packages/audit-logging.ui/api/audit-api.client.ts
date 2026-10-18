@@ -6,10 +6,17 @@ import type {
   AuditCatalogEntry,
   AuditEvent,
   AuditEventDetail,
-  AuditStats,
+  AuditOverviewStats,
+  AuditTopActionsStats,
 } from './audit-api.types';
 
 type CursorPage = { limit?: number; cursor?: string };
+
+function statsParams(window: string, tenantId?: string | null): Record<string, string> {
+  const params: Record<string, string> = { window };
+  if (tenantId !== undefined) params.tenantId = tenantId ?? 'null';
+  return params;
+}
 
 export const auditApi = {
   findEvents(
@@ -61,10 +68,14 @@ export const auditApi = {
     return api.get<ActorActivitySummary>(`/audit/actors/${encodeURIComponent(actor)}/activity`, query);
   },
 
-  stats(window = '30d', tenantId?: string | null): Promise<AuditStats> {
-    const params: Record<string, string> = { window };
-    if (tenantId !== undefined) params.tenantId = tenantId ?? 'null';
-    return api.get<AuditStats>('/audit/stats', params);
+  /** GET /audit/stats/overview — KPI row + volume chart. A platform admin may pass tenantId (null = platform-level rows). */
+  overviewStats(window = '30d', tenantId?: string | null): Promise<AuditOverviewStats> {
+    return api.get<AuditOverviewStats>('/audit/stats/overview', statsParams(window, tenantId));
+  },
+
+  /** GET /audit/stats/top-actions — the 10 most frequent (entity type, action) pairs. Same tenantId convention. */
+  topActions(window = '7d', tenantId?: string | null): Promise<AuditTopActionsStats> {
+    return api.get<AuditTopActionsStats>('/audit/stats/top-actions', statsParams(window, tenantId));
   },
 
   /**

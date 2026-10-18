@@ -21,15 +21,10 @@ import {
   WithState,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
-import { auditApi } from '@/ascendra-commons-ui/audit-logging.ui/api';
-import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { auditApi, type AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { dotVariantForAction } from '@/ascendra-commons-ui/shared/timeline';
 
-/**
- * The fetcher this sheet calls — real API by default. A consumer without a
- * live backend (e.g. testbed) swaps it for a mock from `audit-logging.ui/mocks`
- * instead of editing the body.
- */
+/** The real audit API (`NEXT_PUBLIC_API_URL` — ascendra-commons-sandbox in the testbed). */
 const fetchTrace = auditApi.trace;
 
 const PAGE_SIZE = 50;

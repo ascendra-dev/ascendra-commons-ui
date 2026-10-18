@@ -1,4 +1,32 @@
+import { api } from '@/ascendra-ui/lib/api';
 import type { SessionAuthAdapter } from './session-auth.port';
+
+/**
+ * For a backend that serves `ascendra-commons/authorization`'s session
+ * snapshot (`computeSessionSnapshot`, typically `GET /me` →
+ * `{ actor, allowedActions }`): one round-trip, permissions straight from the
+ * server's own authorizer. Any failure — signed out (401), backend down —
+ * reads as "holds nothing", so nav is hidden rather than shown and then
+ * refused (deny by default).
+ */
+export function createSessionSnapshotAdapter(
+  getSnapshot: () => Promise<{ allowedActions: string[] }>,
+): SessionAuthAdapter {
+  return {
+    async getAllowedActions() {
+      try {
+        return (await getSnapshot()).allowedActions;
+      } catch {
+        return [];
+      }
+    },
+  };
+}
+
+/** The adapter this shell uses: the backend's `GET /me` (ascendra-commons-sandbox serves one). */
+export const sessionAuthAdapter = createSessionSnapshotAdapter(() =>
+  api.get<{ allowedActions: string[] }>('/me'),
+);
 
 /**
  * Reference implementation for the common case: permissions carried as
@@ -8,7 +36,8 @@ import type { SessionAuthAdapter } from './session-auth.port';
  * extra network round-trip. Token *retrieval* is left to the caller
  * (`getAccessToken`) rather than importing `@supabase/supabase-js` here —
  * this package stays dependency-free and works with however the vertical's
- * own Supabase client is already configured.
+ * own Supabase client is already configured. Kept here for reference; not
+ * the adapter actually used by testbed (see `sessionAuthAdapter` above).
  */
 function decodeJwtClaims(token: string): Record<string, unknown> {
   const payload = token.split('.')[1];
@@ -36,13 +65,3 @@ export function createSupabaseClaimsAdapter(
     },
   };
 }
-
-/**
- * The adapter `layout.tsx` actually uses — swap this file's export (or the
- * import in `layout.tsx`) for your own `SessionAuthAdapter` if you're not on
- * Supabase, same "replace one file" convention as any other adapter split in
- * this codebase. Out of the box, with no `getAccessToken` wired, this
- * returns no permissions — every nav entry stays hidden until configured
- * (fail closed, not open).
- */
-export const sessionAuthAdapter: SessionAuthAdapter = createSupabaseClaimsAdapter(() => null);

@@ -48,77 +48,51 @@ export interface AuditDailyCount {
   count: number;
 }
 
-export interface AuditActionCount {
+/** One row of the Top actions ranking — by (entity type, action), so `created` for invoices and users stay apart. */
+export interface AuditTopAction {
+  entityType: string;
   action: string;
   count: number;
-  /** Distinct actors who performed this action within the window. */
+  /** Distinct actors behind those records. */
   actors: number;
-}
-
-export interface AuditActorCount {
-  actor: string;
-  count: number;
-}
-
-export interface AuditTenantCount {
-  tenantId: string | null;
-  count: number;
 }
 
 export interface AuditKpiValue {
   value: number;
-  /** Percentage change vs. the prior equivalent period. */
-  deltaPct: number;
+  /** Percent change vs. the equal period just before; null when that period was empty (shown as "new"). */
+  deltaPct: number | null;
 }
 
+/** Fixed rolling periods, independent of the overview's window. */
 export interface AuditStatsKpis {
-  /** vs. yesterday */
-  recordsToday: AuditKpiValue;
-  /** vs. prior 7 days */
+  /** vs. the 24 hours before */
+  records24h: AuditKpiValue;
+  /** vs. the 7 days before */
   records7d: AuditKpiValue;
-  /** vs. prior 30 days */
+  /** vs. the 30 days before */
   distinctActors30d: AuditKpiValue;
-  /** vs. prior 30 days */
+  /** vs. the 30 days before */
   entityTypes30d: AuditKpiValue;
 }
 
-/**
- * GET /audit/stats — the Overview screen's full aggregate, as currently
- * proposed as ONE endpoint in audit-logging.api/mocks.html. The mock layer
- * (mocks/audit-events.mock.ts) currently splits delivery into two narrower
- * calls instead — AuditOverviewStats and AuditTopActionsStats — so the
- * dashboard's KPI/chart section and its table can load independently. This
- * type stays as the real API's still-current single-endpoint shape until
- * ascendra-commons's own API is actually redesigned to match the split;
- * update both together when that happens.
- */
-export interface AuditStats {
+/** GET /audit/stats/overview — the Overview's KPI row and volume chart. */
+export interface AuditOverviewStats {
   /** Normalized window label, e.g. '30d'. */
   window: string;
-  /** Oldest first. */
-  perDay: AuditDailyCount[];
-  topActions: AuditActionCount[];
-  /** Kept for other consumers (e.g. an actor-focused screen); the Overview screen no longer renders this as its own table. */
-  topActors: AuditActorCount[];
-  perTenant: AuditTenantCount[];
-  kpis: AuditStatsKpis;
-}
-
-/** Mock-only narrower slice of AuditStats — the Overview dashboard's KPI row + volume chart. See AuditStats's own doc comment. */
-export interface AuditOverviewStats {
-  window: string;
-  /** Oldest first. */
+  /** Every UTC day in the window, oldest first — 0 on a quiet day. */
   perDay: AuditDailyCount[];
   kpis: AuditStatsKpis;
 }
 
-/** Mock-only narrower slice of AuditStats — the Overview dashboard's Top Actions table. See AuditStats's own doc comment. */
+/** GET /audit/stats/top-actions — the Overview's Top actions table (the 10 most frequent). */
 export interface AuditTopActionsStats {
   window: string;
-  topActions: AuditActionCount[];
+  topActions: AuditTopAction[];
 }
 
+/** One (entity type, action) pair in the Actor activity sheet's "By action" table. */
 export interface ActorActionCount {
+  entityType: string;
   action: string;
   count: number;
   lastOccurredAt: string;
