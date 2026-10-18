@@ -36,13 +36,8 @@ const chartConfig: ChartConfig = {
   count: { label: 'Records', color: 'var(--chart-1)' },
 };
 
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-/** `2026-07` → `Jul 2026` — a calendar month, not a timestamp, so no date parsing (or time zone) is involved. */
-function formatMonth(month: string): string {
-  const [year, m] = month.split('-');
-  return `${MONTH_NAMES[Number(m) - 1]} ${year}`;
-}
+/** `2026-07` → `Jul 2026`. Mid-month, so no time zone can shift it into a neighbouring month. */
+const formatMonth = (month: string) => formatDateTime(`${month}-15`, { style: 'month' });
 
 function formatBytes(bytes: number): string {
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
