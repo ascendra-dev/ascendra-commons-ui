@@ -28,7 +28,7 @@ export const auditApi = {
     // occurredRange is one `daterange` field in the form (see audit-query-defs.ts)
     // but two independent params on the wire — split back out here.
     const { occurredRange, ...filters } = params;
-    const { from: occurredAfter, to: occurredBefore } = dateRangeBounds(occurredRange);
+    const { from: occurredAfter, before: occurredBefore } = dateRangeBounds(occurredRange);
     return api.get<CursorListResponse<AuditEvent>>('/audit/events', {
       ...filters,
       limit,
@@ -90,7 +90,7 @@ export const auditApi = {
    */
   exportEvents(params: QueryParamValues): Promise<ExportResult> {
     const { occurredRange, ...filters } = params;
-    const { from: occurredAfter, to: occurredBefore } = dateRangeBounds(occurredRange);
+    const { from: occurredAfter, before: occurredBefore } = dateRangeBounds(occurredRange);
     return fetchExport('/audit/events.csv', { ...filters, occurredAfter, occurredBefore });
   },
 };
