@@ -1,4 +1,5 @@
 import { cn } from '@/ascendra-ui/shadcn';
+import { LAYOUT_MODE_SCRIPT } from './layout-mode';
 
 export function PageLayout({
   className,
@@ -16,6 +17,8 @@ export function PageLayout({
       )}
       {...props}
     >
+      {/* The device's saved layout mode, applied before first paint — see layout-mode.ts. */}
+      <script dangerouslySetInnerHTML={{ __html: LAYOUT_MODE_SCRIPT }} />
       {children}
     </div>
   );

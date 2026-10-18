@@ -60,6 +60,7 @@ export * from './components/layout/page-header';
 export * from './components/layout/page-header-action';
 export * from './components/layout/page-header-group';
 export * from './components/layout/page-layout';
+export * from './components/layout/layout-mode';
 export * from './components/layout/page-main';
 export * from './components/layout/page-subtitle';
 export * from './components/layout/page-title';
@@ -155,6 +156,7 @@ export * from './components/side-bar/side-bar-menu-set-title';
 export * from './components/side-bar/side-bar-overlay';
 export * from './components/side-bar/side-bar-search';
 export * from './components/side-bar/side-bar-toggle';
+export * from './components/side-bar/side-bar-layout-toggle';
 
 // Utility
 export * from './components/util/date-time';
