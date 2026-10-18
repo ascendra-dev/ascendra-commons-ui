@@ -210,7 +210,7 @@ export default function AuditLogListPage() {
                                     value={row.entityId}
                                     size="lg"
                                     copyable={false}
-                                    className="text-muted-foreground text-xs whitespace-nowrap"
+                                    className="text-muted-foreground text-xs"
                                     showTooltip={false}
                                   />
                                 </WithSheetIcon>
@@ -257,7 +257,6 @@ export default function AuditLogListPage() {
                                 <IdText
                                   value={row.correlationId}
                                   size="lg"
-                                  className="whitespace-nowrap"
                                   copyable={false}
                                   showTooltip={false}
                                 />
