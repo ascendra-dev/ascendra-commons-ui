@@ -34,8 +34,9 @@ export const authOptions: NextAuthOptions = {
       name: 'Dev sign-in',
       credentials: { actorId: { label: 'Actor id', type: 'text' } },
       async authorize(credentials) {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        if (!apiUrl || !credentials?.actorId) return null;
+        // Server-side, so the sandbox's own address — not the browser's relative /sandbox-api proxy path.
+        const apiUrl = process.env.SANDBOX_API_URL ?? 'http://localhost:3010';
+        if (!credentials?.actorId) return null;
         const res = await fetch(`${apiUrl}/dev/token`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
