@@ -187,7 +187,7 @@ function TableBody({
     <tbody
       data-slot="table-body"
       className={cn(
-        "relative isolate transform-[translateZ(0)]",
+        "relative isolate transform-[translate(0)]",
         !bg && "before:bg-background",
         "before:absolute before:inset-0 before:-z-10 before:mx-1 before:rounded-lg",
         "before:ring-1 before:ring-(--color-umbra)/4 dark:before:ring-black/20",
@@ -208,7 +208,7 @@ function EmptyBody({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="table-empty-body"
       className={cn(
-        "relative isolate transform-[translateZ(0)]",
+        "relative isolate transform-[translate(0)]",
         "before:bg-background before:absolute before:inset-0 before:-z-10 before:mx-1 before:rounded-lg",
         "before:ring-1 before:ring-(--color-umbra)/4 dark:before:ring-black/20",
         "before:shadow-[0_1px_2px_0_rgba(25,28,33,0.06),0_0_2px_0_rgba(0,0,0,0.08)]",
