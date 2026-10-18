@@ -9,6 +9,7 @@ import {
   SideBarMenuItemGroup,
   SideBarMenuSet,
   SideBarMenuSetTitle,
+  SideBarSearch,
   SideBarLayoutToggle,
   SideBarToggle,
 } from '@/ascendra-ui';
@@ -57,18 +58,21 @@ export default function ObservabilityLayout({ children }: { children: ReactNode 
       <SideBarToggle />
       <SideBar>
         <SideBarLayoutToggle />
-        <SideBarMain>
-          <SideBarMenuSet>
-            <SideBarMenuSetTitle>Modules</SideBarMenuSetTitle>
-            <SideBarMenuItemGroup>
-              {visibleEntries.map((entry) => (
-                <SideBarMenuItem key={entry.id} alternate="stand-alone" icon={entry.icon} path={entry.href}>
-                  {entry.label}
-                </SideBarMenuItem>
-              ))}
-            </SideBarMenuItemGroup>
-          </SideBarMenuSet>
-        </SideBarMain>
+        {/* Searches the items below by label — a module's nav entry is searchable as soon as it's listed. */}
+        <SideBarSearch>
+          <SideBarMain>
+            <SideBarMenuSet>
+              <SideBarMenuSetTitle>Modules</SideBarMenuSetTitle>
+              <SideBarMenuItemGroup>
+                {visibleEntries.map((entry) => (
+                  <SideBarMenuItem key={entry.id} alternate="stand-alone" icon={entry.icon} path={entry.href}>
+                    {entry.label}
+                  </SideBarMenuItem>
+                ))}
+              </SideBarMenuItemGroup>
+            </SideBarMenuSet>
+          </SideBarMain>
+        </SideBarSearch>
       </SideBar>
       <ContentArea>{children}</ContentArea>
     </>
