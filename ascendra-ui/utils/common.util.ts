@@ -3,10 +3,14 @@ import { differenceInCalendarDays, formatDistanceToNow } from 'date-fns';
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-export type DateFormatStyle = 'short' | 'medium' | 'long' | 'relative';
+export type DateFormatStyle = 'short' | 'medium' | 'long' | 'month' | 'relative';
 
 export interface FormatDateTimeOptions {
-  /** 'short' = "Sep 04", 'medium' = "Sep 04, 2026", 'long' = "September 04, 2026", 'relative' = "3 days ago". Default 'medium'. */
+  /**
+   * 'short' = "Sep 04", 'medium' = "Sep 04, 2026", 'long' = "September 04, 2026", 'month' = "Sep 2026" (a calendar
+   * month — e.g. a chart axis; for a `YYYY-MM` value pass a mid-month date like `${month}-15`, so no time zone can
+   * shift it into the next or previous month), 'relative' = "3 days ago". Default 'medium'.
+   */
   style?: DateFormatStyle;
   /** Append time-of-day. Ignored when style is 'relative'. Default false. */
   time?: boolean;
@@ -20,7 +24,9 @@ function formatAbsolute(date: Date, style: Exclude<DateFormatStyle, 'relative'>,
       ? { month: 'short', day: '2-digit' }
       : style === 'long'
         ? { month: 'long', day: '2-digit', year: 'numeric' }
-        : { month: 'short', day: '2-digit', year: 'numeric' };
+        : style === 'month'
+          ? { month: 'short', year: 'numeric' }
+          : { month: 'short', day: '2-digit', year: 'numeric' };
   const timeParts: Intl.DateTimeFormatOptions = time ? { hour: 'numeric', minute: '2-digit' } : {};
   return date.toLocaleString('en-US', { ...dateParts, ...timeParts });
 }
