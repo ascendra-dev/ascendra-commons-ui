@@ -1,4 +1,5 @@
 import { cn } from '@/ascendra-ui/shadcn';
+import { TopBarPopupLayer } from '../ui/popup-layer';
 
 export function Nav({
   className,
@@ -15,7 +16,9 @@ export function Nav({
         <div className="bg-border pointer-events-none absolute inset-x-0 bottom-0 h-px" />
         <div className="no-scrollbar overflow-x-auto">
           <div className="flex h-12 items-center gap-3 pr-[calc(var(--app-layout-spacing)/2)] pl-[calc(var(--app-layout-spacing)/2-12px)] whitespace-nowrap">
-            <div className="pl-1">{children}</div>
+            <div className="pl-1">
+              <TopBarPopupLayer>{children}</TopBarPopupLayer>
+            </div>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { cn } from '@/ascendra-ui/shadcn';
+import { TopBarPopupLayer } from '../ui/popup-layer';
 
 export function Header({
   className,
@@ -13,7 +14,7 @@ export function Header({
       )}
       {...props}
     >
-      {children}
+      <TopBarPopupLayer>{children}</TopBarPopupLayer>
     </header>
   );
 }
