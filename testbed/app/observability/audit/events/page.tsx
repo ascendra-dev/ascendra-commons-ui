@@ -45,6 +45,7 @@ import {
   QueryParamPanel,
   SimpleBadge,
   WithEmptyValue,
+  WithSheetIcon,
   WithTooltip,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
@@ -175,11 +176,13 @@ export default function AuditLogListPage() {
                                 openCellSheet({ kind: 'actor', actor: row.actor });
                               }}
                             >
-                              <DataTableHighlight
-                                text={row.actor}
-                                item={row}
-                                itemKey="actor"
-                              />
+                              <WithSheetIcon>
+                                <DataTableHighlight
+                                  text={row.actor}
+                                  item={row}
+                                  itemKey="actor"
+                                />
+                              </WithSheetIcon>
                             </button>
                           </DataTableCell>
                           {/* Entity type, action and entity id folded into one cell: `invoice.created`, the id beneath. */}
@@ -202,13 +205,15 @@ export default function AuditLogListPage() {
                                   openCellSheet({ kind: 'entity', entityType: row.entityType, entityId: row.entityId });
                                 }}
                               >
-                                <IdText
-                                  value={row.entityId}
-                                  size="lg"
-                                  copyable={false}
-                                  className="text-muted-foreground text-xs"
-                                  showTooltip={false}
-                                />
+                                <WithSheetIcon>
+                                  <IdText
+                                    value={row.entityId}
+                                    size="lg"
+                                    copyable={false}
+                                    className="text-muted-foreground text-xs whitespace-nowrap"
+                                    showTooltip={false}
+                                  />
+                                </WithSheetIcon>
                               </button>
                             </div>
                           </DataTableCell>
@@ -248,12 +253,15 @@ export default function AuditLogListPage() {
                                 openCellSheet({ kind: 'trace', correlationId: row.correlationId });
                               }}
                             >
-                              <IdText
-                                value={row.correlationId}
-                                size="lg"
-                                copyable={false}
-                                showTooltip={false}
-                              />
+                              <WithSheetIcon>
+                                <IdText
+                                  value={row.correlationId}
+                                  size="lg"
+                                  className="whitespace-nowrap"
+                                  copyable={false}
+                                  showTooltip={false}
+                                />
+                              </WithSheetIcon>
                             </button>
                           </DataTableCell>
                           <DataTableCell column="application">
