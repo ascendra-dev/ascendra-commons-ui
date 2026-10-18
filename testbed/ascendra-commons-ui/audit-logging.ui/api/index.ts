@@ -3,6 +3,7 @@ export { diffFields, flattenPaths } from './audit-diff.util';
 export type {
   ActorActionCount,
   ActorActivitySummary,
+  AuditCatalog,
   AuditCatalogEntry,
   AuditDailyCount,
   AuditEvent,

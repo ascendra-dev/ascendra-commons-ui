@@ -17,18 +17,25 @@ export interface AuditEvent {
   occurredAt: string;
   reason: string | null;
   correlationId: string;
-  /** The Ascendra application that wrote the record (e.g. `ascendra-pay`) — one value per app today. */
+  /** The Ascendra application that wrote the record (e.g. `ascendra-pay`). */
   application: string;
 }
 
 /**
- * `GET /audit/catalog` — one entity type the app audits, with the actions recorded against it.
- * Actions are grouped explicitly, not by name prefix (e.g. `notification.route_set` is recorded
- * on `channel_route`). Empty when the backend has no catalog configured.
+ * One entity type the app audits, with the actions recorded against it. Actions are grouped
+ * explicitly, not by name prefix (e.g. `notification.route_set` is recorded on `channel_route`).
  */
 export interface AuditCatalogEntry {
   entityType: string;
   actions: string[];
+}
+
+/** `GET /audit/catalog` — what the Advanced Filter's selects offer. */
+export interface AuditCatalog {
+  /** The Entity type / Action selects — empty when the backend has no catalog configured. */
+  entries: AuditCatalogEntry[];
+  /** The Application select — every application the backend reads (one, until a backend serves several). */
+  applications: string[];
 }
 
 export interface FieldDiffEntry {

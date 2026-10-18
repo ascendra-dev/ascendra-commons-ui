@@ -1,7 +1,7 @@
 import { isFieldDef } from '@/ascendra-ui';
 import type { ColumnDef, FieldOptionsMap, QueryDef } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
-import type { AuditCatalogEntry, AuditEvent } from '../api/audit-api.types';
+import type { AuditCatalog, AuditEvent } from '../api/audit-api.types';
 import { auditActionLabel } from '../display';
 
 /**
@@ -65,7 +65,9 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
  * oversight (see AUI-038 for the guidance this deliberately departs from).
  *
  * entityType/action are selects fed by `GET /audit/catalog` (`auditFieldOptionsFor`), with
- * entityType first so Action can narrow to it.
+ * entityType first so Action can narrow to it. application is a select fed by the catalog's
+ * `applications` — one option until a backend serves several apps; it sits beside Tenant, the
+ * other "whose records" field.
  *
  * No field claims a specific match algorithm (partial vs exact) in its
  * `info`/`description` — the API's matching behavior is the backend's
@@ -123,6 +125,7 @@ export const auditQueryDefs: QueryDef[] = [
         maxLength: 64,
         optional: true,
       },
+      { name: 'application', label: 'Application', type: 'select', span: 1, optional: true },
       {
         name: 'correlationId',
         label: 'Correlation ID',
@@ -155,18 +158,20 @@ export const auditQueryDefs: QueryDef[] = [
 const toOptions = (values: string[]) => [...new Set(values)].map((value) => ({ value, label: value }));
 
 /**
- * Options for the Entity type / Action selects, from `GET /audit/catalog` — Action narrows to the
- * chosen Entity type, or lists every action when none is chosen. An empty catalog (still loading,
- * or none configured) just means empty dropdowns.
+ * Options for the Entity type / Action / Application selects, from `GET /audit/catalog` — Action
+ * narrows to the chosen Entity type, or lists every action when none is chosen. An empty catalog
+ * (still loading, or none configured) just means empty dropdowns.
  */
-export function auditFieldOptionsFor(catalog: AuditCatalogEntry[]): FieldOptionsMap {
+export function auditFieldOptionsFor(catalog: AuditCatalog): FieldOptionsMap {
+  const { entries, applications } = catalog;
   return {
     'advanced-filter': {
-      entityType: toOptions(catalog.map((e) => e.entityType)),
+      entityType: toOptions(entries.map((e) => e.entityType)),
       action: (values) => {
-        const entries = values.entityType ? catalog.filter((e) => e.entityType === values.entityType) : catalog;
-        return toOptions(entries.flatMap((e) => e.actions));
+        const matching = values.entityType ? entries.filter((e) => e.entityType === values.entityType) : entries;
+        return toOptions(matching.flatMap((e) => e.actions));
       },
+      application: toOptions(applications),
     },
   };
 }

@@ -4,6 +4,7 @@ export { auditActionLabel } from './display';
 export { auditApi } from './api';
 export type {
   ActorActivitySummary,
+  AuditCatalog,
   AuditCatalogEntry,
   AuditEvent,
   AuditEventDetail,

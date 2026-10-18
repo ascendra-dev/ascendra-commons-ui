@@ -54,7 +54,7 @@ import {
   auditListViewFor,
   auditQueryFunctions,
 } from '@/ascendra-commons-ui/audit-logging.ui/queries';
-import { auditApi, type AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { auditApi, type AuditCatalog, type AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { auditActionLabel } from '@/ascendra-commons-ui/audit-logging.ui/display';
 import { AuditEventDetailSheet } from './_audit-event-detail-sheet';
 import { AuditActorActivitySheet } from './_audit-actor-activity-sheet';
@@ -65,6 +65,8 @@ import { useSession } from '../../auth/use-session';
 /** The real audit API (`NEXT_PUBLIC_API_URL` — ascendra-commons-sandbox in the testbed). */
 const queryFunctions = auditQueryFunctions;
 const fetchCatalog = auditApi.catalog;
+/** Until the catalog loads — empty selects. A module constant, so the field options don't rebuild every render. */
+const EMPTY_CATALOG: AuditCatalog = { entries: [], applications: [] };
 const exportEvents = auditApi.exportEvents;
 
 
@@ -83,7 +85,7 @@ export default function AuditLogListPage() {
     setCellSheet(sheet);
   };
   const catalog = useQuery({ queryKey: ['audit-catalog'], queryFn: fetchCatalog, staleTime: Infinity });
-  const fieldOptions = useMemo(() => auditFieldOptionsFor(catalog.data ?? []), [catalog.data]);
+  const fieldOptions = useMemo(() => auditFieldOptionsFor(catalog.data ?? EMPTY_CATALOG), [catalog.data]);
   // A tenant admin only ever sees their own tenant: no Tenant column or filter (see auditListViewFor).
   const tenantScoped = useSession().data?.actor?.tenantId != null;
   const { columns, queryDefs } = useMemo(() => auditListViewFor(tenantScoped), [tenantScoped]);

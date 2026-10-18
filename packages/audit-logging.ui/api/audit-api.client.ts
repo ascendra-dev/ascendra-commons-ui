@@ -3,7 +3,7 @@ import { dateRangeBounds } from '@/ascendra-ui';
 import type { CursorListResponse, ExportResult, QueryParamValues } from '@/ascendra-ui';
 import type {
   ActorActivitySummary,
-  AuditCatalogEntry,
+  AuditCatalog,
   AuditEvent,
   AuditEventDetail,
   AuditOverviewStats,
@@ -38,9 +38,9 @@ export const auditApi = {
     });
   },
 
-  /** GET /audit/catalog — the app's configured entity types and their actions (a bare array; `[]` when none). */
-  catalog(): Promise<AuditCatalogEntry[]> {
-    return api.get<AuditCatalogEntry[]>('/audit/catalog');
+  /** GET /audit/catalog — the filter selects' options: entity types with their actions, and the backend's applications. */
+  catalog(): Promise<AuditCatalog> {
+    return api.get<AuditCatalog>('/audit/catalog');
   },
 
   getEvent(id: string): Promise<AuditEventDetail> {
