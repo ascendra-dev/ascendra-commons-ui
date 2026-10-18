@@ -14,11 +14,12 @@ interface SizeConfig {
   className: string;
 }
 
+// Truncated sizes never wrap: a narrow table cell would otherwise break the id at its "…".
 const SIZES: Record<IdTextSize, SizeConfig> = {
   full: { className: '' },
-  sm: { head: 4, tail: 4, className: 'text-xs' },
-  md: { head: 6, tail: 4, className: 'text-xs' },
-  lg: { head: 8, tail: 6, className: 'text-sm' },
+  sm: { head: 4, tail: 4, className: 'text-xs whitespace-nowrap' },
+  md: { head: 6, tail: 4, className: 'text-xs whitespace-nowrap' },
+  lg: { head: 8, tail: 6, className: 'text-sm whitespace-nowrap' },
 };
 
 export interface IdTextProps extends Omit<React.ComponentPropsWithoutRef<'span'>, 'children'> {
