@@ -49,9 +49,8 @@ import {
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
-  auditEventColumns,
   auditFieldOptionsFor,
-  auditQueryDefs,
+  auditListViewFor,
   auditQueryFunctions,
 } from '@/ascendra-commons-ui/audit-logging.ui/queries';
 import { auditApi, type AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
@@ -59,6 +58,7 @@ import { AuditEventDetailSheet } from './_audit-event-detail-sheet';
 import { AuditActorActivitySheet } from './_audit-actor-activity-sheet';
 import { AuditEntityHistorySheet } from './_audit-entity-history-sheet';
 import { AuditTraceSheet } from './_audit-trace-sheet';
+import { useSession } from '../../auth/use-session';
 
 /** The real audit API (`NEXT_PUBLIC_API_URL` — ascendra-commons-sandbox in the testbed). */
 const queryFunctions = auditQueryFunctions;
@@ -82,6 +82,9 @@ export default function AuditLogListPage() {
   };
   const catalog = useQuery({ queryKey: ['audit-catalog'], queryFn: fetchCatalog, staleTime: Infinity });
   const fieldOptions = useMemo(() => auditFieldOptionsFor(catalog.data ?? []), [catalog.data]);
+  // A tenant admin only ever sees their own tenant: no Tenant column or filter (see auditListViewFor).
+  const tenantScoped = useSession().data?.actor?.tenantId != null;
+  const { columns, queryDefs } = useMemo(() => auditListViewFor(tenantScoped), [tenantScoped]);
 
   return (
     <>
@@ -98,10 +101,10 @@ export default function AuditLogListPage() {
           <PageContent>
             <MainContent>
               <DataTableWithQueryProvider
-                queries={auditQueryDefs}
+                queries={queryDefs}
                 fieldOptions={fieldOptions}
                 queryFunctions={queryFunctions}
-                columns={auditEventColumns}
+                columns={columns}
                 getRowId={(row) => row.id}
                 tableId="audit-log-table"
               >
@@ -131,7 +134,7 @@ export default function AuditLogListPage() {
                         <DataTableHead column="entityType">
                           Entity
                         </DataTableHead>
-                        <DataTableHead column="tenantId">Tenant</DataTableHead>
+                        {!tenantScoped && <DataTableHead column="tenantId">Tenant</DataTableHead>}
                         <DataTableHead column="reason">Reason</DataTableHead>
                         <DataTableHead column="correlationId">
                           Correlation
@@ -218,17 +221,19 @@ export default function AuditLogListPage() {
                               </button>
                             </div>
                           </DataTableCell>
-                          <DataTableCell column="tenantId">
-                            {row.tenantId ? (
-                              <DataTableHighlight
-                                text={row.tenantId}
-                                item={row}
-                                itemKey="tenantId"
-                              />
-                            ) : (
-                              <SimpleBadge variant="info">platform</SimpleBadge>
-                            )}
-                          </DataTableCell>
+                          {!tenantScoped && (
+                            <DataTableCell column="tenantId">
+                              {row.tenantId ? (
+                                <DataTableHighlight
+                                  text={row.tenantId}
+                                  item={row}
+                                  itemKey="tenantId"
+                                />
+                              ) : (
+                                <SimpleBadge variant="info">platform</SimpleBadge>
+                              )}
+                            </DataTableCell>
+                          )}
                           <DataTableCell column="reason">
                             <WithEmptyValue value={row.reason}>
                               <WithTooltip

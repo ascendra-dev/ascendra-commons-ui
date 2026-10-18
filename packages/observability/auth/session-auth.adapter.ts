@@ -1,32 +1,31 @@
 import { api } from '@/ascendra-ui/lib/api';
-import type { SessionAuthAdapter } from './session-auth.port';
+import type { SessionAuthAdapter, SessionSnapshot } from './session-auth.port';
+
+const SIGNED_OUT: SessionSnapshot = { actor: null, allowedActions: [] };
 
 /**
  * For a backend that serves `ascendra-commons/authorization`'s session
  * snapshot (`computeSessionSnapshot`, typically `GET /me` →
  * `{ actor, allowedActions }`): one round-trip, permissions straight from the
  * server's own authorizer. Any failure — signed out (401), backend down —
- * reads as "holds nothing", so nav is hidden rather than shown and then
- * refused (deny by default).
+ * reads as signed out, holding nothing, so nav is hidden rather than shown
+ * and then refused (deny by default).
  */
-export function createSessionSnapshotAdapter(
-  getSnapshot: () => Promise<{ allowedActions: string[] }>,
-): SessionAuthAdapter {
+export function createSessionSnapshotAdapter(getSnapshot: () => Promise<SessionSnapshot>): SessionAuthAdapter {
   return {
-    async getAllowedActions() {
+    async getSession() {
       try {
-        return (await getSnapshot()).allowedActions;
+        const { actor, allowedActions } = await getSnapshot();
+        return { actor: actor ? { id: actor.id, tenantId: actor.tenantId } : null, allowedActions };
       } catch {
-        return [];
+        return SIGNED_OUT;
       }
     },
   };
 }
 
 /** The adapter this shell uses: the backend's `GET /me` (ascendra-commons-sandbox serves one). */
-export const sessionAuthAdapter = createSessionSnapshotAdapter(() =>
-  api.get<{ allowedActions: string[] }>('/me'),
-);
+export const sessionAuthAdapter = createSessionSnapshotAdapter(() => api.get<SessionSnapshot>('/me'));
 
 /**
  * Reference implementation for the common case: permissions carried as
@@ -52,16 +51,25 @@ function decodeJwtClaims(token: string): Record<string, unknown> {
   }
 }
 
+/**
+ * `tenantClaim` names the claim carrying the user's tenant (`ascendra-pay-web`
+ * uses `org_id`); a token without it reads as a platform-level actor.
+ */
 export function createSupabaseClaimsAdapter(
   getAccessToken: () => Promise<string | null> | string | null,
+  { tenantClaim = 'tenant_id' }: { tenantClaim?: string } = {},
 ): SessionAuthAdapter {
   return {
-    async getAllowedActions() {
+    async getSession() {
       const token = await getAccessToken();
-      if (!token) return [];
+      if (!token) return SIGNED_OUT;
       const claims = decodeJwtClaims(token);
       const actions = claims.allowedActions ?? claims.capabilities;
-      return Array.isArray(actions) ? actions.filter((a): a is string => typeof a === 'string') : [];
+      const tenant = claims[tenantClaim];
+      return {
+        actor: typeof claims.sub === 'string' ? { id: claims.sub, tenantId: typeof tenant === 'string' ? tenant : null } : null,
+        allowedActions: Array.isArray(actions) ? actions.filter((a): a is string => typeof a === 'string') : [],
+      };
     },
   };
 }

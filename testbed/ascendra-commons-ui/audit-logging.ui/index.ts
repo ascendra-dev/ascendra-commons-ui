@@ -14,6 +14,7 @@ export type {
 export {
   auditEventColumns,
   auditFieldOptionsFor,
+  auditListViewFor,
   auditQueryDefs,
   auditQueryFunctions,
 } from './queries';

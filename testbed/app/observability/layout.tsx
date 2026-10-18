@@ -1,7 +1,6 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import {
   ContentArea,
   SideBar,
@@ -14,7 +13,7 @@ import {
 } from '@/ascendra-ui';
 import { auditLoggingNav } from '@/ascendra-commons-ui/audit-logging.ui/nav';
 import type { ModuleNavEntry } from '@/ascendra-commons-ui/shared/nav';
-import { sessionAuthAdapter } from './auth/session-auth.adapter';
+import { useSession } from './auth/use-session';
 
 /**
  * Every module this shell bundles, ships in full — no cherry-picking.
@@ -38,16 +37,14 @@ const moduleNavEntries: ModuleNavEntry[] = [...auditLoggingNav];
  * MainContainer's children), contributing only the module sidebar.
  *
  * Nav visibility is filtered by the current user's allowedActions (via
- * `session-auth.adapter.ts`) — an entry is hidden entirely, never shown
+ * `useSession` / `session-auth.adapter.ts`) — an entry is hidden entirely, never shown
  * disabled, for an action the user doesn't hold. While the permission check
  * is still loading, entries stay visible rather than flashing empty (same
  * choice `ascendra-pay-web`'s own claims-gated nav makes).
  */
 export default function ObservabilityLayout({ children }: { children: ReactNode }) {
-  const { data: allowedActions, isLoading } = useQuery({
-    queryKey: ['observability-allowed-actions'],
-    queryFn: () => sessionAuthAdapter.getAllowedActions(),
-  });
+  const { data: session, isLoading } = useSession();
+  const allowedActions = session?.allowedActions;
 
   const visibleEntries =
     isLoading || !allowedActions

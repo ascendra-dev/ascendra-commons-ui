@@ -1,3 +1,4 @@
+import { isFieldDef } from '@/ascendra-ui';
 import type { ColumnDef, FieldOptionsMap, QueryDef } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import type { AuditCatalogEntry, AuditEvent } from '../api/audit-api.types';
@@ -158,5 +159,23 @@ export function auditFieldOptionsFor(catalog: AuditCatalogEntry[]): FieldOptions
         return toOptions(entries.flatMap((e) => e.actions));
       },
     },
+  };
+}
+
+/**
+ * The list's columns and queries for who is looking. A tenant-scoped viewer (a tenant admin) only ever sees their own
+ * tenant's records, so the Tenant column and the Advanced Filter's Tenant field would always say the same thing —
+ * both are dropped. A platform-level viewer gets `auditEventColumns` / `auditQueryDefs` unchanged. (The CSV export
+ * keeps its tenant column either way: a file travels, and should say whose data it holds.)
+ */
+export function auditListViewFor(tenantScoped: boolean): { columns: ColumnDef<AuditEvent>[]; queryDefs: QueryDef[] } {
+  if (!tenantScoped) return { columns: auditEventColumns, queryDefs: auditQueryDefs };
+  return {
+    columns: auditEventColumns.filter((column) => column.key !== 'tenantId'),
+    queryDefs: auditQueryDefs.map((query) =>
+      query.params
+        ? { ...query, params: query.params.filter((param) => !(isFieldDef(param) && param.name === 'tenantId')) }
+        : query,
+    ),
   };
 }
