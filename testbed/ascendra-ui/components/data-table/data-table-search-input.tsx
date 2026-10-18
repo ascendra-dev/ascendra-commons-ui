@@ -17,7 +17,9 @@ export function DataTableSearchInput() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <InputGroup className="max-w-xs">
+    // Below sm the bar's row is full width: the search fills it up to the buttons, which sit flush right (mr-auto
+    // keeps them there once the search reaches max-w-xs).
+    <InputGroup className="max-w-xs max-sm:mr-auto">
       <InputGroupAddon>
         <InputGroupButton
           className="text-muted-foreground"
@@ -36,7 +38,8 @@ export function DataTableSearchInput() {
       <InputGroupInput
         ref={inputRef}
         placeholder="Search..."
-        className="w-65"
+        // Narrower below sm, so the search and the bar's buttons fit a phone's width on one row.
+        className="w-40 sm:w-65"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
