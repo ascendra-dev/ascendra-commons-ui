@@ -23,6 +23,7 @@ import {
   type QueryOrderBy,
 } from "@/ascendra-ui/providers/data-table-query/query-criteria";
 import { cn } from "@/ascendra-ui/shadcn";
+import { copyToClipboard } from "@/ascendra-ui/utils/clipboard.util";
 import {
   ArrowDown,
   ArrowUp,
@@ -345,12 +346,8 @@ function CopyRunLinkButton() {
             e.stopPropagation();
             const link = getRunLink();
             if (!link) return;
-            try {
-              await navigator.clipboard.writeText(link);
-              setCopied(true);
-            } catch {
-              toast.error("Couldn't copy the link");
-            }
+            if (await copyToClipboard(link)) setCopied(true);
+            else toast.error("Couldn't copy the link");
           }}
         >
           <Icon className={cn("size-3.5", copied && "text-green-600")} />

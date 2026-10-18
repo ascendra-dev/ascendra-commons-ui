@@ -209,6 +209,7 @@ export * from './providers/data-table-query/date-range-bounds';
 export * from './providers/data-table-query/date-expr';
 export * from './providers/data-table-query/query-trigger';
 export * from './utils/order-by.util';
+export * from './utils/clipboard.util';
 export type {
   PageMeta,
   CursorMeta,

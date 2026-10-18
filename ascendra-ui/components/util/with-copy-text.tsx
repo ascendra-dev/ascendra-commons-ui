@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { cn } from '@/ascendra-ui/shadcn';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ascendra-ui/components/ui/tooltip';
 import { LuCopy, LuCheck, LuCopyCheck } from 'react-icons/lu';
+import { copyToClipboard } from '@/ascendra-ui/utils/clipboard.util';
 
 type WithCopyTextProps = {
   value?: string;
@@ -34,16 +35,8 @@ export function WithCopyText({
       const result = await onClick(e);
       if (result) text = result;
     }
-    if (text) {
-      console.log('text is: ', text);
-      await navigator.clipboard.writeText(text);
-    }
-    /* if (onClick) {
-      const val = await onClick(e);
-      // await navigator.clipboard.writeText(val);
-    } else {
-      await navigator.clipboard.writeText(value);
-    } */
+    // Only show "copied" when it was — over plain http the Clipboard API is missing (see copyToClipboard).
+    if (!text || !(await copyToClipboard(text))) return;
 
     setCopied(true);
     if (showTooltip) setOpen(true);

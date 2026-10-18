@@ -9,6 +9,7 @@ import {
 } from '@/ascendra-ui/components/ui/dropdown-menu';
 import { RowActionButton } from '@/ascendra-ui/components/common-ui/row-action-button';
 import { LuCopy, LuEye, LuPencil, LuTrash2 } from 'react-icons/lu';
+import { copyToClipboard } from '@/ascendra-ui/utils/clipboard.util';
 
 interface RowActionContextValue {
   onAction?: (actionId: string) => void;
@@ -144,7 +145,7 @@ export function DataTableCopyValueAction({
   return (
     <DropdownMenuItem
       disabled={disabled}
-      onSelect={() => navigator.clipboard.writeText(value)}
+      onSelect={() => void copyToClipboard(value)}
     >
       {icon}
       {title}
