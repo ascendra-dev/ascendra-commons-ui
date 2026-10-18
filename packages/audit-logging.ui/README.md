@@ -80,8 +80,10 @@ themselves `"use client"` (and use `useParams()` instead of the awaited
 (real API) fetchers is unaffected.
 
 **Timeline dots are colored by the action's meaning** (`dotVariantForAction`
-in `shared/timeline`: created green, state change sky, failure amber, void /
-revoke rose, unknown gray), the same in both timeline sheets. `mocks.html`'s
+in `shared/timeline`), the same in both timeline sheets: by the *words* in the
+verb, so any app's actions color with no setup — a removal or ending (`voided`,
+`role_revoked`) rose, a failure (`payment_failed`) amber, a creation or addition
+(`created`, `uploaded`) emerald, anything else (`issued`, `paid`) sky. `mocks.html`'s
 own Trace mock colors by *module*, for a future cross-module trace the API
 doesn't provide today; each trace event shows its entity instead.
 
