@@ -2,17 +2,18 @@ import { isFieldDef } from '@/ascendra-ui';
 import type { ColumnDef, FieldOptionsMap, QueryDef } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import type { AuditCatalogEntry, AuditEvent } from '../api/audit-api.types';
+import { auditActionLabel } from '../display';
 
 /**
  * Column labels are sentence case ("Occurred at", not "Occurred At") —
  * `DataTableHead` defaults to `whitespace-nowrap` itself now (AUI-024 in
  * reference/ascendra-ui/hard-instructions.md), no per-usage className needed.
  *
- * entityType/entityId are merged into one "Entity" column in the screen
- * (badge + id) rather than two columns, matching audit-logging.api/mocks.html;
- * `key` stays entityType since filtering by entity *type* is the useful case
- * (filtering by the exact entityId belongs to the dedicated Entity History
- * screen, not this list).
+ * Entity type, action and entity id are folded into one "Action" column in the
+ * screen — an `invoice.created` badge (`auditActionLabel`) with the entity id
+ * beneath — matching audit-logging.api/mocks.html; its `searchValue` is that
+ * same label, so search and highlight agree with the badge. Not sortable: a sort
+ * by the verb alone wouldn't match the folded label's order.
  *
  * `occurredAt`'s `searchValue` mirrors exactly what the cell renders
  * (`formatDateTime(row.occurredAt, { time: true })` in the screen's
@@ -29,8 +30,7 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
     searchValue: (value) => formatDateTime(value as string, { time: true }),
   },
   { key: 'actor', label: 'Actor', filter: true },
-  { key: 'action', label: 'Action', filter: true },
-  { key: 'entityType', label: 'Entity', filter: true, sortable: false },
+  { key: 'action', label: 'Action', filter: true, sortable: false, searchValue: (_value, row) => auditActionLabel(row) },
   { key: 'tenantId', label: 'Tenant' },
   { key: 'reason', label: 'Reason', active: false },
   { key: 'correlationId', label: 'Correlation', sortable: false },
@@ -41,9 +41,9 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
  * Two scenarios, not five — audit-logging.api/mocks.html's own filter bar
  * shows every /audit/events filter available at once, not as mutually-exclusive
  * named presets. "Advanced Filter" lets a user combine several fields in one
- * request; entityId is deliberately not one of them — filtering to one
- * specific entity's history is the dedicated Entity History screen's job,
- * reached by clicking the Entity cell, not this list's filter form.
+ * request, Entity ID included (right after Action, so Entity type and Action
+ * stay side by side) — for finding one entity's records among others' filters,
+ * beside the Entity History sheet a click on an id opens.
  *
  * Fields are grouped into two rows via a section break — actor/entityType/
  * action/tenantId/correlationId (identity-style lookups) first, then
@@ -57,8 +57,8 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
  * not two independent conditions — the api client splits it back into the
  * two wire params (via dateRangeBounds).
  *
- * Every field carries `optional: true` — deliberate, even though all 7 are
- * uniformly optional (field-hint-guide.md's own form-authoring guidance
+ * Every field but the date range carries `optional: true` — deliberate, even
+ * though all six are uniformly optional (field-hint-guide.md's own form-authoring guidance
  * would suggest dropping a badge with no minority to flag). The footer
  * (`info`) also states the AND-logic/all-optional fact once, so the badge
  * here is redundant with it — kept anyway, as a per-field decision, not an
@@ -105,6 +105,15 @@ export const auditQueryDefs: QueryDef[] = [
       },
       { name: 'entityType', label: 'Entity type', type: 'select', span: 1, optional: true },
       { name: 'action', label: 'Action', type: 'select', span: 1, optional: true },
+      {
+        name: 'entityId',
+        label: 'Entity ID',
+        type: 'text',
+        placeholder: '79c7b0ed-4310-42ed-af8d-fee5be93ac58',
+        span: 1,
+        maxLength: 64,
+        optional: true,
+      },
       {
         name: 'tenantId',
         label: 'Tenant',

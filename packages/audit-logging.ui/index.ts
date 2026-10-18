@@ -1,5 +1,6 @@
 export { auditLoggingNav } from './nav';
 export { auditLogLinks } from './links';
+export { auditActionLabel } from './display';
 export { auditApi } from './api';
 export type {
   ActorActivitySummary,

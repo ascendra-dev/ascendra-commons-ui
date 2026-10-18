@@ -30,6 +30,7 @@ import {
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { auditApi, type ActorActivitySummary } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { auditActionLabel } from '@/ascendra-commons-ui/audit-logging.ui/display';
 
 /** The real audit API (`NEXT_PUBLIC_API_URL` — ascendra-commons-sandbox in the testbed). */
 const fetchActivity = auditApi.actorActivity;
@@ -160,7 +161,6 @@ function ActivitySummary({ data }: { data: ActorActivitySummary }) {
         <SheetSectionHeader>By action</SheetSectionHeader>
         <SimpleTable>
           <SimpleTableHeader>
-            <SimpleTableHead>Entity</SimpleTableHead>
             <SimpleTableHead>Action</SimpleTableHead>
             <SimpleTableHead className="text-right">Count</SimpleTableHead>
             <SimpleTableHead>Last</SimpleTableHead>
@@ -169,10 +169,7 @@ function ActivitySummary({ data }: { data: ActorActivitySummary }) {
             {data.byAction.map((row) => (
               <SimpleTableRow key={`${row.entityType}/${row.action}`}>
                 <SimpleTableCell>
-                  <SimpleBadge variant="secondary">{row.entityType}</SimpleBadge>
-                </SimpleTableCell>
-                <SimpleTableCell>
-                  <SimpleBadge>{row.action}</SimpleBadge>
+                  <SimpleBadge>{auditActionLabel(row)}</SimpleBadge>
                 </SimpleTableCell>
                 <SimpleTableCell className="text-right tabular-nums">{row.count}</SimpleTableCell>
                 <SimpleTableCell className="text-muted-foreground whitespace-nowrap">

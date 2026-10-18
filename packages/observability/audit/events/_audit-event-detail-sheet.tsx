@@ -17,6 +17,7 @@ import {
   SimpleBadge,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
+import { auditActionLabel } from '@/ascendra-commons-ui/audit-logging.ui/display';
 import { flattenPaths } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import type { AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 
@@ -129,17 +130,12 @@ export function AuditEventDetailSheet({
 
               <SheetKey>Action</SheetKey>
               <SheetValue>
-                <SimpleBadge>{record.action}</SimpleBadge>
+                <SimpleBadge>{auditActionLabel(record)}</SimpleBadge>
               </SheetValue>
 
-              <SheetKey>Entity</SheetKey>
+              <SheetKey>Entity ID</SheetKey>
               <SheetValue>
-                <div className="flex flex-col gap-0.5">
-                  <SimpleBadge variant="secondary" className="w-fit">
-                    {record.entityType}
-                  </SimpleBadge>
-                  <IdText value={record.entityId} showTooltip={false} />
-                </div>
+                <IdText value={record.entityId} showTooltip={false} />
               </SheetValue>
 
               <SheetKey>Tenant</SheetKey>

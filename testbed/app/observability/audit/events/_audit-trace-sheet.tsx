@@ -22,6 +22,7 @@ import {
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { auditApi, type AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { auditActionLabel } from '@/ascendra-commons-ui/audit-logging.ui/display';
 import { dotVariantForAction } from '@/ascendra-commons-ui/shared/timeline';
 
 /** The real audit API (`NEXT_PUBLIC_API_URL` — ascendra-commons-sandbox in the testbed). */
@@ -139,12 +140,9 @@ function TraceEvent({ row }: { row: AuditEvent }) {
       <span className="text-foreground text-xs font-medium tabular-nums">
         {formatDateTime(row.occurredAt, { time: true })}
       </span>
-      <SimpleBadge>{row.action}</SimpleBadge>
-      {/* A trace spans entities — each event names its own. */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        <SimpleBadge variant="secondary">{row.entityType}</SimpleBadge>
-        <IdText value={row.entityId} showTooltip={false} className="text-muted-foreground text-xs" />
-      </div>
+      {/* A trace spans entities — each event names its own: `invoice.created`, the id beneath. */}
+      <SimpleBadge className="w-fit">{auditActionLabel(row)}</SimpleBadge>
+      <IdText value={row.entityId} showTooltip={false} className="text-muted-foreground w-fit text-xs" />
       <span className="text-muted-foreground text-sm">{row.actor}</span>
       {row.reason && <span className="text-muted-foreground text-xs">Reason: {row.reason}</span>}
       <div className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs">

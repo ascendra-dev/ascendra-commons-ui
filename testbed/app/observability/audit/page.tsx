@@ -51,6 +51,7 @@ import {
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { LuDatabase } from "react-icons/lu";
 import { auditLogLinks } from "@/ascendra-commons-ui/audit-logging.ui/links";
+import { auditActionLabel } from "@/ascendra-commons-ui/audit-logging.ui/display";
 import {
   auditApi,
   type AuditOverviewStats,
@@ -379,7 +380,6 @@ export default function AuditOverviewPage() {
               <Table scrollable horizontal vertical height={300}>
                 <TableHeader>
                   <TableHeaderRow>
-                    <TableHead>Entity</TableHead>
                     <TableHead>Action</TableHead>
                     <TableHead>Count</TableHead>
                     <TableHead>Actors</TableHead>
@@ -390,10 +390,7 @@ export default function AuditOverviewPage() {
                     {topActions.data.topActions.map((row) => (
                       <TableRow key={`${row.entityType}/${row.action}`}>
                         <TableCell>
-                          <SimpleBadge variant="secondary">{row.entityType}</SimpleBadge>
-                        </TableCell>
-                        <TableCell>
-                          <SimpleBadge>{row.action}</SimpleBadge>
+                          <SimpleBadge>{auditActionLabel(row)}</SimpleBadge>
                         </TableCell>
                         <TableCell className="font-mono tabular-nums">
                           {formatCount(row.count)}

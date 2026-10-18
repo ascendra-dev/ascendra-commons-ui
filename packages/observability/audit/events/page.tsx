@@ -54,6 +54,7 @@ import {
   auditQueryFunctions,
 } from '@/ascendra-commons-ui/audit-logging.ui/queries';
 import { auditApi, type AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { auditActionLabel } from '@/ascendra-commons-ui/audit-logging.ui/display';
 import { AuditEventDetailSheet } from './_audit-event-detail-sheet';
 import { AuditActorActivitySheet } from './_audit-actor-activity-sheet';
 import { AuditEntityHistorySheet } from './_audit-entity-history-sheet';
@@ -131,9 +132,6 @@ export default function AuditLogListPage() {
                         </DataTableHead>
                         <DataTableHead column="actor">Actor</DataTableHead>
                         <DataTableHead column="action">Action</DataTableHead>
-                        <DataTableHead column="entityType">
-                          Entity
-                        </DataTableHead>
                         {!tenantScoped && <DataTableHead column="tenantId">Tenant</DataTableHead>}
                         <DataTableHead column="reason">Reason</DataTableHead>
                         <DataTableHead column="correlationId">
@@ -184,24 +182,17 @@ export default function AuditLogListPage() {
                               />
                             </button>
                           </DataTableCell>
+                          {/* Entity type, action and entity id folded into one cell: `invoice.created`, the id beneath. */}
                           <DataTableCell column="action">
-                            <SimpleBadge>
-                              <span>
-                                <DataTableHighlight
-                                  text={row.action}
-                                  item={row}
-                                  itemKey="action"
-                                />
-                              </span>
-                            </SimpleBadge>
-                          </DataTableCell>
-                          <DataTableCell column="entityType">
                             <div className="flex flex-col gap-0.5">
-                              <SimpleBadge
-                                variant="secondary"
-                                className="w-fit"
-                              >
-                                {row.entityType}
+                              <SimpleBadge className="w-fit">
+                                <span>
+                                  <DataTableHighlight
+                                    text={auditActionLabel(row)}
+                                    item={row}
+                                    itemKey="action"
+                                  />
+                                </span>
                               </SimpleBadge>
                               <button
                                 type="button"

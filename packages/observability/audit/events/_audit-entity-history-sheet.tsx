@@ -22,6 +22,7 @@ import {
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { auditApi, type AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import { auditActionLabel } from '@/ascendra-commons-ui/audit-logging.ui/display';
 import { dotVariantForAction } from '@/ascendra-commons-ui/shared/timeline';
 
 /** The real audit API (`NEXT_PUBLIC_API_URL` — ascendra-commons-sandbox in the testbed). */
@@ -145,7 +146,7 @@ function HistoryEvent({ row }: { row: AuditEvent }) {
       <span className="text-foreground text-xs font-medium tabular-nums">
         {formatDateTime(row.occurredAt, { time: true })}
       </span>
-      <SimpleBadge>{row.action}</SimpleBadge>
+      <SimpleBadge className="w-fit">{auditActionLabel(row)}</SimpleBadge>
       <span className="text-muted-foreground text-sm">{row.actor}</span>
       {row.reason && <span className="text-muted-foreground text-xs">Reason: {row.reason}</span>}
       {/* The same on most rows of one entity, but each row stays readable on its own. */}

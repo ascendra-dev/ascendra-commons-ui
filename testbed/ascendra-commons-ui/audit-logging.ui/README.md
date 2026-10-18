@@ -9,7 +9,8 @@ Admin/observability UI for `ascendra-commons`' `audit-logging.api`.
   types in the past 30 days — each with its change vs. the equal period
   before, or "new" when that period was empty), a volume-by-day chart (past
   30 days), and a "Top actions" table ranked by (entity type, action) —
-  `Entity | Action | Count | Actors` — with buttons into the Audit Log list
+  `Action | Count | Actors`, the action shown as `invoice.created` (see
+  "One action label" below) — with buttons into the Audit Log list
   and Retention & Volume. **Two independent queries**, one per endpoint:
   `auditApi.overviewStats()` (`GET /audit/stats/overview` — KPIs + chart) and
   `auditApi.topActions()` (`GET /audit/stats/top-actions`), so a slow table
@@ -54,6 +55,14 @@ forward — safe because `DataTableQueryProvider` only ever steps by exactly
 unvisited batch. `totalBatches` is repurposed as a plain has-next-page
 signal (`currentBatch+1` while there's a `nextCursor`, `currentBatch` once
 there isn't), matching how `BatchNavigator` actually uses it.
+
+**One action label everywhere: `invoice.created`.** The API keeps entity
+type and action apart (actions are verb-only), and every screen folds them
+back with `auditActionLabel()` (`display.ts`): the list's one Action column
+(badge, entity id beneath — click it for the entity's history), the record
+sheet, both timelines, Top actions and the actor sheet's By action table.
+Display only — the filters (Entity type, Action, Entity ID), the API and the
+CSV export keep the fields separate.
 
 **`links.ts` hardcodes `/observability/audit` as the base path** — where
 `packages/observability` mounts it. A per-vertical configurable base is
