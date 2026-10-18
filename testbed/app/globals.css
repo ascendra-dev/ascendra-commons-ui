@@ -450,27 +450,63 @@ th {
 }
 
 /* Global Scrollbar (All Scroll Containers) */
+/* 10px grab area, 4px visible thumb (transparent border + padding-box clip).
+   Mobile overlay scrollbars ignore these rules and stay native. */
+:root {
+  --scrollbar-thumb: rgba(0, 0, 0, 0.25);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.4);
+}
+.dark {
+  --scrollbar-thumb: rgba(255, 255, 255, 0.25);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.4);
+}
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+/* Stop short of rounded corners */
+::-webkit-scrollbar-track:horizontal {
+  margin-inline: 12px;
+}
+::-webkit-scrollbar-track:vertical {
+  margin-block: 12px;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.25);
+  background-color: var(--scrollbar-thumb);
+  background-clip: padding-box;
+  border: 3px solid transparent;
   border-radius: 9999px;
 }
-.dark ::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.25);
+/* While PageLayout's scroll script runs (it sets data-scrollbar-reveal on <html>),
+   a thumb shows only while its container scrolls (data-scrolling) or under the
+   pointer; the gutter stays reserved, so content never shifts. */
+html[data-scrollbar-reveal]::-webkit-scrollbar-thumb,
+html[data-scrollbar-reveal] ::-webkit-scrollbar-thumb {
+  background-color: transparent;
 }
-/* Firefox */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+html[data-scrollbar-reveal][data-scrolling]::-webkit-scrollbar-thumb,
+html[data-scrollbar-reveal][data-scrolling] > body::-webkit-scrollbar-thumb,
+html[data-scrollbar-reveal] [data-scrolling]::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
 }
-.dark * {
-  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+::-webkit-scrollbar-thumb:hover,
+html[data-scrollbar-reveal]::-webkit-scrollbar-thumb:hover,
+html[data-scrollbar-reveal] ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+/* Firefox — only where ::-webkit-scrollbar is unsupported, since Chrome 121+
+   ignores the ::-webkit-scrollbar rules whenever scrollbar-width/-color is set */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
 }
 
 /* ── Print / PDF export ─────────────────────────────────────────────────────── */

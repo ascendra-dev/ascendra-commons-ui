@@ -41,7 +41,10 @@ export function DataTable({
         data-slot="table-wrapper"
         className={cn(
           '',
-          scrollable && horizontal && '-mb-px overflow-x-auto pb-px',
+          // touch scrollbars overlay content — give the bar its own strip below the rows
+          scrollable &&
+            horizontal &&
+            '-mb-px overflow-x-auto pb-px pointer-coarse:pb-2.5',
           scrollable && vertical && height && 'overflow-y-auto'
         )}
         style={
