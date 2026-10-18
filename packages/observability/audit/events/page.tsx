@@ -257,11 +257,16 @@ export default function AuditLogListPage() {
                             </button>
                           </DataTableCell>
                           <DataTableCell column="application">
-                            <DataTableHighlight
-                              text={row.application}
-                              item={row}
-                              itemKey="application"
-                            />
+                            <WithTooltip
+                              tooltip={row.application}
+                              className="line-clamp-2"
+                            >
+                              <DataTableHighlight
+                                text={row.application}
+                                item={row}
+                                itemKey="application"
+                              />
+                            </WithTooltip>
                           </DataTableCell>
                           <DataTableRowAction>
                             <DropdownMenuLabel>Row actions</DropdownMenuLabel>

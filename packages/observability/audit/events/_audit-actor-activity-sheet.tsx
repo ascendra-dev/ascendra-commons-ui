@@ -61,8 +61,7 @@ export function AuditActorActivitySheet({
   });
 
   return (
-    // The page behind keeps scrolling; an outside click only closes the sheet.
-    <Sheet open lockScroll={false} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open onOpenChange={(open) => !open && onClose()}>
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Actor activity</SheetTitle>

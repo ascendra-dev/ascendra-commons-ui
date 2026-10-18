@@ -65,8 +65,7 @@ export function AuditEntityHistorySheet({
   const lastHasLine = !!hasNextPage;
 
   return (
-    // The page behind keeps scrolling; an outside click only closes the sheet.
-    <Sheet open lockScroll={false} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open onOpenChange={(open) => !open && onClose()}>
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Entity history</SheetTitle>
@@ -156,10 +155,10 @@ function HistoryEvent({ row }: { row: AuditEvent }) {
         <span>Application: {row.application}</span>
       </div>
       {/* Different on every row — click either id to copy it. */}
-      <span className="text-muted-foreground flex items-center gap-1 text-xs">
+      <span className="text-muted-foreground flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs">
         Record: <IdText value={row.id} showTooltip={false} />
       </span>
-      <span className="text-muted-foreground flex items-center gap-1 text-xs">
+      <span className="text-muted-foreground flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs">
         Correlation: <IdText value={row.correlationId} showTooltip={false} />
       </span>
     </div>

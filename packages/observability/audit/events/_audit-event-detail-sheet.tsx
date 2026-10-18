@@ -101,8 +101,7 @@ export function AuditEventDetailSheet({
   const diffLines = buildDiffLines(record.before, record.after);
 
   return (
-    // The page behind keeps scrolling; an outside click only closes the sheet.
-    <Sheet open lockScroll={false} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open onOpenChange={(open) => !open && onClose()}>
       <SheetContent>
         {navigator}
         <SheetHeader>

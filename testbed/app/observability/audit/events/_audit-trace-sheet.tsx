@@ -58,13 +58,12 @@ export function AuditTraceSheet({ correlationId, onClose }: { correlationId: str
   const lastHasLine = !!hasNextPage;
 
   return (
-    // The page behind keeps scrolling; an outside click only closes the sheet.
-    <Sheet open lockScroll={false} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open onOpenChange={(open) => !open && onClose()}>
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Request / job trace</SheetTitle>
           {/* Shared by every event below, so it shows once here — click to copy. */}
-          <SheetDescription className="flex items-center gap-1">
+          <SheetDescription className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
             Correlation: <IdText value={correlationId} showTooltip={false} />
           </SheetDescription>
         </SheetHeader>
@@ -151,7 +150,7 @@ function TraceEvent({ row }: { row: AuditEvent }) {
         <span>Application: {row.application}</span>
       </div>
       {/* Different on every row — click to copy. */}
-      <span className="text-muted-foreground flex items-center gap-1 text-xs">
+      <span className="text-muted-foreground flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs">
         Record: <IdText value={row.id} showTooltip={false} />
       </span>
     </div>
