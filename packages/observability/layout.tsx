@@ -9,6 +9,7 @@ import {
   SideBarMenuItemGroup,
   SideBarMenuSet,
   SideBarMenuSetTitle,
+  SideBarLayoutToggle,
   SideBarToggle,
 } from '@/ascendra-ui';
 import { auditLoggingNav } from '@/ascendra-commons-ui/audit-logging.ui/nav';
@@ -55,6 +56,7 @@ export default function ObservabilityLayout({ children }: { children: ReactNode 
     <>
       <SideBarToggle />
       <SideBar>
+        <SideBarLayoutToggle />
         <SideBarMain>
           <SideBarMenuSet>
             <SideBarMenuSetTitle>Modules</SideBarMenuSetTitle>
