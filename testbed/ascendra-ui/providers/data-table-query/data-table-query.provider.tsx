@@ -20,6 +20,7 @@ import type {
   SavedUserQuery,
   QueryDef,
   QueryGroup,
+  QueryOptions,
   TriggerParams,
 } from './data-table-query.types';
 import { isFieldDef } from './data-table-query.types';
@@ -71,6 +72,11 @@ function QueryUrlListener({ urlKey, onTrigger }: { urlKey: string; onTrigger: (q
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, urlKey]);
   return null;
+}
+
+/** A QueryDef's `queryOptions` without its unset keys. */
+function definedOptions(options: QueryOptions | undefined): QueryOptions {
+  return Object.fromEntries(Object.entries(options ?? {}).filter(([, value]) => value !== undefined));
 }
 
 export function DataTableQueryProvider<T = unknown>({
@@ -513,10 +519,9 @@ export function DataTableQueryProvider<T = unknown>({
     queryKey: ['data-table', activeId, effectiveParams, currentBatch],
     queryFn: () => queryFn!(effectiveParams ?? {}, currentBatch),
     enabled: !!queryFn && enabled,
-    staleTime: confirmedQuery.queryOptions?.staleTime,
-    retry: confirmedQuery.queryOptions?.retry,
-    gcTime: confirmedQuery.queryOptions?.gcTime,
-    refetchOnWindowFocus: confirmedQuery.queryOptions?.refetchOnWindowFocus,
+    // Only the options this query sets: an explicit `undefined` would override QueryProvider's defaults (a
+    // `retry: undefined` meant React Query's own 3 retries, even for a 403).
+    ...definedOptions(confirmedQuery.queryOptions),
   });
 
   // A trigger error hides whatever is cached for the query still selected.
