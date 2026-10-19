@@ -450,8 +450,21 @@ th {
 }
 
 /* Global Scrollbar (All Scroll Containers) */
-/* Native, thin: floats over content on macOS and touch screens. Tables, sheets and the sidebar draw their own
-   (useOverlayScrollbars), which float on every platform and stop short of rounded corners. */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+/* Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.25) transparent;

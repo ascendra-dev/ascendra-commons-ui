@@ -12,7 +12,6 @@ import {
 
 import { PaginationButton } from "@/ascendra-ui/components/common-ui/pagination-button";
 import { cn, Separator } from "@/ascendra-ui/shadcn";
-import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars";
 import { type PaginationState } from "@/ascendra-ui/providers/data-table/use-pagination.hook";
 import {
   buildBorderClasses,
@@ -100,15 +99,7 @@ function Table({
   minHeight?: number;
 }) {
   const [scrolled, setScrolled] = React.useState(false);
-  const hostRef = React.useRef<HTMLDivElement>(null);
   const ref = React.useRef<HTMLDivElement>(null);
-  const scrollX = scrollable && horizontal;
-  const scrollY = scrollable && vertical && !!height;
-  useOverlayScrollbars(hostRef, ref, {
-    x: scrollX ? "scroll" : "hidden",
-    y: scrollY ? "scroll" : "hidden",
-    enabled: scrollX || scrollY,
-  });
 
   React.useEffect(() => {
     const el = ref.current;
@@ -126,25 +117,21 @@ function Table({
     <TableScrollContext.Provider
       value={{ scrolled, vscroll: scrollable && vertical && !!height }}
     >
-      <div ref={hostRef}>
-        <div
-          ref={ref}
-          data-slot="table-container"
-          // hides the native scrollbar until useOverlayScrollbars takes over
-          data-overlayscrollbars-initialize={scrollX || scrollY ? "" : undefined}
-          className={cn(
-            "",
-            scrollX && "-mb-px overflow-x-auto pb-px",
-            scrollY && "overflow-y-auto",
-          )}
-          style={Object.keys(wrapperStyle).length ? wrapperStyle : undefined}
-        >
-          <table
-            data-slot="table"
-            className={cn("w-full border-separate border-spacing-0", className)}
-            {...props}
-          />
-        </div>
+      <div
+        ref={ref}
+        data-slot="table-container"
+        className={cn(
+          "",
+          scrollable && horizontal && "-mb-px overflow-x-auto pb-px",
+          scrollable && vertical && height && "overflow-y-auto",
+        )}
+        style={Object.keys(wrapperStyle).length ? wrapperStyle : undefined}
+      >
+        <table
+          data-slot="table"
+          className={cn("w-full border-separate border-spacing-0", className)}
+          {...props}
+        />
       </div>
     </TableScrollContext.Provider>
   );
