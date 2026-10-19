@@ -4,6 +4,7 @@ import * as React from "react";
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 import { cn } from "@/ascendra-ui/shadcn";
 import { usePopupTopInset, usePopupZIndex } from "./popup-layer";
+import { OverlayScroll } from "./overlay-scroll";
 
 // ─── Preset palette ───────────────────────────────────────────────────────────
 
@@ -210,7 +211,7 @@ export function ColorPicker({
           align="start"
           collisionPadding={{ top: topInset }}
           className={cn(
-            "max-h-(--radix-dropdown-menu-content-available-height) w-56 overflow-y-auto rounded-lg p-3 outline-none",
+            "max-h-(--radix-dropdown-menu-content-available-height) w-56 flex flex-col overflow-hidden rounded-lg outline-none",
             "bg-secondary text-foreground ring-1 ring-foreground/10",
             "shadow-[0_16px_36px_-6px_rgba(0,0,0,0.07),0_6px_16px_-2px_rgba(0,0,0,0.2)]",
             "data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2",
@@ -220,115 +221,120 @@ export function ColorPicker({
           )}
           style={{ zIndex: z }}
         >
-          {/* Preview swatch */}
-          <div className="mb-3 flex items-center gap-2">
-            <div
-              className="size-8 shrink-0 rounded-md border border-foreground/10 shadow-inner"
-              style={{ backgroundColor: currentHex }}
-            />
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs font-medium text-foreground">{currentHex.toUpperCase()}</span>
-              <span className="text-[0.6875rem] text-muted-foreground">
-                hsl({hsl.h}, {hsl.s}%, {hsl.l}%)
-              </span>
-            </div>
-          </div>
+          {/* Padding sits inside the scroll area, so the sliders' thumbs aren't clipped at the ends. */}
+          <OverlayScroll className="flex-1">
+            <div className="p-3">
+              {/* Preview swatch */}
+              <div className="mb-3 flex items-center gap-2">
+                <div
+                  className="size-8 shrink-0 rounded-md border border-foreground/10 shadow-inner"
+                  style={{ backgroundColor: currentHex }}
+                />
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs font-medium text-foreground">{currentHex.toUpperCase()}</span>
+                  <span className="text-[0.6875rem] text-muted-foreground">
+                    hsl({hsl.h}, {hsl.s}%, {hsl.l}%)
+                  </span>
+                </div>
+              </div>
 
-          {/* Presets */}
-          <div className="mb-3">
-            <p className="mb-1.5 text-[0.6875rem] font-medium text-muted-foreground">Presets</p>
-            <div className="flex flex-wrap gap-1">
-              {presets.map((preset) => {
-                const isSelected = currentHex.toLowerCase() === preset.toLowerCase();
-                return (
-                  <button
-                    key={preset}
-                    type="button"
-                    title={preset}
-                    onClick={() => {
-                      setHsl(hexToHsl(preset));
-                      setHexInput(preset);
-                      onChange?.(preset);
-                    }}
-                    className={cn(
-                      "relative size-5 rounded-full outline-none transition-all hover:scale-110",
-                      "shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_1px_2px_rgba(0,0,0,0.15)]",
-                      "focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-1",
-                      isSelected && "ring-2 ring-foreground ring-offset-1 ring-offset-secondary scale-110",
-                    )}
-                    style={{
-                      backgroundColor: preset,
-                      backgroundImage: "linear-gradient(to bottom, rgba(255,255,255,0.25) 0%, rgba(0,0,0,0.1) 100%)",
-                    }}
-                  >
-                    {isSelected && (
-                      <svg
-                        className="absolute inset-0 m-auto size-2.5 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]"
-                        viewBox="0 0 12 12"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+              {/* Presets */}
+              <div className="mb-3">
+                <p className="mb-1.5 text-[0.6875rem] font-medium text-muted-foreground">Presets</p>
+                <div className="flex flex-wrap gap-1">
+                  {presets.map((preset) => {
+                    const isSelected = currentHex.toLowerCase() === preset.toLowerCase();
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        title={preset}
+                        onClick={() => {
+                          setHsl(hexToHsl(preset));
+                          setHexInput(preset);
+                          onChange?.(preset);
+                        }}
+                        className={cn(
+                          "relative size-5 rounded-full outline-none transition-all hover:scale-110",
+                          "shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_1px_2px_rgba(0,0,0,0.15)]",
+                          "focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-1",
+                          isSelected && "ring-2 ring-foreground ring-offset-1 ring-offset-secondary scale-110",
+                        )}
+                        style={{
+                          backgroundColor: preset,
+                          backgroundImage: "linear-gradient(to bottom, rgba(255,255,255,0.25) 0%, rgba(0,0,0,0.1) 100%)",
+                        }}
                       >
-                        <polyline points="2,6 5,9 10,3" />
-                      </svg>
+                        {isSelected && (
+                          <svg
+                            className="absolute inset-0 m-auto size-2.5 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <polyline points="2,6 5,9 10,3" />
+                          </svg>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* HSL sliders — hidden in presetsOnly mode */}
+              {!presetsOnly && (
+                <div className="mb-3 flex flex-col gap-2">
+                  <HslSlider
+                    label="Hue"
+                    min={0}
+                    max={360}
+                    value={hsl.h}
+                    gradient={`linear-gradient(to right, hsl(0,100%,50%), hsl(60,100%,50%), hsl(120,100%,50%), hsl(180,100%,50%), hsl(240,100%,50%), hsl(300,100%,50%), hsl(360,100%,50%))`}
+                    onChange={(h) => applyHsl(h, hsl.s, hsl.l)}
+                  />
+                  <HslSlider
+                    label="Saturation"
+                    min={0}
+                    max={100}
+                    value={hsl.s}
+                    gradient={`linear-gradient(to right, hsl(${hsl.h},0%,${hsl.l}%), hsl(${hsl.h},100%,${hsl.l}%))`}
+                    onChange={(s) => applyHsl(hsl.h, s, hsl.l)}
+                  />
+                  <HslSlider
+                    label="Lightness"
+                    min={0}
+                    max={100}
+                    value={hsl.l}
+                    gradient={`linear-gradient(to right, hsl(${hsl.h},${hsl.s}%,0%), hsl(${hsl.h},${hsl.s}%,50%), hsl(${hsl.h},${hsl.s}%,100%))`}
+                    onChange={(l) => applyHsl(hsl.h, hsl.s, l)}
+                  />
+                </div>
+              )}
+
+              {/* Hex input */}
+              {!presetsOnly && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[0.6875rem] text-muted-foreground shrink-0">#</span>
+                  <input
+                    type="text"
+                    value={hexInput.replace(/^#/, "")}
+                    onChange={(e) => handleHexInput("#" + e.target.value)}
+                    maxLength={6}
+                    className={cn(
+                      "h-7 w-full rounded-md bg-background px-2 font-mono text-xs text-foreground outline-none",
+                      "ring-1 ring-(--color-umbra)/12 dark:ring-(--color-gray-1000)/60",
+                      "focus:ring-2 focus:ring-primary",
+                      !isValidHex(hexInput) && "ring-destructive ring-2",
                     )}
-                  </button>
-                );
-              })}
+                    spellCheck={false}
+                  />
+                </div>
+              )}
             </div>
-          </div>
-
-          {/* HSL sliders — hidden in presetsOnly mode */}
-          {!presetsOnly && (
-            <div className="mb-3 flex flex-col gap-2">
-              <HslSlider
-                label="Hue"
-                min={0}
-                max={360}
-                value={hsl.h}
-                gradient={`linear-gradient(to right, hsl(0,100%,50%), hsl(60,100%,50%), hsl(120,100%,50%), hsl(180,100%,50%), hsl(240,100%,50%), hsl(300,100%,50%), hsl(360,100%,50%))`}
-                onChange={(h) => applyHsl(h, hsl.s, hsl.l)}
-              />
-              <HslSlider
-                label="Saturation"
-                min={0}
-                max={100}
-                value={hsl.s}
-                gradient={`linear-gradient(to right, hsl(${hsl.h},0%,${hsl.l}%), hsl(${hsl.h},100%,${hsl.l}%))`}
-                onChange={(s) => applyHsl(hsl.h, s, hsl.l)}
-              />
-              <HslSlider
-                label="Lightness"
-                min={0}
-                max={100}
-                value={hsl.l}
-                gradient={`linear-gradient(to right, hsl(${hsl.h},${hsl.s}%,0%), hsl(${hsl.h},${hsl.s}%,50%), hsl(${hsl.h},${hsl.s}%,100%))`}
-                onChange={(l) => applyHsl(hsl.h, hsl.s, l)}
-              />
-            </div>
-          )}
-
-          {/* Hex input */}
-          {!presetsOnly && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-[0.6875rem] text-muted-foreground shrink-0">#</span>
-              <input
-                type="text"
-                value={hexInput.replace(/^#/, "")}
-                onChange={(e) => handleHexInput("#" + e.target.value)}
-                maxLength={6}
-                className={cn(
-                  "h-7 w-full rounded-md bg-background px-2 font-mono text-xs text-foreground outline-none",
-                  "ring-1 ring-(--color-umbra)/12 dark:ring-(--color-gray-1000)/60",
-                  "focus:ring-2 focus:ring-primary",
-                  !isValidHex(hexInput) && "ring-destructive ring-2",
-                )}
-                spellCheck={false}
-              />
-            </div>
-          )}
+          </OverlayScroll>
         </DropdownMenuPrimitive.Content>
       </DropdownMenuPrimitive.Portal>
     </DropdownMenuPrimitive.Root>

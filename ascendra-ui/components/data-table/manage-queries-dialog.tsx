@@ -13,6 +13,7 @@ import { Switch } from "@/ascendra-ui/components/ui/switch";
 import { useQueryContext } from "@/ascendra-ui/providers/data-table-query/data-table-query.provider";
 import type { QueryGroup } from "@/ascendra-ui/providers/data-table-query/data-table-query.types";
 import { cn } from "@/ascendra-ui/shadcn";
+import { OverlayScroll } from "@/ascendra-ui/components/ui/overlay-scroll";
 import { useEffect, useRef, useState } from "react";
 import { LuSquareMinus, LuSquarePlay } from "react-icons/lu";
 import { RiDraggable } from "react-icons/ri";
@@ -172,88 +173,90 @@ export function ManageQueriesDialog({
         </DialogHeader>
 
         <DialogBody className="pr-0" onClick={() => setPendingDeleteId(null)}>
-          <div className="max-h-[60vh] space-y-5 overflow-y-auto pr-5">
-            {GROUP_ORDER.map((group) => {
-              const items = localGroups[group];
-              if (!items.length) return null;
-              return (
-                <section key={group}>
-                  <p className="text-muted-foreground mb-1 px-1 text-xs font-medium uppercase tracking-wide">
-                    {GROUP_LABELS[group]}
-                  </p>
-                  <div className="space-y-0.5">
-                    {items.map((item) => (
-                      <div
-                        key={item.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(item, e)}
-                        onDragOver={(e) => handleDragOver(item, e)}
-                        onDrop={(e) => handleDrop(item, e)}
-                        onDragEnd={handleDragEnd}
-                        className={cn(
-                          "flex items-center gap-2 rounded-md px-1.5 py-2 transition-opacity",
-                          !item.enabled && "opacity-40",
-                          dragOverId === item.id && "border-primary border-t-2",
-                        )}
-                      >
-                        <Switch
-                          checked={item.enabled}
-                          onCheckedChange={() => handleToggle(item)}
-                          aria-label={
-                            item.enabled ? "Disable query" : "Enable query"
-                          }
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium leading-tight">
-                            {item.title}
-                          </p>
-                          <p className="text-muted-foreground truncate text-xs">
-                            {item.description}
-                          </p>
-                        </div>
+          <OverlayScroll className="max-h-[60vh]">
+            <div className="space-y-5 pr-5">
+              {GROUP_ORDER.map((group) => {
+                const items = localGroups[group];
+                if (!items.length) return null;
+                return (
+                  <section key={group}>
+                    <p className="text-muted-foreground mb-1 px-1 text-xs font-medium uppercase tracking-wide">
+                      {GROUP_LABELS[group]}
+                    </p>
+                    <div className="space-y-0.5">
+                      {items.map((item) => (
+                        <div
+                          key={item.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(item, e)}
+                          onDragOver={(e) => handleDragOver(item, e)}
+                          onDrop={(e) => handleDrop(item, e)}
+                          onDragEnd={handleDragEnd}
+                          className={cn(
+                            "flex items-center gap-2 rounded-md px-1.5 py-2 transition-opacity",
+                            !item.enabled && "opacity-40",
+                            dragOverId === item.id && "border-primary border-t-2",
+                          )}
+                        >
+                          <Switch
+                            checked={item.enabled}
+                            onCheckedChange={() => handleToggle(item)}
+                            aria-label={
+                              item.enabled ? "Disable query" : "Enable query"
+                            }
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium leading-tight">
+                              {item.title}
+                            </p>
+                            <p className="text-muted-foreground truncate text-xs">
+                              {item.description}
+                            </p>
+                          </div>
 
-                        <div className="flex shrink-0 items-center gap-1">
-                          {item.group === "user-query" && (
+                          <div className="flex shrink-0 items-center gap-1">
+                            {item.group === "user-query" && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                  "size-7",
+                                  pendingDeleteId === item.id
+                                    ? "text-destructive hover:text-destructive"
+                                    : "text-muted-foreground",
+                                )}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(item.id);
+                                }}
+                                aria-label={
+                                  pendingDeleteId === item.id
+                                    ? "Confirm delete"
+                                    : "Delete query"
+                                }
+                              >
+                                <LuSquareMinus className="size-3.5" />
+                              </Button>
+                            )}
+                            <RiDraggable className="text-muted-foreground shrink-0 cursor-grab active:cursor-grabbing" />
                             <Button
                               variant="ghost"
                               size="icon"
-                              className={cn(
-                                "size-7",
-                                pendingDeleteId === item.id
-                                  ? "text-destructive hover:text-destructive"
-                                  : "text-muted-foreground",
-                              )}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(item.id);
-                              }}
-                              aria-label={
-                                pendingDeleteId === item.id
-                                  ? "Confirm delete"
-                                  : "Delete query"
-                              }
+                              className="size-7"
+                              onClick={() => handleRun(item.id)}
+                              aria-label="Run query"
                             >
-                              <LuSquareMinus className="size-3.5" />
+                              <LuSquarePlay className="size-3.5" />
                             </Button>
-                          )}
-                          <RiDraggable className="text-muted-foreground shrink-0 cursor-grab active:cursor-grabbing" />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-7"
-                            onClick={() => handleRun(item.id)}
-                            aria-label="Run query"
-                          >
-                            <LuSquarePlay className="size-3.5" />
-                          </Button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          </OverlayScroll>
 
           {pendingDeleteId && (
             <p className="text-destructive mt-3 text-center text-xs p-1.5 border border-destructive rounded mr-5">

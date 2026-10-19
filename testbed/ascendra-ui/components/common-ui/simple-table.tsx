@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { cn } from '@/ascendra-ui/shadcn';
+import { OverlayScroll } from '@/ascendra-ui/components/ui/overlay-scroll';
 
 /**
  * A light table for short, read-only lists inside a sheet, card or panel — one border, a muted header strip and
@@ -9,9 +10,9 @@ import { cn } from '@/ascendra-ui/shadcn';
  */
 function SimpleTable({ className, ...props }: React.ComponentProps<'table'>) {
   return (
-    <div data-slot="simple-table" className="w-full overflow-x-auto rounded-lg border">
+    <OverlayScroll x="scroll" y="hidden" data-slot="simple-table" className="w-full rounded-lg border">
       <table className={cn('w-full border-collapse text-sm', className)} {...props} />
-    </div>
+    </OverlayScroll>
   );
 }
 

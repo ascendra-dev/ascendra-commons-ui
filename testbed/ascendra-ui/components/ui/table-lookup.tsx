@@ -38,6 +38,7 @@ import {
   TableWrapper,
 } from "@/ascendra-ui/components/ui/table";
 import { cn } from "@/ascendra-ui/shadcn";
+import { OverlayScroll } from "./overlay-scroll";
 import { ArrowUpIcon, ChevronDownIcon, XIcon } from "lucide-react";
 import { LuLoader, LuTextSearch } from "react-icons/lu";
 import { useQuery } from "@tanstack/react-query";
@@ -373,24 +374,26 @@ function TableLookup<T extends Record<string, unknown>>({
         </DialogHeader>
 
         {/* ── Selected chips area ── */}
-        <div className="flex min-h-11 max-h-24 flex-wrap items-start gap-1.5 overflow-y-auto px-4 pt-4">
-          {selectedItems.length === 0 ? (
-            <span className="text-muted-foreground self-center text-xs italic">
-              No items selected
-            </span>
-          ) : (
-            selectedItems.map((item) => (
-              <TriggerChip
-                key={String(item[valueKey])}
-                label={String(item[labelKey])}
-                onRemove={(e) => {
-                  e.stopPropagation();
-                  handleRemove(item[valueKey]);
-                }}
-              />
-            ))
-          )}
-        </div>
+        <OverlayScroll className="max-h-24 shrink-0">
+          <div className="flex min-h-11 flex-wrap items-start gap-1.5 px-4 pt-4">
+            {selectedItems.length === 0 ? (
+              <span className="text-muted-foreground self-center text-xs italic">
+                No items selected
+              </span>
+            ) : (
+              selectedItems.map((item) => (
+                <TriggerChip
+                  key={String(item[valueKey])}
+                  label={String(item[labelKey])}
+                  onRemove={(e) => {
+                    e.stopPropagation();
+                    handleRemove(item[valueKey]);
+                  }}
+                />
+              ))
+            )}
+          </div>
+        </OverlayScroll>
 
         {/* ── Table area ── */}
         <div className="p-4">

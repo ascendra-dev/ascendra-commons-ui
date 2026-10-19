@@ -35,6 +35,7 @@ export * from './components/ui/item';
 export * from './components/ui/color-picker';
 export * from './components/ui/command-palette';
 export * from './components/ui/popup-layer';
+export * from './components/ui/overlay-scroll';
 export * from './components/ui/progress';
 export * from './components/ui/radio-group';
 export * from './components/ui/rich-text-editor';

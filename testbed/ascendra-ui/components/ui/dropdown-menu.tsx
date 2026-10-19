@@ -5,7 +5,20 @@ import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 
 import { cn } from "@/ascendra-ui/shadcn";
 import { PopupLayer, usePopupTopInset, usePopupZIndex } from "./popup-layer";
+import { OverlayScroll } from "./overlay-scroll";
 import { CheckIcon, ChevronRightIcon } from "lucide-react";
+
+const PADDING_CLASS = /^(?:[^:\s]+:)*!?p[xytrblse]?-/;
+
+/** Splits padding utilities (p-*, px-*, sm:py-*, …) off a className: [padding, everything else]. */
+function splitPaddingClasses(className?: string): [string, string] {
+  const padding: string[] = [];
+  const rest: string[] = [];
+  for (const c of className?.split(/\s+/) ?? []) {
+    if (c) (PADDING_CLASS.test(c) ? padding : rest).push(c);
+  }
+  return [padding.join(" "), rest.join(" ")];
+}
 
 /** Non-modal by default, so the page keeps scrolling while a menu is open — pass `modal` to lock it. */
 function DropdownMenu({
@@ -45,6 +58,7 @@ function DropdownMenuContent({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
   const z = usePopupZIndex();
   const topInset = usePopupTopInset();
+  const [paddingClasses, panelClasses] = splitPaddingClasses(className);
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
@@ -53,13 +67,19 @@ function DropdownMenuContent({
         align={align}
         collisionPadding={collisionPadding ?? { top: topInset }}
         className={cn(
-          "text-popover-foreground bg-secondary ring-foreground/10 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 max-h-(--radix-dropdown-menu-content-available-height) w-(--radix-dropdown-menu-trigger-width) min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-lg p-1 shadow-[0_16px_36px_-6px_rgba(0,0,0,0.07),0_6px_16px_-2px_rgba(0,0,0,0.2)] ring-1 duration-100 data-[state=closed]:overflow-hidden",
-          className,
+          "text-popover-foreground bg-secondary ring-foreground/10 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 max-h-(--radix-dropdown-menu-content-available-height) w-(--radix-dropdown-menu-trigger-width) min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) flex flex-col overflow-hidden rounded-lg shadow-[0_16px_36px_-6px_rgba(0,0,0,0.07),0_6px_16px_-2px_rgba(0,0,0,0.2)] ring-1 duration-100 data-[state=closed]:overflow-hidden",
+          panelClasses,
         )}
         style={{ zIndex: z, ...style }}
         {...props}
       >
-        <PopupLayer z={z}>{children}</PopupLayer>
+        {/* Padding sits inside the scroll area, so separators bleeding into it (-mx-1) don't overflow sideways;
+            padding classes passed in className land here too. */}
+        <OverlayScroll className="flex-1">
+          <div className={cn("p-1", paddingClasses)}>
+            <PopupLayer z={z}>{children}</PopupLayer>
+          </div>
+        </OverlayScroll>
       </DropdownMenuPrimitive.Content>
     </DropdownMenuPrimitive.Portal>
   );
