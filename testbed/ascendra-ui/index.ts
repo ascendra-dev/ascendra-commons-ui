@@ -197,6 +197,7 @@ export * from './components/charts/chart-target-legend';
 
 // Hooks
 export * from './hooks/use-is-small-screen';
+export * from './hooks/use-overlay-scrollbars';
 
 // Providers
 export * from './providers/data-table/data-table.types';

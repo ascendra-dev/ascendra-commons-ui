@@ -1,0 +1,20 @@
+/* Theme for useOverlayScrollbars: 10px grab area, 4px visible thumb, 12px clear of each end. */
+.os-theme-ascendra {
+  --os-size: 10px;
+  --os-padding-perpendicular: 3px;
+  --os-padding-axis: 12px;
+  --os-track-border-radius: 9999px;
+  --os-handle-border-radius: 9999px;
+  --os-handle-min-size: 32px;
+  --os-handle-interactive-area-offset: 3px;
+  --os-handle-bg: rgba(0, 0, 0, 0.25);
+  --os-handle-bg-hover: rgba(0, 0, 0, 0.4);
+  --os-handle-bg-active: rgba(0, 0, 0, 0.4);
+  /* Above rows that create their own stacking context (TableBody is isolated). */
+  z-index: 10;
+}
+.dark .os-theme-ascendra {
+  --os-handle-bg: rgba(255, 255, 255, 0.25);
+  --os-handle-bg-hover: rgba(255, 255, 255, 0.4);
+  --os-handle-bg-active: rgba(255, 255, 255, 0.4);
+}

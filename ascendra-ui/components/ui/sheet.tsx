@@ -4,6 +4,7 @@ import * as React from "react";
 import { Dialog as SheetPrimitive } from "radix-ui";
 import { X } from "lucide-react";
 import { cn } from "@/ascendra-ui/shadcn";
+import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars";
 import { OverlayPopupLayer } from "./popup-layer";
 import {
   TabsContext,
@@ -218,13 +219,24 @@ function SheetDescription({
   );
 }
 
-function SheetBody({ className, ...props }: React.ComponentProps<"div">) {
+function SheetBody({ className, ref, ...props }: React.ComponentProps<"div">) {
+  const hostRef = React.useRef<HTMLDivElement>(null);
+  const viewportRef = React.useRef<HTMLDivElement>(null);
+  React.useImperativeHandle(ref, () => viewportRef.current!);
+  useOverlayScrollbars(hostRef, viewportRef, { y: "scroll" });
   return (
-    <div
-      data-slot="sheet-body"
-      className={cn("flex-1 overflow-y-auto px-6 py-5", className)}
-      {...props}
-    />
+    <div ref={hostRef} className="flex min-h-0 flex-1 flex-col">
+      <div
+        ref={viewportRef}
+        data-slot="sheet-body"
+        // hides the native scrollbar until useOverlayScrollbars takes over
+        data-overlayscrollbars-initialize=""
+        className="min-h-0 flex-1 overflow-y-auto"
+      >
+        {/* Padding lives here: the library resets the viewport's own. */}
+        <div className={cn("px-6 py-5", className)} {...props} />
+      </div>
+    </div>
   );
 }
 
