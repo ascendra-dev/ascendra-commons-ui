@@ -181,15 +181,36 @@ function TableBody({
   border,
   bg,
   className,
+  ref,
   ...props
 }: React.ComponentProps<"tbody"> & { border?: BorderConfig; bg?: BgConfig }) {
+  const bodyRef = React.useRef<HTMLTableSectionElement>(null);
+  React.useImperativeHandle(ref, () => bodyRef.current!);
+
+  // Safari resolves the card's `bottom: 0` against the whole table (header included), so the card ran past
+  // the last row and the scroll wrapper clipped its bottom edge and shadow. Size it to the body's own height.
+  React.useLayoutEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const measure = () => {
+      el.style.setProperty("--body-h", `${el.getBoundingClientRect().height}px`);
+      el.setAttribute("data-measured", "");
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <tbody
+      ref={bodyRef}
       data-slot="table-body"
       className={cn(
         "relative isolate transform-[translate(0)]",
         !bg && "before:bg-background",
         "before:absolute before:inset-0 before:-z-10 before:mx-1 before:rounded-lg",
+        "data-measured:before:bottom-auto data-measured:before:h-(--body-h)",
         "before:ring-1 before:ring-(--color-umbra)/4 dark:before:ring-black/20",
         "before:shadow-[0_1px_2px_0_rgba(25,28,33,0.06),0_0_2px_0_rgba(0,0,0,0.08)]",
         "dark:before:shadow-[inset_0_0_1px_1px_rgba(255,255,255,0.01),0_1px_3px_0_rgba(0,0,0,2),0_0_3px_0_rgba(0,0,0,0.2)",
