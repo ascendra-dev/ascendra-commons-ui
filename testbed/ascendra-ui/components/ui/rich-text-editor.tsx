@@ -14,6 +14,7 @@ import {
   Strikethrough,
 } from "lucide-react";
 import { cn } from "@/ascendra-ui/shadcn";
+import { OverlayScroll } from "./overlay-scroll";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -210,30 +211,31 @@ export function RichTextEditor({
         </div>
       )}
 
-      {/* Editor area */}
-      <EditorContent
-        editor={editor}
-        className={cn(
-          "px-3 py-2 text-sm text-foreground outline-none overflow-y-auto",
-          "[&_.tiptap]:outline-none [&_.tiptap]:min-h-[var(--rte-min-height)]",
-          "[&_.tiptap_p]:my-0 [&_.tiptap_p+p]:mt-1.5",
-          "[&_.tiptap_ul]:my-1 [&_.tiptap_ul]:pl-5 [&_.tiptap_ul]:list-disc",
-          "[&_.tiptap_ol]:my-1 [&_.tiptap_ol]:pl-5 [&_.tiptap_ol]:list-decimal",
-          "[&_.tiptap_li]:my-0.5",
-          "[&_.tiptap_.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]",
-          "[&_.tiptap_.is-editor-empty:first-child::before]:float-left",
-          "[&_.tiptap_.is-editor-empty:first-child::before]:h-0",
-          "[&_.tiptap_.is-editor-empty:first-child::before]:pointer-events-none",
-          "[&_.tiptap_.is-editor-empty:first-child::before]:text-muted-foreground",
-        )}
-        style={
-          {
-            "--rte-min-height": `${minHeight}px`,
-            minHeight: `${minHeight}px`,
-            maxHeight: `${maxHeight}px`,
-          } as React.CSSProperties
-        }
-      />
+      {/* Editor area — scrolls inside an OverlayScroll; Tiptap keeps its own element, padding included. */}
+      <OverlayScroll style={{ maxHeight: `${maxHeight}px` }}>
+        <EditorContent
+          editor={editor}
+          className={cn(
+            "px-3 py-2 text-sm text-foreground outline-none",
+            "[&_.tiptap]:outline-none [&_.tiptap]:min-h-[var(--rte-min-height)]",
+            "[&_.tiptap_p]:my-0 [&_.tiptap_p+p]:mt-1.5",
+            "[&_.tiptap_ul]:my-1 [&_.tiptap_ul]:pl-5 [&_.tiptap_ul]:list-disc",
+            "[&_.tiptap_ol]:my-1 [&_.tiptap_ol]:pl-5 [&_.tiptap_ol]:list-decimal",
+            "[&_.tiptap_li]:my-0.5",
+            "[&_.tiptap_.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]",
+            "[&_.tiptap_.is-editor-empty:first-child::before]:float-left",
+            "[&_.tiptap_.is-editor-empty:first-child::before]:h-0",
+            "[&_.tiptap_.is-editor-empty:first-child::before]:pointer-events-none",
+            "[&_.tiptap_.is-editor-empty:first-child::before]:text-muted-foreground",
+          )}
+          style={
+            {
+              "--rte-min-height": `${minHeight}px`,
+              minHeight: `${minHeight}px`,
+            } as React.CSSProperties
+          }
+        />
+      </OverlayScroll>
     </div>
   );
 }
