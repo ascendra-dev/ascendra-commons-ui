@@ -78,9 +78,11 @@ export const tableCardFrameClasses = cn(
   "[&>.os-scrollbar-vertical]:top-10!",
 );
 
-/** Clips the scroll viewport at the card's sides, so scrolled cells never slide out over the layer. */
+/** Clips the scroll viewport at the card's sides, so scrolled cells never slide out over the layer. No vertical
+ *  overscroll: the whole table scrolls (one table — the header is sticky inside it), so a bounce at either end would
+ *  move the header too. Also means a wheel at the table's top/bottom doesn't carry on to the page. */
 export const tableCardViewportClasses =
-  "relative z-1 [clip-path:inset(0_4px_round_var(--radius-lg))]";
+  "relative z-1 overscroll-y-none [clip-path:inset(0_4px_round_var(--radius-lg))]";
 
 /** The <table> itself — the mb-px is the room under the card for its bottom ring, see tableCardFrameClasses. */
 export const tableClasses = "mb-px w-full border-separate border-spacing-0";
