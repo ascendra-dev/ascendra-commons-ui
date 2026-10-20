@@ -10,6 +10,8 @@ const machine = os.hostname().toLowerCase().replace(/\.local$/, "");
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  // Next 16.4+ writes an AGENTS.md on `next dev` when an AI agent starts it — keep the tree clean.
+  agentRules: false,
   // Dev only: let the app be opened by machine name — Tailscale (<machine>, <machine>.<tailnet>.ts.net), Bonjour
   // (<machine>.local) — not just localhost. Without it the dev server refuses live reload from those hosts.
   allowedDevOrigins: ["*.ts.net", "*.local", machine],
