@@ -16,7 +16,7 @@ import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars
 import { type PaginationState } from "@/ascendra-ui/providers/data-table/use-pagination.hook";
 import {
   buildBorderClasses,
-  buildBorderBeforeClasses,
+  buildBorderAfterClasses,
   buildBgBeforeClasses,
   type BorderConfig,
   type BgConfig,
@@ -255,7 +255,11 @@ function TableBody({
         "before:absolute before:inset-0 before:-z-10 before:mx-1 before:rounded-lg",
         "data-measured:before:bottom-auto data-measured:before:h-(--body-h)",
         "[&>tr:not(:last-child)>td]:border-border [&>tr:not(:last-child)>td]:border-b",
-        border && buildBorderBeforeClasses(border),
+        // The accent border sits on ::after, over the rows — on ::before (with the background) the row separators
+        // were drawn across a side stripe.
+        border && "after:pointer-events-none after:absolute after:inset-0 after:mx-1 after:rounded-lg",
+        border && "data-measured:after:bottom-auto data-measured:after:h-(--body-h)",
+        border && buildBorderAfterClasses(border),
         bg && buildBgBeforeClasses(bg),
         className,
       )}

@@ -128,66 +128,66 @@ const BG_TO: Record<BgTo, string> = {
   slate: "to-slate-500/60",
 };
 
-// ─── before: pseudo-element lookups ─────────────────────────────────────────
+// ─── Pseudo-element lookups (TableBody: border on after:, over the rows; bg on before:, behind them) ───
 
-const BEFORE_BORDER_WIDTH: Record<BorderSide, Record<BorderStroke, string>> = {
-  t: { 1: "before:border-t", 2: "before:border-t-2", 3: "before:border-t-[3px]" },
-  l: { 1: "before:border-l", 2: "before:border-l-2", 3: "before:border-l-[3px]" },
-  r: { 1: "before:border-r", 2: "before:border-r-2", 3: "before:border-r-[3px]" },
-  b: { 1: "before:border-b", 2: "before:border-b-2", 3: "before:border-b-[3px]" },
-  all: { 1: "before:border", 2: "before:border-2", 3: "before:border-[3px]" },
+const AFTER_BORDER_WIDTH: Record<BorderSide, Record<BorderStroke, string>> = {
+  t: { 1: "after:border-t", 2: "after:border-t-2", 3: "after:border-t-[3px]" },
+  l: { 1: "after:border-l", 2: "after:border-l-2", 3: "after:border-l-[3px]" },
+  r: { 1: "after:border-r", 2: "after:border-r-2", 3: "after:border-r-[3px]" },
+  b: { 1: "after:border-b", 2: "after:border-b-2", 3: "after:border-b-[3px]" },
+  all: { 1: "after:border", 2: "after:border-2", 3: "after:border-[3px]" },
 };
 
-const BEFORE_BORDER_COLOR: Record<BorderSide, Record<AccentColor, string>> = {
+const AFTER_BORDER_COLOR: Record<BorderSide, Record<AccentColor, string>> = {
   t: {
-    blue: "before:border-t-blue-500/60",
-    amber: "before:border-t-amber-500/60",
-    purple: "before:border-t-purple-500/60",
-    red: "before:border-t-red-500/60",
-    teal: "before:border-t-teal-500/60",
-    orange: "before:border-t-orange-500/60",
-    indigo: "before:border-t-indigo-500/60",
-    slate: "before:border-t-slate-500/60",
+    blue: "after:border-t-blue-500/60",
+    amber: "after:border-t-amber-500/60",
+    purple: "after:border-t-purple-500/60",
+    red: "after:border-t-red-500/60",
+    teal: "after:border-t-teal-500/60",
+    orange: "after:border-t-orange-500/60",
+    indigo: "after:border-t-indigo-500/60",
+    slate: "after:border-t-slate-500/60",
   },
   l: {
-    blue: "before:border-l-blue-500/60",
-    amber: "before:border-l-amber-500/60",
-    purple: "before:border-l-purple-500/60",
-    red: "before:border-l-red-500/60",
-    teal: "before:border-l-teal-500/60",
-    orange: "before:border-l-orange-500/60",
-    indigo: "before:border-l-indigo-500/60",
-    slate: "before:border-l-slate-500/60",
+    blue: "after:border-l-blue-500/60",
+    amber: "after:border-l-amber-500/60",
+    purple: "after:border-l-purple-500/60",
+    red: "after:border-l-red-500/60",
+    teal: "after:border-l-teal-500/60",
+    orange: "after:border-l-orange-500/60",
+    indigo: "after:border-l-indigo-500/60",
+    slate: "after:border-l-slate-500/60",
   },
   r: {
-    blue: "before:border-r-blue-500/60",
-    amber: "before:border-r-amber-500/60",
-    purple: "before:border-r-purple-500/60",
-    red: "before:border-r-red-500/60",
-    teal: "before:border-r-teal-500/60",
-    orange: "before:border-r-orange-500/60",
-    indigo: "before:border-r-indigo-500/60",
-    slate: "before:border-r-slate-500/60",
+    blue: "after:border-r-blue-500/60",
+    amber: "after:border-r-amber-500/60",
+    purple: "after:border-r-purple-500/60",
+    red: "after:border-r-red-500/60",
+    teal: "after:border-r-teal-500/60",
+    orange: "after:border-r-orange-500/60",
+    indigo: "after:border-r-indigo-500/60",
+    slate: "after:border-r-slate-500/60",
   },
   b: {
-    blue: "before:border-b-blue-500/60",
-    amber: "before:border-b-amber-500/60",
-    purple: "before:border-b-purple-500/60",
-    red: "before:border-b-red-500/60",
-    teal: "before:border-b-teal-500/60",
-    orange: "before:border-b-orange-500/60",
-    indigo: "before:border-b-indigo-500/60",
-    slate: "before:border-b-slate-500/60",
+    blue: "after:border-b-blue-500/60",
+    amber: "after:border-b-amber-500/60",
+    purple: "after:border-b-purple-500/60",
+    red: "after:border-b-red-500/60",
+    teal: "after:border-b-teal-500/60",
+    orange: "after:border-b-orange-500/60",
+    indigo: "after:border-b-indigo-500/60",
+    slate: "after:border-b-slate-500/60",
   },
   all: {
-    blue: "before:border-blue-500/60",
-    amber: "before:border-amber-500/60",
-    purple: "before:border-purple-500/60",
-    red: "before:border-red-500/60",
-    teal: "before:border-teal-500/60",
-    orange: "before:border-orange-500/60",
-    indigo: "before:border-indigo-500/60",
-    slate: "before:border-slate-500/60",
+    blue: "after:border-blue-500/60",
+    amber: "after:border-amber-500/60",
+    purple: "after:border-purple-500/60",
+    red: "after:border-red-500/60",
+    teal: "after:border-teal-500/60",
+    orange: "after:border-orange-500/60",
+    indigo: "after:border-indigo-500/60",
+    slate: "after:border-slate-500/60",
   },
 };
 
@@ -282,13 +282,13 @@ export function buildBorderClasses(border: BorderConfig): string {
   ].join(" ");
 }
 
-export function buildBorderBeforeClasses(border: BorderConfig): string {
+export function buildBorderAfterClasses(border: BorderConfig): string {
   const side = border.side ?? "t";
   const stroke = border.stroke ?? 3;
   const color = border.color ?? "orange";
   return [
-    BEFORE_BORDER_WIDTH[side][stroke],
-    BEFORE_BORDER_COLOR[side][color],
+    AFTER_BORDER_WIDTH[side][stroke],
+    AFTER_BORDER_COLOR[side][color],
   ].join(" ");
 }
 
