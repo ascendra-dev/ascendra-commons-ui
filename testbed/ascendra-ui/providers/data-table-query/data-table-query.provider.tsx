@@ -244,8 +244,13 @@ export function DataTableQueryProvider<T = unknown>({
     };
   }, [urlKey]);
 
-  // Read localStorage and the URL after mount
+  // Read localStorage and the URL after mount — once. React's dev Strict Mode runs a mount effect twice, and the second
+  // pass found the URL trigger already stripped and restored the stored last run over it: the trigger's results showed
+  // under the stored query's name. Refs survive that re-run, so the guard holds.
+  const initializedRef = useRef(false);
   useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
     if (tableId) {
       const stored = readTablePreferences(tableId);
 
