@@ -37,6 +37,10 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
   { key: 'application', label: 'Application', active: false },
 ];
 
+/** The list's query ids — for a link or row action that runs one (`auditLogLinks.list({ queryId, params })`,
+ *  `DataTableRunQueryAction`). */
+export const auditQueryIds = { recent: 'recent', advancedFilter: 'advanced-filter' } as const;
+
 /**
  * Two scenarios, not five — audit-logging.api/mocks.html's own filter bar
  * shows every /audit/events filter available at once, not as mutually-exclusive
@@ -83,13 +87,13 @@ export const auditEventColumns: ColumnDef<AuditEvent>[] = [
  */
 export const auditQueryDefs: QueryDef[] = [
   {
-    id: 'recent',
+    id: auditQueryIds.recent,
     title: 'Recent Events',
     description: 'Newest audit records first, no filters applied.',
     group: 'query',
   },
   {
-    id: 'advanced-filter',
+    id: auditQueryIds.advancedFilter,
     title: 'Advanced Filter',
     description: 'Filter audit events by any combination of the fields below.',
     group: 'filter',
@@ -165,7 +169,7 @@ const toOptions = (values: string[]) => [...new Set(values)].map((value) => ({ v
 export function auditFieldOptionsFor(catalog: AuditCatalog): FieldOptionsMap {
   const { entries, applications } = catalog;
   return {
-    'advanced-filter': {
+    [auditQueryIds.advancedFilter]: {
       entityType: toOptions(entries.map((e) => e.entityType)),
       action: (values) => {
         const matching = values.entityType ? entries.filter((e) => e.entityType === values.entityType) : entries;

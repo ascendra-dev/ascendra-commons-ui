@@ -1,3 +1,5 @@
+import { buildQuerySearch, type TriggerParams } from '@/ascendra-ui';
+
 /**
  * Fixed base path (`/observability/audit`) — matches where
  * `packages/observability` (the shell) mounts this module's pages by
@@ -14,6 +16,9 @@
  */
 export const auditLogLinks = {
   overview: () => '/observability/audit',
-  list: () => '/observability/audit/events',
+  /** With a run — a query id from `auditQueryIds` and its params — the list runs it on load (ascendra-ui's
+   *  `buildQuerySearch`); without one it shows the table's last run. */
+  list: (run?: { queryId: string; params?: TriggerParams }) =>
+    run ? `/observability/audit/events?${buildQuerySearch(run.queryId, run.params)}` : '/observability/audit/events',
   retention: () => '/observability/audit/retention',
 };

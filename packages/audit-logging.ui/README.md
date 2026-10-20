@@ -14,12 +14,17 @@ Admin/observability UI for `ascendra-commons`' `audit-logging.api`.
   and Retention & Volume. **Two independent queries**, one per endpoint:
   `auditApi.overviewStats()` (`GET /audit/stats/overview` — KPIs + chart) and
   `auditApi.topActions()` (`GET /audit/stats/top-actions`), so a slow table
-  never holds back the KPIs and vice versa.
+  never holds back the KPIs and vice versa. The two Records tiles, each bar
+  and each Top actions row open the list on exactly what they counted (see
+  "Dashboard → list links" below); the distinct-count tiles don't link.
 - **`AuditLogListScreen`** — the primary filterable feed (`GET /audit/events`).
   Two data-table-lab query scenarios: `Recent` (no filters) and `Advanced
   Filter` (every `AuditQuery` field combinable at once, not five
   mutually-exclusive presets — see hard-instructions.md AUI-006). Includes
-  search highlighting, copy-to-clipboard on ids, and a CSV export button.
+  search highlighting and a CSV export button. Row actions are drill-downs —
+  Filter by actor / action / entity / correlation, each a fresh Advanced
+  Filter run (`DataTableRunQueryAction`) over its default 90 days; tenant and
+  application are left to the form. Ids are copied from the record's sheet.
 - **`AuditEventDetailScreen`** — one record plus its field-level diff, as a
   `Sheet` (not a page — see AUI-003). Reached only by clicking a row
   (`GET /audit/events/:id`).
@@ -63,6 +68,16 @@ back with `auditActionLabel()` (`display.ts`): the list's one Action column
 sheet, both timelines, Top actions and the actor sheet's By action table.
 Display only — the filters (Entity type, Action, Entity ID), the API and the
 CSV export keep the fields separate.
+
+**Dashboard → list links carry the exact window they counted.**
+`auditLogLinks.list({ queryId, params })` (`auditQueryIds` for the id; built
+with ascendra-ui's `buildQuerySearch`) opens the list running that query. The
+dashboard's numbers aren't the form's local calendar days — the KPIs and Top
+actions are rolling windows (`now − 24h`, `now − 7d`), the chart's bars UTC
+days — so each link passes exact ISO instants as `occurredRange`, anchored to
+when its numbers were fetched (`dataUpdatedAt`; never render time, which
+breaks hydration). The list then shows exactly the number that was clicked;
+its form shows the range as dates only.
 
 **`links.ts` hardcodes `/observability/audit` as the base path** — where
 `packages/observability` mounts it. A per-vertical configurable base is

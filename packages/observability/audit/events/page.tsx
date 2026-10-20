@@ -10,7 +10,6 @@ import {
   DataTableBody,
   DataTableCell,
   DataTableColumnManager,
-  DataTableCopyValueAction,
   DataTableEmptyBody,
   DataTableErrorBody,
   DataTableExportButton,
@@ -25,6 +24,7 @@ import {
   DataTableLoadingBody,
   DataTableRow,
   DataTableRowAction,
+  DataTableRunQueryAction,
   DataTableSearchInput,
   DataTableSheetNavigator,
   DataTableSortDropdown,
@@ -53,6 +53,7 @@ import {
   auditFieldOptionsFor,
   auditListViewFor,
   auditQueryFunctions,
+  auditQueryIds,
 } from '@/ascendra-commons-ui/audit-logging.ui/queries';
 import { auditApi, type AuditCatalog, type AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { auditActionLabel } from '@/ascendra-commons-ui/audit-logging.ui/display';
@@ -280,17 +281,27 @@ export default function AuditLogListPage() {
                           <DataTableRowAction>
                             <DropdownMenuLabel>Row actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DataTableCopyValueAction
-                              title="Copy Entity ID"
-                              value={row.entityId}
+                            {/* A fresh Advanced Filter run on this row's value, over the filter's default range (the past
+                                90 days). The ids are copyable in the record's sheet. */}
+                            <DataTableRunQueryAction
+                              title="Filter by actor"
+                              queryId={auditQueryIds.advancedFilter}
+                              params={{ actor: row.actor }}
                             />
-                            <DataTableCopyValueAction
-                              title="Copy Correlation ID"
-                              value={row.correlationId}
+                            <DataTableRunQueryAction
+                              title="Filter by action"
+                              queryId={auditQueryIds.advancedFilter}
+                              params={{ entityType: row.entityType, action: row.action }}
                             />
-                            <DataTableCopyValueAction
-                              title="Copy Row ID"
-                              value={row.id}
+                            <DataTableRunQueryAction
+                              title="Filter by entity"
+                              queryId={auditQueryIds.advancedFilter}
+                              params={{ entityType: row.entityType, entityId: row.entityId }}
+                            />
+                            <DataTableRunQueryAction
+                              title="Filter by correlation"
+                              queryId={auditQueryIds.advancedFilter}
+                              params={{ correlationId: row.correlationId }}
                             />
                           </DataTableRowAction>
                         </DataTableRow>

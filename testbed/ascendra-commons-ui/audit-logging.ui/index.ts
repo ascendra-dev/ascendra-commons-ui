@@ -20,4 +20,5 @@ export {
   auditListViewFor,
   auditQueryDefs,
   auditQueryFunctions,
+  auditQueryIds,
 } from './queries';

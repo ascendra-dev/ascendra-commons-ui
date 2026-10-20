@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -40,6 +41,7 @@ import {
   TableWrapper,
   WithError,
   WithSkeleton,
+  type TriggerParams,
 } from "@/ascendra-ui";
 import {
   ChartContainer,
@@ -48,9 +50,10 @@ import {
   type ChartConfig,
 } from "@/ascendra-ui/shadcn";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { LuDatabase } from "react-icons/lu";
+import { LuArrowUpRight, LuDatabase } from "react-icons/lu";
 import { auditLogLinks } from "@/ascendra-commons-ui/audit-logging.ui/links";
 import { auditActionLabel } from "@/ascendra-commons-ui/audit-logging.ui/display";
+import { auditQueryIds } from "@/ascendra-commons-ui/audit-logging.ui/queries";
 import {
   auditApi,
   type AuditOverviewStats,
@@ -68,17 +71,52 @@ const chartConfig: ChartConfig = {
   count: { label: "Records", color: "var(--chart-1)" },
 };
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * The list, filtered by Advanced Filter to records that occurred from `from` on, plus any other of its fields. Exact
+ * instants, not the form's local calendar days: the KPIs and Top actions are rolling windows and the chart's bars are
+ * UTC days, so a link has to carry the same window for the list to show the number that was clicked. `to` is the
+ * range's last day, and the list ends it a day later — so a rolling window passes "now" (nothing occurred after it),
+ * and a UTC day passes its own start as both ends.
+ */
+function eventsLink(from: Date, to: Date, fields: TriggerParams = {}) {
+  return auditLogLinks.list({
+    queryId: auditQueryIds.advancedFilter,
+    params: { ...fields, occurredRange: { from, to } },
+  });
+}
+
+/**
+ * Records from the past `days` (rolling) as of `asOf` — when the numbers were fetched (a query's `dataUpdatedAt`), so the
+ * list's window is the one they were counted over. Never render time: that differs between the server render and
+ * hydration, so the link's href wouldn't match.
+ */
+const recentEventsLink = (asOf: number, days: number, fields?: TriggerParams) =>
+  eventsLink(new Date(asOf - days * DAY_MS), new Date(asOf), fields);
+
+/** One of the chart's UTC days (`YYYY-MM-DD`). */
+const utcDayEventsLink = (day: string) => {
+  const start = new Date(`${day}T00:00:00Z`);
+  return eventsLink(start, start);
+};
+
+/** Top actions' window — the same "7d" the query fetches with. */
+const TOP_ACTIONS_DAYS = 7;
+
 /** Static per-tile copy — never depends on fetched data, so it renders immediately regardless of loading state. Only `value`/`deltaPct` (looked up by `key`) come from the query. */
 const KPI_DEFS = [
   {
     key: "records24h",
     label: "Records (past 24 hours)",
     comparedTo: "vs. prior 24 hours",
+    linkDays: 1,
   },
   {
     key: "records7d",
     label: "Records (past 7 days)",
     comparedTo: "vs. prior 7 days",
+    linkDays: 7,
   },
   {
     key: "distinctActors30d",
@@ -94,6 +132,9 @@ const KPI_DEFS = [
   key: keyof AuditStatsKpis;
   label: string;
   comparedTo: string;
+  /** Records tiles open the list for their window. The distinct-count tiles don't link: they count actors / entity
+   *  types, and the list shows records — a link couldn't show what they count. */
+  linkDays?: number;
 }>;
 
 /**
@@ -132,12 +173,17 @@ export default function AuditOverviewPage() {
 
   const topActions = useQuery({
     queryKey: ["audit-top-actions"],
-    queryFn: () => fetchTopActions("7d"),
+    queryFn: () => fetchTopActions(`${TOP_ACTIONS_DAYS}d`),
   });
 
   const kpiRows = KPI_DEFS.map((def) => {
     const kpi = overview.data?.kpis[def.key];
-    return { ...def, kpi, up: (kpi?.deltaPct ?? 0) >= 0 };
+    // Linked once the numbers are in — until then there's nothing to open.
+    const href =
+      "linkDays" in def && overview.data
+        ? recentEventsLink(overview.dataUpdatedAt, def.linkDays)
+        : undefined;
+    return { ...def, kpi, up: (kpi?.deltaPct ?? 0) >= 0, href };
   });
 
   const volumeSubtitle = overview.data
@@ -216,38 +262,57 @@ export default function AuditOverviewPage() {
           </ErrorState>
           <NormalState if={!overview.isError}>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {kpiRows.map((row) => (
-                <Card key={row.key} className="h-full">
-                  <CardPanel>
-                    <KpiTile>
-                      <KpiLabel>{row.label}</KpiLabel>
-                      <div className="mt-auto flex flex-col items-start gap-1 pt-4 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-2 lg:flex-col lg:items-start lg:gap-1 xl:flex-row xl:items-center xl:justify-between xl:gap-2">
-                        <WithSkeleton>
-                          <SkeletonState if={!row.kpi}>
-                            <Skeleton className="h-8 w-20" />
-                          </SkeletonState>
-                          <NormalState if={!!row.kpi}>
-                            <KpiValue>
-                              {formatCount(row.kpi?.value ?? 0)}
-                            </KpiValue>
-                            {row.kpi?.deltaPct == null ? (
-                              // The prior period was empty — a percentage would mean nothing.
-                              <SimpleBadge variant="secondary">new</SimpleBadge>
-                            ) : (
-                              <KpiTrend direction={row.up ? "up" : "down"}>
-                                {formatSignedPercent(row.kpi.deltaPct)}
-                              </KpiTrend>
-                            )}
-                          </NormalState>
-                        </WithSkeleton>
-                      </div>
-                      <KpiCaption className="mt-1 text-[0.6875rem] text-muted-foreground/60">
-                        {row.comparedTo}
-                      </KpiCaption>
-                    </KpiTile>
-                  </CardPanel>
-                </Card>
-              ))}
+              {kpiRows.map((row) => {
+                const tile = (
+                  <Card className="h-full">
+                    <CardPanel>
+                      <KpiTile>
+                        <KpiLabel className="flex items-center justify-between gap-2">
+                          {row.label}
+                          {row.href && (
+                            <LuArrowUpRight className="text-muted-foreground group-hover:text-foreground size-3.5 shrink-0 transition-colors" />
+                          )}
+                        </KpiLabel>
+                        <div className="mt-auto flex flex-col items-start gap-1 pt-4 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-2 lg:flex-col lg:items-start lg:gap-1 xl:flex-row xl:items-center xl:justify-between xl:gap-2">
+                          <WithSkeleton>
+                            <SkeletonState if={!row.kpi}>
+                              <Skeleton className="h-8 w-20" />
+                            </SkeletonState>
+                            <NormalState if={!!row.kpi}>
+                              <KpiValue>
+                                {formatCount(row.kpi?.value ?? 0)}
+                              </KpiValue>
+                              {row.kpi?.deltaPct == null ? (
+                                // The prior period was empty — a percentage would mean nothing.
+                                <SimpleBadge variant="secondary">new</SimpleBadge>
+                              ) : (
+                                <KpiTrend direction={row.up ? "up" : "down"}>
+                                  {formatSignedPercent(row.kpi.deltaPct)}
+                                </KpiTrend>
+                              )}
+                            </NormalState>
+                          </WithSkeleton>
+                        </div>
+                        <KpiCaption className="mt-1 text-[0.6875rem] text-muted-foreground/60">
+                          {row.comparedTo}
+                        </KpiCaption>
+                      </KpiTile>
+                    </CardPanel>
+                  </Card>
+                );
+                return row.href ? (
+                  <Link
+                    key={row.key}
+                    href={row.href}
+                    aria-label={`${row.label} — open in the Audit Log`}
+                    className="group focus-visible:outline-primary block h-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2"
+                  >
+                    {tile}
+                  </Link>
+                ) : (
+                  <div key={row.key} className="h-full">{tile}</div>
+                );
+              })}
             </div>
 
             <Card>
@@ -298,11 +363,15 @@ export default function AuditOverviewPage() {
                     <NormalState if={!!overview.data}>
                       <ChartContainer
                         config={chartConfig}
-                        className="h-56 w-full"
+                        className="h-56 w-full cursor-pointer"
                       >
+                        {/* A click anywhere in a day's column (not just its bar) opens that UTC day's records. */}
                         <BarChart
                           data={overview.data?.perDay ?? []}
                           margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
+                          onClick={(state) => {
+                            if (state.activeLabel != null) router.push(utcDayEventsLink(String(state.activeLabel)));
+                          }}
                         >
                           <CartesianGrid
                             vertical={false}
@@ -387,7 +456,18 @@ export default function AuditOverviewPage() {
                 {topActions.data && topActions.data.topActions.length > 0 && (
                   <TableBody>
                     {topActions.data.topActions.map((row) => (
-                      <TableRow key={`${row.entityType}/${row.action}`}>
+                      <TableRow
+                        key={`${row.entityType}/${row.action}`}
+                        className="cursor-pointer"
+                        onClick={() =>
+                          router.push(
+                            recentEventsLink(topActions.dataUpdatedAt, TOP_ACTIONS_DAYS, {
+                              entityType: row.entityType,
+                              action: row.action,
+                            }),
+                          )
+                        }
+                      >
                         <TableCell>
                           <SimpleBadge>{auditActionLabel(row)}</SimpleBadge>
                         </TableCell>
