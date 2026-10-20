@@ -1,4 +1,4 @@
-import { differenceInCalendarDays, formatDistanceToNow } from 'date-fns';
+import { differenceInCalendarDays, formatDistanceToNow, parseISO } from 'date-fns';
 
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -37,9 +37,18 @@ function formatAbsolute(date: Date, style: Exclude<DateFormatStyle, 'relative'>,
  * ago") that auto-falls-back to an absolute date past `relativeFallbackDays`
  * so an old timestamp never reads as "8 months ago".
  */
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** A string as a Date — a date-only one (`YYYY-MM-DD`) is a calendar day, read as local midnight: `new Date()` reads
+ *  it as UTC midnight, which west of UTC is the evening before (so "Sep 20" would show as Sep 19). */
+function toDate(value: string | Date): Date {
+  if (typeof value !== 'string') return value;
+  return DATE_ONLY.test(value) ? parseISO(value) : new Date(value);
+}
+
 export function formatDateTime(value: string | Date, options: FormatDateTimeOptions = {}): string {
   const { style = 'medium', time = false, relativeFallbackDays = 7 } = options;
-  const date = typeof value === 'string' ? new Date(value) : value;
+  const date = toDate(value);
 
   if (style === 'relative') {
     const daysOld = Math.abs(differenceInCalendarDays(new Date(), date));
