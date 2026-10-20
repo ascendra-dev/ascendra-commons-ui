@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/ascendra-ui/shadcn';
 import { useOverlayScrollbars } from '@/ascendra-ui/hooks/use-overlay-scrollbars';
+import { tableCardFrameClasses, tableCardViewportClasses, tableClasses } from '@/ascendra-ui/components/ui/table';
 
 export const DataTableScrollContext = React.createContext({
   scrolled: false,
@@ -45,16 +46,14 @@ export function DataTable({
     <DataTableScrollContext.Provider
       value={{ scrolled, vscroll: scrollable && vertical && !!height }}
     >
-      {/* The 1px under the table keeps the card's bottom ring inside the scroll clip; the library resets
-          the viewport's own padding/margin, so it sits on the table and the wrapper. */}
-      <div ref={hostRef} className={cn(scrollX && '-mb-px')}>
+      <div ref={hostRef} className={tableCardFrameClasses}>
         <div
           ref={ref}
           data-slot="table-wrapper"
           // hides the native scrollbar until useOverlayScrollbars takes over
           data-overlayscrollbars-initialize={scrollX || scrollY ? '' : undefined}
           className={cn(
-            '',
+            tableCardViewportClasses,
             scrollX && 'overflow-x-auto',
             scrollY && 'overflow-y-auto'
           )}
@@ -62,11 +61,7 @@ export function DataTable({
         >
           <table
             data-slot="table"
-            className={cn(
-              'w-full border-separate border-spacing-0',
-              scrollX && 'mb-px',
-              className
-            )}
+            className={cn(tableClasses, className)}
             {...props}
           />
         </div>

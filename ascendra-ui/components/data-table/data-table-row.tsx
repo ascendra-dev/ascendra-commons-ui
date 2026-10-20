@@ -19,7 +19,7 @@ export function DataTableRow({ className, children, active, ...props }: DataTabl
       data-active={active || undefined}
       aria-current={active || undefined}
       className={cn(
-        'group/row transition-colors [clip-path:inset(0_4px)] first:[clip-path:inset(0_4px_0_4px_round_8px_8px_0_0)] last:[clip-path:inset(0_4px_0_4px_round_0_0_8px_8px)] first:last:[clip-path:inset(0_4px_round_8px)] hover:bg-gray-700/4 data-active:bg-primary/8 data-active:hover:bg-primary/10',
+        'group/row transition-colors hover:bg-gray-700/4 data-active:bg-primary/8 data-active:hover:bg-primary/10',
         className
       )}
       {...props}

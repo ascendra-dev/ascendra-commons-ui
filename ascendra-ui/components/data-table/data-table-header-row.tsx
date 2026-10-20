@@ -11,7 +11,8 @@ export function DataTableHeaderRow({ className, children, ...props }: React.Comp
   return (
     <tr
       data-slot="table-header-row"
-      className={cn('text-secondary-foreground text-left text-xs', className)}
+      // A fixed height — the card frame starts right under it.
+      className={cn('text-secondary-foreground h-10 text-left text-xs [&>th]:py-0', className)}
       {...props}
     >
       {orderChildrenByColumn(columns, children)}

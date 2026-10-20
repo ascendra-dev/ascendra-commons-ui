@@ -5,7 +5,7 @@ import { cn } from '@/ascendra-ui/shadcn';
 import { DataTableScrollContext } from './data-table';
 
 export function DataTableHeader({
-  sticky = false,
+  sticky = true,
   className,
   ...props
 }: React.ComponentProps<'thead'> & { sticky?: boolean }) {

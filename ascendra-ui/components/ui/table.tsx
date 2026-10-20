@@ -63,6 +63,25 @@ function filterChildrenByColumns(
     .filter((c): c is React.ReactElement => c !== undefined);
 }
 
+/** The body card's ring and shadow, drawn on the non-scrolling host so all four edges stay put while the rows
+ *  scroll. Starts under the header row (fixed at h-10) and ends 1px above the host's bottom, so the scrollbar
+ *  library's overflow clip on the host keeps the bottom ring (the 1px comes from tableClasses' mb-px, taken back by
+ *  the host's -mb-px). The layer-coloured spread under the ring covers whatever scrolls into the rounded corners;
+ *  the clip-path trims it to a few px around the card. Drawn only with a body. */
+export const tableCardFrameClasses = cn(
+  "relative -mb-px",
+  "has-[tbody]:after:pointer-events-none has-[tbody]:after:absolute has-[tbody]:after:inset-x-1 has-[tbody]:after:top-10 has-[tbody]:after:bottom-px has-[tbody]:after:z-2 has-[tbody]:after:rounded-lg has-[tbody]:after:[clip-path:inset(-4px)]",
+  "has-[tbody]:after:ring-1 has-[tbody]:after:ring-(--color-umbra)/4 dark:has-[tbody]:after:ring-black/20",
+  "has-[tbody]:after:shadow-[0_1px_2px_0_rgba(25,28,33,0.06),0_0_2px_0_rgba(0,0,0,0.08),0_0_0_var(--radius-lg)_var(--muted)]",
+);
+
+/** Clips the scroll viewport at the card's sides, so scrolled cells never slide out over the layer. */
+export const tableCardViewportClasses =
+  "relative z-1 [clip-path:inset(0_4px_round_var(--radius-lg))]";
+
+/** The <table> itself — the mb-px is the room under the card for its bottom ring, see tableCardFrameClasses. */
+export const tableClasses = "mb-px w-full border-separate border-spacing-0";
+
 const TableScrollContext = React.createContext({
   scrolled: false,
   vscroll: false,
@@ -129,16 +148,14 @@ function Table({
     <TableScrollContext.Provider
       value={{ scrolled, vscroll: scrollable && vertical && !!height }}
     >
-      {/* The 1px under the table keeps the card's bottom ring inside the scroll clip; the library resets the
-          viewport's own padding/margin, so it sits on the table and the wrapper. */}
-      <div ref={hostRef} className={cn(scrollX && "-mb-px")}>
+      <div ref={hostRef} className={tableCardFrameClasses}>
         <div
           ref={ref}
           data-slot="table-container"
           // hides the native scrollbar until useOverlayScrollbars takes over
           data-overlayscrollbars-initialize={scrollX || scrollY ? "" : undefined}
           className={cn(
-            "",
+            tableCardViewportClasses,
             scrollX && "overflow-x-auto",
             scrollY && "overflow-y-auto",
           )}
@@ -146,11 +163,7 @@ function Table({
         >
           <table
             data-slot="table"
-            className={cn(
-              "w-full border-separate border-spacing-0",
-              scrollX && "mb-px",
-              className,
-            )}
+            className={cn(tableClasses, className)}
             {...props}
           />
         </div>
@@ -160,7 +173,7 @@ function Table({
 }
 
 function TableHeader({
-  sticky = false,
+  sticky = true,
   className,
   ...props
 }: React.ComponentProps<"thead"> & { sticky?: boolean }) {
@@ -191,7 +204,8 @@ function TableHeaderRow({
   return (
     <tr
       data-slot="table-header-row"
-      className={cn("text-secondary-foreground text-left text-xs", className)}
+      // A fixed height — the card frame starts right under it.
+      className={cn("text-secondary-foreground h-10 text-left text-xs [&>th]:py-0", className)}
       {...props}
     >
       {content}
@@ -233,9 +247,6 @@ function TableBody({
         !bg && "before:bg-background",
         "before:absolute before:inset-0 before:-z-10 before:mx-1 before:rounded-lg",
         "data-measured:before:bottom-auto data-measured:before:h-(--body-h)",
-        "before:ring-1 before:ring-(--color-umbra)/4 dark:before:ring-black/20",
-        "before:shadow-[0_1px_2px_0_rgba(25,28,33,0.06),0_0_2px_0_rgba(0,0,0,0.08)]",
-        "dark:before:shadow-[inset_0_0_1px_1px_rgba(255,255,255,0.01),0_1px_3px_0_rgba(0,0,0,2),0_0_3px_0_rgba(0,0,0,0.2)",
         "[&>tr:not(:last-child)>td]:border-border [&>tr:not(:last-child)>td]:border-b",
         border && buildBorderBeforeClasses(border),
         bg && buildBgBeforeClasses(bg),
@@ -290,7 +301,7 @@ function TableRow({
     <tr
       data-slot="table-row"
       className={cn(
-        "group/row transition-colors [clip-path:inset(0_4px)] first:[clip-path:inset(0_4px_0_4px_round_8px_8px_0_0)] last:[clip-path:inset(0_4px_0_4px_round_0_0_8px_8px)] first:last:[clip-path:inset(0_4px_round_8px)] hover:bg-gray-700/4",
+        "group/row transition-colors hover:bg-gray-700/4",
         className,
       )}
       {...props}
