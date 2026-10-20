@@ -79,12 +79,13 @@ export const tableCardFrameClasses = cn(
   "[&>.os-scrollbar-vertical]:top-10!",
 );
 
-/** Clips the scroll viewport at the card's sides, so scrolled cells never slide out over the layer. No overscroll on
- *  either axis: the whole table scrolls (one table — the header is sticky inside it), so a vertical bounce would move
- *  the header too, and horizontal matches. Also means a scroll at the table's ends doesn't carry on to the page (nor,
- *  sideways, into the browser's back/forward swipe). */
+/** Clips the scroll viewport at the card's sides, so scrolled cells never slide out over the layer. No sideways
+ *  overscroll (no bounce, no back/forward swipe from a table at its end). Vertical stays default on purpose: there's
+ *  no CSS for "chain to the page but don't bounce", and overscroll-y-none froze the page under any table — a
+ *  horizontal-only scroller is a vertical scroll container too. So a capped-height table's sticky header still
+ *  moves with the macOS bounce. */
 export const tableCardViewportClasses =
-  "relative z-1 overscroll-none [clip-path:inset(0_4px_round_var(--radius-lg))]";
+  "relative z-1 overscroll-x-none [clip-path:inset(0_4px_round_var(--radius-lg))]";
 
 /** The <table> itself — the mb-px is the room under the card for its bottom ring, see tableCardFrameClasses. */
 export const tableClasses = "mb-px w-full border-separate border-spacing-0";
