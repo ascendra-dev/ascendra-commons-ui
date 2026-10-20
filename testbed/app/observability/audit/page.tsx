@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Button,
   Card,
-  CardFooter,
   CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
@@ -422,7 +421,6 @@ export default function AuditOverviewPage() {
                 description="No audit activity in the past 7 days."
                 className="h-65"
               />
-              <CardFooter className="border-t-0 pt-0"></CardFooter>
             </TableWrapper>
           </div>
         </div>
