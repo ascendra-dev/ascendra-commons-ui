@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
+  BackLink,
   DataTable,
   DataTableBar,
   DataTableBarAction,
@@ -57,6 +58,7 @@ import {
 } from '@/ascendra-commons-ui/audit-logging.ui/queries';
 import { auditApi, type AuditCatalog, type AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { auditActionLabel } from '@/ascendra-commons-ui/audit-logging.ui/display';
+import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
 import { AuditEventDetailSheet } from './_audit-event-detail-sheet';
 import { AuditActorActivitySheet } from './_audit-actor-activity-sheet';
 import { AuditEntityHistorySheet } from './_audit-entity-history-sheet';
@@ -95,6 +97,7 @@ export default function AuditLogListPage() {
     <>
       <PageHeader>
         <PageHeaderGroup>
+          <BackLink href={auditLogLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Audit Log</PageTitle>
           <PageSubtitle>
             Every recorded change, who made it, and when.
