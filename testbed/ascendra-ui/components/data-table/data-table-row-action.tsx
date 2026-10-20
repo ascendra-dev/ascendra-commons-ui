@@ -8,8 +8,10 @@ import {
   DropdownMenuTrigger,
 } from '@/ascendra-ui/components/ui/dropdown-menu';
 import { RowActionButton } from '@/ascendra-ui/components/common-ui/row-action-button';
-import { LuCopy, LuEye, LuPencil, LuTrash2 } from 'react-icons/lu';
+import { LuCopy, LuEye, LuFilter, LuPencil, LuTrash2 } from 'react-icons/lu';
 import { copyToClipboard } from '@/ascendra-ui/utils/clipboard.util';
+import { useQueryContext } from '@/ascendra-ui/providers/data-table-query/data-table-query.provider';
+import type { TriggerParams } from '@/ascendra-ui/providers/data-table-query/data-table-query.types';
 
 interface RowActionContextValue {
   onAction?: (actionId: string) => void;
@@ -147,6 +149,35 @@ export function DataTableCopyValueAction({
       disabled={disabled}
       onSelect={() => void copyToClipboard(value)}
     >
+      {icon}
+      {title}
+    </DropdownMenuItem>
+  );
+}
+
+export interface DataTableRunQueryActionProps {
+  /** Menu item label. */
+  title: string;
+  /** The query, filter or trigger to run on this same table — a drill-down from the row. A fresh run: it replaces
+   *  whatever is showing. See runQuery on the query context. */
+  queryId: string;
+  /** Its field values; any left out fall back to the field's defaultValue. */
+  params?: TriggerParams;
+  icon?: React.ReactNode;
+  disabled?: boolean;
+}
+
+/** Runs a query on the table it's in. Needs a DataTableQueryProvider (DataTableWithQueryProvider) around it. */
+export function DataTableRunQueryAction({
+  title,
+  queryId,
+  params,
+  icon = <LuFilter />,
+  disabled,
+}: DataTableRunQueryActionProps) {
+  const { runQuery } = useQueryContext();
+  return (
+    <DropdownMenuItem disabled={disabled} onSelect={() => runQuery(queryId, params)}>
       {icon}
       {title}
     </DropdownMenuItem>
