@@ -67,10 +67,11 @@ function filterChildrenByColumns(
  *  scroll. Starts under the header row (fixed at h-10) and ends 1px above the host's bottom, so the scrollbar
  *  library's overflow clip on the host keeps the bottom ring (the 1px comes from tableClasses' mb-px, taken back by
  *  the host's -mb-px). The layer-coloured spread under the ring covers whatever scrolls into the rounded corners;
- *  the clip-path trims it to a few px around the card. Drawn only with a body. */
+ *  the clip-path trims it to 4px around the card, rounded like the layer's own corners (card radius + 4px) — square,
+ *  it filled the layer's rounded corners when the card sat at the layer's bottom. Drawn only with a body. */
 export const tableCardFrameClasses = cn(
   "relative -mb-px",
-  "has-[tbody]:after:pointer-events-none has-[tbody]:after:absolute has-[tbody]:after:inset-x-1 has-[tbody]:after:top-10 has-[tbody]:after:bottom-px has-[tbody]:after:z-2 has-[tbody]:after:rounded-lg has-[tbody]:after:[clip-path:inset(-4px)]",
+  "has-[tbody]:after:pointer-events-none has-[tbody]:after:absolute has-[tbody]:after:inset-x-1 has-[tbody]:after:top-10 has-[tbody]:after:bottom-px has-[tbody]:after:z-2 has-[tbody]:after:rounded-lg has-[tbody]:after:[clip-path:inset(-4px_round_calc(var(--radius-lg)+4px))]",
   "has-[tbody]:after:ring-1 has-[tbody]:after:ring-(--color-umbra)/4 dark:has-[tbody]:after:ring-black/20",
   "has-[tbody]:after:shadow-[0_1px_2px_0_rgba(25,28,33,0.06),0_0_2px_0_rgba(0,0,0,0.08),0_0_0_var(--radius-lg)_var(--muted)]",
   // The vertical scrollbar runs beside the rows only, not the sticky header. Important: the library's stylesheet
