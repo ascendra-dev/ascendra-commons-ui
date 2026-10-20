@@ -199,6 +199,9 @@ export interface QueryContextValue {
   totalBatches: number | null;
   /** False when totalBatches is a lower-bound estimate, not a known count — see QueryResult.totalBatchesExact. */
   totalBatchesExact: boolean;
+  /** Which button's batch is loading after a next/back step — the previous batch's rows stay showing meanwhile, and
+   *  isLoading stays false. Null otherwise, including a cached batch (it shows at once). */
+  batchLoading: 'next' | 'prev' | null;
   goNextBatch: () => void;
   goPrevBatch: () => void;
   fieldOptions: FieldOptionsMap;

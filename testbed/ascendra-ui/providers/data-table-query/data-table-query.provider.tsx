@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { hashKey, useQuery } from '@tanstack/react-query';
 import {
   readTablePreferences,
   writeQueryRunPreferences,
@@ -91,7 +91,9 @@ export function DataTableQueryProvider<T = unknown>({
   const [pendingQueryId, setPendingQueryId] = useState<string | null>(null);
   const [confirmedParamsState, setConfirmedParamsRaw] = useState<QueryParamValues | null>(null);
   const [mutedParams, setMutedParams] = useState<string[]>([]);
-  const [currentBatch, setCurrentBatch] = useState(1);
+  // `step` is set only by next/back — that's the one change that keeps the shown rows while the batch loads.
+  const [batch, setBatch] = useState<{ number: number; step: 'next' | 'prev' | null }>({ number: 1, step: null });
+  const currentBatch = batch.number;
   // Always starts true: the URL may name a query to run, and it has to be read before anything is fetched.
   const [isInitializing, setIsInitializing] = useState(true);
   // A trigger that couldn't run — shown in the error state instead of any results until another query is picked.
@@ -100,6 +102,11 @@ export function DataTableQueryProvider<T = unknown>({
   const [runBeforePending, setRunBeforePending] = useState<
     { params: QueryParamValues | null; muted: string[]; batch: number } | null
   >(null);
+
+  // Any batch change other than next/back — a new run, or a restored one — shows the loading state.
+  function setCurrentBatch(number: number) {
+    setBatch({ number, step: null });
+  }
 
   // Every new run starts unmuted — mutes belong to the run they were made on.
   function setConfirmedParamsState(params: QueryParamValues | null, muted: string[] = []) {
@@ -515,9 +522,13 @@ export function DataTableQueryProvider<T = unknown>({
   const enabled =
     !isInitializing && !triggerError && (!takesParams(confirmedQuery.group) || confirmedParamsState !== null);
 
-  const { data: queryData, isLoading, isError, error, refetch } = useQuery<QueryResult<T>, Error>({
-    queryKey: ['data-table', activeId, effectiveParams, currentBatch],
+  const runKey = ['data-table', activeId, effectiveParams];
+  const { data: queryData, isLoading, isError, error, refetch, isPlaceholderData } = useQuery<QueryResult<T>, Error>({
+    queryKey: [...runKey, currentBatch],
     queryFn: () => queryFn!(effectiveParams ?? {}, currentBatch),
+    // A next/back step keeps the previous batch showing until the new one arrives — only within the same run.
+    placeholderData: (previous, previousQuery) =>
+      batch.step && previousQuery && hashKey(previousQuery.queryKey.slice(0, -1)) === hashKey(runKey) ? previous : undefined,
     enabled: !!queryFn && enabled,
     // Only the options this query sets: an explicit `undefined` would override QueryProvider's defaults (a
     // `retry: undefined` meant React Query's own 3 retries, even for a 403).
@@ -528,18 +539,19 @@ export function DataTableQueryProvider<T = unknown>({
   const data = triggerError ? undefined : queryData;
   const totalBatches = data?.totalBatches ?? null;
   const totalBatchesExact = data?.totalBatchesExact ?? true;
+  const batchLoading = isPlaceholderData ? batch.step : null;
 
   const goNextBatch = useCallback(() => {
-    // No-op while the bound isn't known yet (e.g. a batch in flight) rather
-    // than incrementing unbounded — TableFoot also disables the button
-    // itself while loading, this is a defensive backstop for any other caller.
-    if (totalBatches === null) return;
-    setCurrentBatch((prev) => Math.min(totalBatches, prev + 1));
-  }, [totalBatches]);
+    // No-op while the bound isn't known yet (the run's first load) or a step is in flight —
+    // TableFoot also disables the buttons then, this is a backstop for any other caller.
+    if (totalBatches === null || batchLoading) return;
+    setBatch((prev) => (prev.number >= totalBatches ? prev : { number: prev.number + 1, step: 'next' }));
+  }, [totalBatches, batchLoading]);
 
   const goPrevBatch = useCallback(() => {
-    setCurrentBatch((prev) => Math.max(1, prev - 1));
-  }, []);
+    if (batchLoading) return;
+    setBatch((prev) => (prev.number <= 1 ? prev : { number: prev.number - 1, step: 'prev' }));
+  }, [batchLoading]);
 
   return (
     <QueryContext.Provider
@@ -570,6 +582,7 @@ export function DataTableQueryProvider<T = unknown>({
         currentBatch,
         totalBatches,
         totalBatchesExact,
+        batchLoading,
         goNextBatch,
         goPrevBatch,
         fieldOptions,

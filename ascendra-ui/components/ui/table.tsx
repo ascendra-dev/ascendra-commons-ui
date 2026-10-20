@@ -26,6 +26,7 @@ import {
   LuChevronLast,
   LuChevronLeft,
   LuChevronRight,
+  LuLoaderCircle,
 } from "react-icons/lu";
 
 export type ColVisibility = { key: PropertyKey; active?: boolean };
@@ -35,8 +36,10 @@ export type BatchState = {
   totalBatches: number | null;
   goNextBatch: () => void;
   goPrevBatch: () => void;
-  /** Disables both batch nav buttons while true — a batch in flight has totalBatches temporarily null, which would otherwise leave goNextBatch's bound unenforced. */
+  /** Disables both batch nav buttons while true — during a run's first load totalBatches is still null, which would otherwise leave goNextBatch's bound unenforced. */
   isLoading?: boolean;
+  /** The button whose batch is loading after a next/back step — it shows a spinner, and both buttons are disabled. */
+  loading?: "next" | "prev" | null;
   /** False when totalBatches is only a lower-bound estimate (cursor-walked) — the label then shows just the current batch. Defaults to true. */
   totalBatchesExact?: boolean;
 };
@@ -350,16 +353,20 @@ function TableFoot({
     ? `${pagination.currentPage}/${pagination.totalPages}`
     : "1/1";
 
-  const atFirstBatch = !batch || batch.currentBatch <= 1 || !!batch.isLoading;
+  const batchBusy = !!batch?.isLoading || !!batch?.loading;
+  const atFirstBatch = !batch || batch.currentBatch <= 1 || batchBusy;
   const atLastBatch =
     !batch ||
-    !!batch.isLoading ||
+    batchBusy ||
     (batch.totalBatches !== null && batch.currentBatch >= batch.totalBatches);
   const batchLabel = batch
     ? batch.totalBatches !== null && batch.totalBatchesExact !== false
       ? `${batch.currentBatch} / ${batch.totalBatches}`
       : `${batch.currentBatch}`
     : "";
+  const spinner = <LuLoaderCircle className="animate-spin" />;
+  const prevBatchIcon = batch?.loading === "prev" ? spinner : <LuChevronLeft />;
+  const nextBatchIcon = batch?.loading === "next" ? spinner : <LuChevronRight />;
 
   return (
     <footer
@@ -390,16 +397,18 @@ function TableFoot({
                   disabled={atFirstBatch}
                   className="border-0 bg-transparent disabled:opacity-40"
                   onClick={batch.goPrevBatch}
+                  aria-busy={batch.loading === "prev"}
                 >
-                  <LuChevronLeft />
+                  {prevBatchIcon}
                 </PaginationButton>
                 <span>{batchLabel}</span>
                 <PaginationButton
                   disabled={atLastBatch}
                   className="border-0 bg-transparent disabled:opacity-40"
                   onClick={batch.goNextBatch}
+                  aria-busy={batch.loading === "next"}
                 >
-                  <LuChevronRight />
+                  {nextBatchIcon}
                 </PaginationButton>
               </div>
             </div>
