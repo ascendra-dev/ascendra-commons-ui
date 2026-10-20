@@ -69,9 +69,16 @@ export const auditApi = {
     return api.get<ActorActivitySummary>(`/audit/actors/${encodeURIComponent(actor)}/activity`, query);
   },
 
-  /** GET /audit/stats/overview — KPI row + volume chart. A platform admin may pass tenantId (null = platform-level rows). */
-  overviewStats(window = '30d', tenantId?: string | null): Promise<AuditOverviewStats> {
-    return api.get<AuditOverviewStats>('/audit/stats/overview', statsParams(window, tenantId));
+  /**
+   * GET /audit/stats/overview — KPI row + volume chart. A platform admin may pass tenantId (null = platform-level rows).
+   * `timeZone` (IANA) is the zone the per-day volume is counted in — pass the viewer's, so each bar is a day on their
+   * calendar; the API defaults to UTC.
+   */
+  overviewStats(window = '30d', tenantId?: string | null, timeZone?: string): Promise<AuditOverviewStats> {
+    return api.get<AuditOverviewStats>('/audit/stats/overview', {
+      ...statsParams(window, tenantId),
+      ...(timeZone ? { tz: timeZone } : {}),
+    });
   },
 
   /** GET /audit/stats/top-actions — the 10 most frequent (entity type, action) pairs. Same tenantId convention. */

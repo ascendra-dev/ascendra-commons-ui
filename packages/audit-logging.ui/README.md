@@ -77,7 +77,10 @@ actions are rolling windows (`now − 24h`, `now − 7d`), the chart's bars UTC
 days — so each link passes exact ISO instants as `occurredRange`, anchored to
 when its numbers were fetched (`dataUpdatedAt`; never render time, which
 breaks hydration). The list then shows exactly the number that was clicked;
-its form shows the range as dates only.
+its form shows the range as dates only. The chart's days are the viewer's
+calendar days — `overviewStats` sends the browser's time zone (`tz`), the API
+buckets by it — so a bar links to its plain date, the same as picking that
+day in the form.
 
 **`links.ts` hardcodes `/observability/audit` as the base path** — where
 `packages/observability` mounts it. A per-vertical configurable base is

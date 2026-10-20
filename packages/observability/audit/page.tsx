@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -74,13 +75,13 @@ const chartConfig: ChartConfig = {
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * The list, filtered by Advanced Filter to records that occurred from `from` on, plus any other of its fields. Exact
- * instants, not the form's local calendar days: the KPIs and Top actions are rolling windows and the chart's bars are
- * UTC days, so a link has to carry the same window for the list to show the number that was clicked. `to` is the
- * range's last day, and the list ends it a day later — so a rolling window passes "now" (nothing occurred after it),
- * and a UTC day passes its own start as both ends.
+ * The list, filtered by Advanced Filter to records that occurred in `from`–`to`, plus any other of its fields — the
+ * same window the number clicked was counted over, so the list shows that number. `to` is the range's last day, and
+ * the list ends it a day later. A chart bar is a local calendar day (the overview is asked for the viewer's zone), so
+ * it passes the date itself as both ends — exactly what picking that day in the form does. The KPIs and Top actions
+ * are rolling windows, so they pass exact instants, ending "now" (nothing occurred after it).
  */
-function eventsLink(from: Date, to: Date, fields: TriggerParams = {}) {
+function eventsLink(from: Date | string, to: Date | string, fields: TriggerParams = {}) {
   return auditLogLinks.list({
     queryId: auditQueryIds.advancedFilter,
     params: { ...fields, occurredRange: { from, to } },
@@ -95,11 +96,11 @@ function eventsLink(from: Date, to: Date, fields: TriggerParams = {}) {
 const recentEventsLink = (asOf: number, days: number, fields?: TriggerParams) =>
   eventsLink(new Date(asOf - days * DAY_MS), new Date(asOf), fields);
 
-/** One of the chart's UTC days (`YYYY-MM-DD`). */
-const utcDayEventsLink = (day: string) => {
-  const start = new Date(`${day}T00:00:00Z`);
-  return eventsLink(start, start);
-};
+/** One of the chart's days (`YYYY-MM-DD`, the viewer's calendar). */
+const dayEventsLink = (day: string) => eventsLink(day, day);
+
+/** The viewer's IANA time zone — the overview counts its days in it. */
+const viewerTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 /** Top actions' window — the same "7d" the query fetches with. */
 const TOP_ACTIONS_DAYS = 7;
@@ -139,8 +140,8 @@ const KPI_DEFS = [
 
 /**
  * The volume chart's loading-state data — real day labels (the "past 30
- * days" window — 31 UTC days, as the API returns them — is knowable
- * client-side, independent of the fetch) paired
+ * days" window — 31 of the viewer's calendar days, as the API returns them —
+ * is knowable client-side, independent of the fetch) paired
  * with a flat placeholder count. A flat, equal value still renders real bar
  * shapes (unlike an all-zero placeholder, which renders zero-height, i.e.
  * invisible, bars) — styled muted + pulsing so it never reads as real data.
@@ -150,7 +151,7 @@ function buildPlaceholderPerDay(): AuditOverviewStats["perDay"] {
   return Array.from({ length: 31 }, (_, i) => {
     const d = new Date(today);
     d.setDate(d.getDate() - (30 - i));
-    return { day: d.toISOString().slice(0, 10), count: 1 };
+    return { day: format(d, "yyyy-MM-dd"), count: 1 };
   });
 }
 
@@ -168,7 +169,7 @@ export default function AuditOverviewPage() {
 
   const overview = useQuery({
     queryKey: ["audit-overview-stats"],
-    queryFn: () => fetchOverviewStats("30d"),
+    queryFn: () => fetchOverviewStats("30d", undefined, viewerTimeZone()),
   });
 
   const topActions = useQuery({
@@ -370,7 +371,7 @@ export default function AuditOverviewPage() {
                           data={overview.data?.perDay ?? []}
                           margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
                           onClick={(state) => {
-                            if (state.activeLabel != null) router.push(utcDayEventsLink(String(state.activeLabel)));
+                            if (state.activeLabel != null) router.push(dayEventsLink(String(state.activeLabel)));
                           }}
                         >
                           <CartesianGrid

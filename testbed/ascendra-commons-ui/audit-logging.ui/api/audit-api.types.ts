@@ -50,7 +50,7 @@ export interface AuditEventDetail extends AuditEvent {
 }
 
 export interface AuditDailyCount {
-  /** YYYY-MM-DD, UTC. */
+  /** YYYY-MM-DD — a calendar day in the time zone the overview was asked for (UTC by default). */
   day: string;
   count: number;
 }
