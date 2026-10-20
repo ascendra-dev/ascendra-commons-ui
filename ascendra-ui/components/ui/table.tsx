@@ -73,6 +73,9 @@ export const tableCardFrameClasses = cn(
   "has-[tbody]:after:pointer-events-none has-[tbody]:after:absolute has-[tbody]:after:inset-x-1 has-[tbody]:after:top-10 has-[tbody]:after:bottom-px has-[tbody]:after:z-2 has-[tbody]:after:rounded-lg has-[tbody]:after:[clip-path:inset(-4px)]",
   "has-[tbody]:after:ring-1 has-[tbody]:after:ring-(--color-umbra)/4 dark:has-[tbody]:after:ring-black/20",
   "has-[tbody]:after:shadow-[0_1px_2px_0_rgba(25,28,33,0.06),0_0_2px_0_rgba(0,0,0,0.08),0_0_0_var(--radius-lg)_var(--muted)]",
+  // The vertical scrollbar runs beside the rows only, not the sticky header. Important: the library's stylesheet
+  // is unlayered, so it beats any Tailwind utility.
+  "[&>.os-scrollbar-vertical]:top-10!",
 );
 
 /** Clips the scroll viewport at the card's sides, so scrolled cells never slide out over the layer. */
