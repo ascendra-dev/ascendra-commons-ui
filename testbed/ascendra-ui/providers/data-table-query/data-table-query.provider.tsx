@@ -214,6 +214,10 @@ export function DataTableQueryProvider<T = unknown>({
         confirmed = result.success ? (result.data as QueryParamValues) : merged;
         // Reopening a filter's form shows what was triggered — in memory only, the run is one-off.
         confirmedParamsCacheRef.current[query.id] = confirmed;
+        // A fresh run replaces whatever the form last held: an unsaved draft (kept when the form closes) outranks the
+        // run in getDraftValues, so a stale one would reopen the form on the run before — "Filter by correlation"
+        // showing the actor from a "Filter by actor" before it.
+        delete draftCacheRef.current[query.id];
       }
 
       setTriggerError(null);
