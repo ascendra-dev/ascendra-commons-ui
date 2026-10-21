@@ -221,15 +221,15 @@ export default function RateLimitOverviewPage() {
               <Table horizontal>
                 {/* The header row carries the list's title, not column labels — each row says what it is. */}
                 <TableHeader>
-                  <TableHeaderRow>
+                  <TableHeaderRow size="lg">
                     <TableHead colSpan={3}>
-                      <CardHeaderTitle >Rejections by route</CardHeaderTitle>
-                      <CardHeaderSubtitle >{period.label} · most first</CardHeaderSubtitle>
+                      <CardHeaderTitle>Rejections by route</CardHeaderTitle>
+                      <CardHeaderSubtitle>{period.label} · most first</CardHeaderSubtitle>
                     </TableHead>
                   </TableHeaderRow>
                 </TableHeader>
                 {routeRows.length > 0 && (
-                  <TableBody >
+                  <TableBody>
                     {routeRows.map((row) => (
                       <TableRow key={row.route} className="cursor-pointer" onClick={() => router.push(row.href)}>
                         <TableCell>
@@ -260,7 +260,7 @@ export default function RateLimitOverviewPage() {
             <TableWrapper>
               <Table horizontal>
                 <TableHeader>
-                  <TableHeaderRow>
+                  <TableHeaderRow size="lg">
                     <TableHead colSpan={2}>
                       <CardHeaderTitle>Top sources</CardHeaderTitle>
                       <CardHeaderSubtitle>
