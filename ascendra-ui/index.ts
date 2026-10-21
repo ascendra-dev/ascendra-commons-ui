@@ -41,7 +41,7 @@ export * from './components/ui/radio-group';
 export * from './components/ui/rich-text-editor';
 export * from './components/ui/skeleton';
 export * from './components/ui/stepper';
-export * from './components/ui/segmented-control';
+export * from './components/ui/segment-control';
 export * from './components/ui/select';
 export * from './components/ui/sheet';
 export * from './components/ui/sheet-navigator';

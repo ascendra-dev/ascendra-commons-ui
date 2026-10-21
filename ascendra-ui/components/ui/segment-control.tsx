@@ -3,18 +3,24 @@
 import * as React from 'react';
 import { cn } from '@/ascendra-ui/shadcn';
 
-interface SegmentedControlContextValue {
+export interface Segment {
+  value: string;
+  label: React.ReactNode;
+  disabled?: boolean;
+}
+
+interface SegmentControlContextValue {
   value: string;
   select: (value: string) => void;
   size: 'sm' | 'default';
   disabled?: boolean;
 }
 
-const SegmentedControlContext = React.createContext<SegmentedControlContextValue | null>(null);
+const SegmentControlContext = React.createContext<SegmentControlContextValue | null>(null);
 
-function useSegmentedControl() {
-  const context = React.useContext(SegmentedControlContext);
-  if (!context) throw new Error('SegmentedControlItem must be used inside <SegmentedControl>');
+function useSegmentControl() {
+  const context = React.useContext(SegmentControlContext);
+  if (!context) throw new Error('SegmentControlItem must be used inside <SegmentControl>');
   return context;
 }
 
@@ -22,8 +28,11 @@ function useSegmentedControl() {
  * One choice out of a few, all visible at once — a period (Past hour / 24 hours / 7 days), a view mode. A radio group:
  * the chosen segment is raised on a muted track, arrow keys move between segments. For switching between whole
  * panels of content use Tabs instead; this picks a value the page reads.
+ *
+ * Pass `segments` for plain labels; compose SegmentControlItem children instead for custom content (icons, counts).
  */
-function SegmentedControl({
+function SegmentControl({
+  segments,
   value: valueProp,
   defaultValue,
   onValueChange,
@@ -33,15 +42,17 @@ function SegmentedControl({
   children,
   ...props
 }: Omit<React.ComponentProps<'div'>, 'defaultValue' | 'onChange'> & {
+  /** The segments, in order — each rendered as a SegmentControlItem. Omit to compose items as children. */
+  segments?: readonly Segment[];
   /** The chosen segment (controlled). */
   value?: string;
-  /** The initially chosen segment (uncontrolled). */
+  /** The initially chosen segment (uncontrolled). Defaults to the first of `segments`. */
   defaultValue?: string;
   onValueChange?: (value: string) => void;
   size?: 'sm' | 'default';
   disabled?: boolean;
 }) {
-  const [uncontrolled, setUncontrolled] = React.useState(defaultValue ?? '');
+  const [uncontrolled, setUncontrolled] = React.useState(defaultValue ?? segments?.[0]?.value ?? '');
   const isControlled = valueProp !== undefined;
   const value = isControlled ? valueProp : uncontrolled;
   const ref = React.useRef<HTMLDivElement>(null);
@@ -66,11 +77,11 @@ function SegmentedControl({
   };
 
   return (
-    <SegmentedControlContext.Provider value={{ value, select, size, disabled }}>
+    <SegmentControlContext.Provider value={{ value, select, size, disabled }}>
       <div
         ref={ref}
         role="radiogroup"
-        data-slot="segmented-control"
+        data-slot="segment-control"
         aria-disabled={disabled || undefined}
         className={cn(
           'bg-muted inline-flex w-fit items-center gap-0.5 rounded-[0.5rem] p-0.5',
@@ -81,20 +92,26 @@ function SegmentedControl({
         onKeyDown={onKeyDown}
         {...props}
       >
-        {children}
+        {segments
+          ? segments.map((segment) => (
+              <SegmentControlItem key={segment.value} value={segment.value} disabled={segment.disabled}>
+                {segment.label}
+              </SegmentControlItem>
+            ))
+          : children}
       </div>
-    </SegmentedControlContext.Provider>
+    </SegmentControlContext.Provider>
   );
 }
 
-function SegmentedControlItem({
+function SegmentControlItem({
   value,
   disabled: disabledProp,
   className,
   children,
   ...props
 }: Omit<React.ComponentProps<'button'>, 'value' | 'type' | 'onClick'> & { value: string }) {
-  const { value: chosen, select, size, disabled: disabledCtx } = useSegmentedControl();
+  const { value: chosen, select, size, disabled: disabledCtx } = useSegmentControl();
   const checked = chosen === value;
   const disabled = disabledProp ?? disabledCtx;
 
@@ -103,7 +120,7 @@ function SegmentedControlItem({
       type="button"
       role="radio"
       aria-checked={checked}
-      data-slot="segmented-control-item"
+      data-slot="segment-control-item"
       data-state={checked ? 'checked' : 'unchecked'}
       data-value={value}
       disabled={disabled}
@@ -132,4 +149,4 @@ function SegmentedControlItem({
   );
 }
 
-export { SegmentedControl, SegmentedControlItem };
+export { SegmentControl, SegmentControlItem };
