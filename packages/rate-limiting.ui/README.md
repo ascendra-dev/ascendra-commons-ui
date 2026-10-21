@@ -64,6 +64,10 @@ mounts it — the same deferral as `audit-logging.ui`.
 drives real 429s through throttled demo routes — see its README, "The sample
 data"). Sandbox data is recent only: the recorder stamps the real clock.
 
+**Review (2026-10-21).** The module's guide and review report — what was fixed, the open gaps (a summary on the
+list, alerting, the `payment-link-security` cross-reference, …) — live beside its backend:
+`ascendra-commons/rate-limiting/GUIDE.md` and `AUDIT-REPORT.md`.
+
 **Built by hand, not on a shared factory.** `audit-logging.ui`'s trace sheet and
 list were the starting point; shared pieces get extracted once the small
 observability modules are all built (rollout plan).
