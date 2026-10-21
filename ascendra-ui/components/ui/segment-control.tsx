@@ -38,6 +38,7 @@ function SegmentControl({
   onValueChange,
   size = 'default',
   disabled,
+  'aria-label': ariaLabel = 'Options',
   className,
   children,
   ...props
@@ -51,6 +52,8 @@ function SegmentControl({
   onValueChange?: (value: string) => void;
   size?: 'sm' | 'default';
   disabled?: boolean;
+  /** The group's name for screen readers — what the choice is about, e.g. "Period". */
+  'aria-label'?: string;
 }) {
   const [uncontrolled, setUncontrolled] = React.useState(defaultValue ?? segments?.[0]?.value ?? '');
   const isControlled = valueProp !== undefined;
@@ -81,6 +84,7 @@ function SegmentControl({
       <div
         ref={ref}
         role="radiogroup"
+        aria-label={ariaLabel}
         data-slot="segment-control"
         aria-disabled={disabled || undefined}
         className={cn(
