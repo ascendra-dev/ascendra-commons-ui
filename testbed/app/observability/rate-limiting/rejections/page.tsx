@@ -111,9 +111,7 @@ export default function RateLimitRejectionsPage() {
                         <DataTableHead column="windowStart">Minute</DataTableHead>
                         <DataTableHead column="route">Route</DataTableHead>
                         <DataTableHead column="identifier">Source</DataTableHead>
-                        <DataTableHead column="count" className="text-right">
-                          Rejections
-                        </DataTableHead>
+                        <DataTableHead column="count">Rejections</DataTableHead>
                         <DataTableHead column="lastRejectedAt">Span</DataTableHead>
                         <DataTableHead column="limit">Limit</DataTableHead>
                         <DataTableHead column="correlationId">Correlation</DataTableHead>
@@ -140,7 +138,7 @@ export default function RateLimitRejectionsPage() {
                           <DataTableCell column="identifier">
                             <SourceCell row={row} />
                           </DataTableCell>
-                          <DataTableCell column="count" className="text-right font-mono tabular-nums">
+                          <DataTableCell column="count" className="font-mono tabular-nums">
                             {formatCount(row.count)}
                           </DataTableCell>
                           <DataTableCell column="lastRejectedAt" className="text-muted-foreground tabular-nums">

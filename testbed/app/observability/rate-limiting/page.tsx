@@ -1,22 +1,16 @@
 'use client';
 
-import { useMemo } from 'react';
-import { format } from 'date-fns';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { LuArrowUpRight } from 'react-icons/lu';
+import { LuArrowUpRight, LuDatabase } from 'react-icons/lu';
 import {
   Button,
   Card,
-  CardHeader,
-  CardHeaderSubtitle,
-  CardHeaderTitle,
   CardPanel,
   DashboardContent,
-  DataTableEmptyBody,
-  DataTableErrorBody,
-  DataTableLoadingBody,
+  EmptyState,
   ErrorMessage,
   ErrorState,
   KpiCaption,
@@ -29,29 +23,18 @@ import {
   PageHeaderGroup,
   PageSubtitle,
   PageTitle,
+  SegmentedControl,
+  SegmentedControlItem,
   SimpleBadge,
   Skeleton,
   SkeletonState,
-  TabList,
-  TabTrigger,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableHeaderRow,
-  TableRow,
-  TableWrapper,
-  Tabs,
   WithError,
   WithSkeleton,
-  useTabs,
+  WithState,
   type TriggerParams,
 } from '@/ascendra-ui';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/ascendra-ui/shadcn';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
-import { rateLimitApi, type RejectionVolume } from '@/ascendra-commons-ui/rate-limiting.ui/api';
+import { rateLimitApi } from '@/ascendra-commons-ui/rate-limiting.ui/api';
 import { isOverflow, sourceLabel } from '@/ascendra-commons-ui/rate-limiting.ui/display';
 import { rateLimitLinks } from '@/ascendra-commons-ui/rate-limiting.ui/links';
 import { rateLimitQueryIds } from '@/ascendra-commons-ui/rate-limiting.ui/queries';
@@ -59,7 +42,7 @@ import { rateLimitQueryIds } from '@/ascendra-commons-ui/rate-limiting.ui/querie
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
-/** The period picker — the routes, the top sources and the tiles all count over the chosen one. */
+/** The period picker — the tiles, the routes and the top sources all count over the chosen one. */
 const PERIODS = [
   { value: 'hour', label: 'Past hour', ms: HOUR_MS },
   { value: 'day', label: 'Past 24 hours', ms: DAY_MS },
@@ -68,111 +51,43 @@ const PERIODS = [
 type Period = (typeof PERIODS)[number];
 
 const TOP_SOURCES = 10;
-const VOLUME_DAYS = 30;
-
-const chartConfig: ChartConfig = { count: { label: 'Rejections', color: 'var(--chart-1)' } };
-const formatDayTick = (day: string) => formatDateTime(day, { style: 'short' });
+const SKELETON_ROWS = 3;
 
 /** The period's numbers, counted back from when each fetch runs. */
 const fetchCatalog = (period: Period) => rateLimitApi.catalog(new Date(Date.now() - period.ms));
 const fetchTopSources = (period: Period) =>
   rateLimitApi.topIdentifiers({ since: new Date(Date.now() - period.ms), limit: TOP_SOURCES });
 
-/** The viewer's IANA time zone — the volume chart counts its days in it. */
-const viewerTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
-
 /**
- * The Rejections list, filtered by Advanced Filter to windows that started in `from`–`to`, plus any other of its
- * fields — the range the number clicked was counted over, so the list adds up to that number. A period is rolling,
- * so it passes exact instants ending when the numbers were fetched (a query's `dataUpdatedAt` — never render time,
- * which differs between the server render and hydration). A chart bar is a calendar day in the viewer's zone, so it
- * passes the date itself as both ends, exactly what picking that day in the form does.
+ * The Rejections list, filtered by Advanced Filter to windows that started in the period, plus any other of its fields —
+ * the range the number clicked was counted over, so the list adds up to that number. A period is rolling, so it passes
+ * exact instants ending when the numbers were fetched (a query's `dataUpdatedAt` — never render time, which differs
+ * between the server render and hydration).
  */
-function rejectionsLink(from: Date | string, to: Date | string, fields: TriggerParams = {}) {
-  return rateLimitLinks.list({ queryId: rateLimitQueryIds.advancedFilter, params: { ...fields, rejectedRange: { from, to } } });
-}
-const periodLink = (asOf: number, period: Period, fields?: TriggerParams) =>
-  rejectionsLink(new Date(asOf - period.ms), new Date(asOf), fields);
-
-function formatBytes(bytes: number): string {
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  return `${value.toFixed(value >= 10 || unit === 0 ? 0 : 1)} ${units[unit]}`;
-}
-
-/** The chart's loading-state data (AUI-032): the real chart over a flat placeholder — the 30 days are knowable now. */
-function buildPlaceholderPerDay(): RejectionVolume['perDay'] {
-  const today = new Date();
-  return Array.from({ length: VOLUME_DAYS }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() - (VOLUME_DAYS - 1 - i));
-    return { day: format(d, 'yyyy-MM-dd'), count: 1 };
+const periodLink = (asOf: number, period: Period, fields: TriggerParams = {}) =>
+  rateLimitLinks.list({
+    queryId: rateLimitQueryIds.advancedFilter,
+    params: { ...fields, rejectedRange: { from: new Date(asOf - period.ms), to: new Date(asOf) } },
   });
-}
 
 /** The Rate Limiting module's landing page — rateLimitingNav's one entry points here. */
 export default function RateLimitOverviewPage() {
   const router = useRouter();
-  return (
-    <>
-      <PageHeader variant="dashboard">
-        <PageHeaderGroup>
-          <PageTitle>Rate Limiting</PageTitle>
-          <PageSubtitle>Which routes are being hammered, and who by — every request a limit turned away.</PageSubtitle>
-        </PageHeaderGroup>
-        <PageHeaderAction className="flex w-fit gap-2">
-          <Button onClick={() => router.push(rateLimitLinks.list())}>Go to Rejections</Button>
-        </PageHeaderAction>
-      </PageHeader>
-      <DashboardContent>
-        <Tabs defaultValue="day">
-          <TabList>
-            {PERIODS.map((period) => (
-              <TabTrigger key={period.value} value={period.value}>
-                {period.label}
-              </TabTrigger>
-            ))}
-          </TabList>
-          <PeriodSections />
-        </Tabs>
-        <VolumeSection />
-      </DashboardContent>
-    </>
-  );
-}
+  const [periodValue, setPeriodValue] = useState<Period['value']>('day');
+  const period = PERIODS.find((p) => p.value === periodValue) ?? PERIODS[1];
 
-/**
- * The tiles, routes and top sources for the chosen period — two independent queries (catalog, top identifiers), so a
- * slow one never holds back the other. Both are keyed by the period; each fetch counts back from its own "now".
- */
-function PeriodSections() {
-  const router = useRouter();
-  const { active } = useTabs();
-  const period = PERIODS.find((p) => p.value === active) ?? PERIODS[1];
-
-  const catalog = useQuery({
-    queryKey: ['rate-limit-catalog', period.value],
-    queryFn: () => fetchCatalog(period),
-  });
-  const topSources = useQuery({
-    queryKey: ['rate-limit-top-sources', period.value],
-    queryFn: () => fetchTopSources(period),
-  });
+  // Two independent queries, each keyed by the period, so a slow one never holds back the other.
+  const catalog = useQuery({ queryKey: ['rate-limit-catalog', period.value], queryFn: () => fetchCatalog(period) });
+  const topSources = useQuery({ queryKey: ['rate-limit-top-sources', period.value], queryFn: () => fetchTopSources(period) });
 
   const routes = catalog.data ?? [];
   const total = routes.reduce((sum, r) => sum + r.count, 0);
-  const busiest = routes[0];
   const share = (count: number) => (total > 0 ? Math.round((count / total) * 100) : 0);
+  const busiest = routes[0];
   const asOf = catalog.dataUpdatedAt;
   const periodLower = period.label.toLowerCase();
 
-  // Linked once the numbers are in — until then there's nothing to open. Routes affected doesn't link: it counts
-  // routes, and the list shows windows.
+  // Linked once the numbers are in. Routes affected doesn't link: it counts routes, and the list shows windows.
   const tiles = [
     {
       key: 'total',
@@ -192,296 +107,233 @@ function PeriodSections() {
     },
   ];
 
+  const routeRows = routes.map((row) => ({
+    ...row,
+    share: share(row.count),
+    href: periodLink(asOf, period, { route: row.route }),
+  }));
+  const sourceRows = (topSources.data ?? []).map((row) => ({
+    ...row,
+    label: sourceLabel(row.identifier),
+    labelClass: isOverflow(row.identifier) ? 'text-muted-foreground text-sm' : 'font-mono text-xs',
+    seen: formatDateTime(row.lastRejectedAt, { style: 'relative' }),
+    href: periodLink(topSources.dataUpdatedAt, period, { identifier: row.identifier }),
+  }));
+  const routesEmpty = !!catalog.data && routes.length === 0;
+  const sourcesEmpty = !!topSources.data && sourceRows.length === 0;
+
   return (
     <>
-      <WithError>
-        <ErrorState if={catalog.isError}>
-          <Card>
-            <CardPanel>
-              <ErrorMessage title="Failed to load rejections" error={catalog.error} onRetry={() => catalog.refetch()} />
-            </CardPanel>
-          </Card>
-        </ErrorState>
-        <NormalState if={!catalog.isError}>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {tiles.map((tile) => {
-              const card = (
-                <Card className="h-full">
-                  <CardPanel>
-                    <KpiTile>
-                      <KpiLabel className="flex items-center justify-between gap-2">
-                        {tile.label}
-                        {tile.href && (
-                          <LuArrowUpRight className="text-muted-foreground group-hover:text-foreground size-3.5 shrink-0 transition-colors" />
-                        )}
-                      </KpiLabel>
-                      <div className="mt-auto pt-4">
-                        <WithSkeleton>
-                          <SkeletonState if={!catalog.data}>
-                            <Skeleton className="h-8 w-24" />
-                          </SkeletonState>
-                          <NormalState if={!!catalog.data}>
-                            <KpiValue className={tile.mono ? 'truncate font-mono text-xl' : undefined}>{tile.value}</KpiValue>
-                          </NormalState>
-                        </WithSkeleton>
-                      </div>
-                      <KpiCaption className="text-muted-foreground/60 mt-1 text-[0.6875rem]">{tile.caption}</KpiCaption>
-                    </KpiTile>
-                  </CardPanel>
-                </Card>
-              );
-              return tile.href ? (
-                <Link
-                  key={tile.key}
-                  href={tile.href}
-                  aria-label={`${tile.label} — open in Rejections`}
-                  className="group focus-visible:outline-primary block h-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2"
-                >
-                  {card}
-                </Link>
-              ) : (
-                <div key={tile.key} className="h-full">
-                  {card}
-                </div>
-              );
-            })}
+      <PageHeader variant="dashboard">
+        <PageHeaderGroup>
+          <PageTitle>Rate Limiting</PageTitle>
+          <PageSubtitle>Which routes are being hammered, and who by — every request a limit turned away.</PageSubtitle>
+        </PageHeaderGroup>
+        <PageHeaderAction className="flex w-fit gap-2">
+          <Button variant="secondary" onClick={() => router.push(rateLimitLinks.retention())}>
+            <LuDatabase />
+            Volume &amp; Retention
+          </Button>
+          <Button onClick={() => router.push(rateLimitLinks.list())}>Go to Rejections</Button>
+        </PageHeaderAction>
+      </PageHeader>
+      <DashboardContent>
+        <SegmentedControl
+          aria-label="Period"
+          value={period.value}
+          onValueChange={(v) => setPeriodValue(v as Period['value'])}
+        >
+          {PERIODS.map((p) => (
+            <SegmentedControlItem key={p.value} value={p.value}>
+              {p.label}
+            </SegmentedControlItem>
+          ))}
+        </SegmentedControl>
+
+        <WithError>
+          <ErrorState if={catalog.isError}>
+            <Card>
+              <CardPanel>
+                <ErrorMessage title="Failed to load rejections" error={catalog.error} onRetry={() => catalog.refetch()} />
+              </CardPanel>
+            </Card>
+          </ErrorState>
+          <NormalState if={!catalog.isError}>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {tiles.map((tile) => {
+                const card = (
+                  <Card className="h-full">
+                    <CardPanel>
+                      <KpiTile>
+                        <KpiLabel className="flex items-center justify-between gap-2">
+                          {tile.label}
+                          {tile.href && (
+                            <LuArrowUpRight className="text-muted-foreground group-hover:text-foreground size-3.5 shrink-0 transition-colors" />
+                          )}
+                        </KpiLabel>
+                        <div className="mt-auto pt-4">
+                          <WithSkeleton>
+                            <SkeletonState if={!catalog.data}>
+                              <Skeleton className="h-8 w-24" />
+                            </SkeletonState>
+                            <NormalState if={!!catalog.data}>
+                              <KpiValue className={tile.mono ? 'truncate font-mono text-xl' : undefined}>{tile.value}</KpiValue>
+                            </NormalState>
+                          </WithSkeleton>
+                        </div>
+                        <KpiCaption className="text-muted-foreground/60 mt-1 text-[0.6875rem]">{tile.caption}</KpiCaption>
+                      </KpiTile>
+                    </CardPanel>
+                  </Card>
+                );
+                return tile.href ? (
+                  <Link
+                    key={tile.key}
+                    href={tile.href}
+                    aria-label={`${tile.label} — open in Rejections`}
+                    className="group focus-visible:outline-primary block h-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2"
+                  >
+                    {card}
+                  </Link>
+                ) : (
+                  <div key={tile.key} className="h-full">
+                    {card}
+                  </div>
+                );
+              })}
+            </div>
+          </NormalState>
+        </WithError>
+
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-12 lg:col-span-6">
+            <RankCard title="Rejections by route" subtitle={`${period.label} · most first`}>
+              <WithState>
+                <ErrorState
+                  if={catalog.isError}
+                  title="Failed to load routes"
+                  error={catalog.error}
+                  onRetry={() => catalog.refetch()}
+                />
+                <EmptyState
+                  if={routesEmpty}
+                  title={`No rejections in the ${periodLower}`}
+                  description="Nothing has hit a rate limit — try a longer period."
+                />
+                <NormalState if={!catalog.isError && !routesEmpty}>
+                  <WithSkeleton>
+                    <SkeletonState if={!catalog.data}>
+                      <RankSkeleton />
+                    </SkeletonState>
+                    <NormalState if={!!catalog.data}>
+                      <ul className="flex flex-col gap-1">
+                        {routeRows.map((row) => (
+                          <li key={row.route}>
+                            <Link href={row.href} className={ROW_LINK}>
+                              <div className="flex items-center justify-between gap-3">
+                                <SimpleBadge>{row.route}</SimpleBadge>
+                                <span className="text-sm font-medium tabular-nums">
+                                  {formatCount(row.count)}
+                                  <span className="text-muted-foreground ml-1.5 text-xs font-normal">{row.share}%</span>
+                                </span>
+                              </div>
+                              <div className="bg-muted mt-2 h-1.5 overflow-hidden rounded-full">
+                                <div className="h-full rounded-full bg-rose-500/70" style={{ width: `${row.share}%` }} />
+                              </div>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </NormalState>
+                  </WithSkeleton>
+                </NormalState>
+              </WithState>
+            </RankCard>
           </div>
-        </NormalState>
-      </WithError>
 
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12 lg:col-span-6">
-          <CardHeader>
-            <CardHeaderTitle>Rejections by route</CardHeaderTitle>
-            <CardHeaderSubtitle>{period.label} · most first</CardHeaderSubtitle>
-          </CardHeader>
-          <TableWrapper>
-            <Table scrollable horizontal vertical height={300}>
-              <TableHeader>
-                <TableHeaderRow>
-                  <TableHead>Route</TableHead>
-                  <TableHead className="text-right">Rejections</TableHead>
-                  <TableHead>Share</TableHead>
-                </TableHeaderRow>
-              </TableHeader>
-              {routes.length > 0 && (
-                <TableBody>
-                  {routes.map((row) => (
-                    <TableRow
-                      key={row.route}
-                      className="cursor-pointer"
-                      onClick={() => router.push(periodLink(asOf, period, { route: row.route }))}
-                    >
-                      <TableCell>
-                        <SimpleBadge>{row.route}</SimpleBadge>
-                      </TableCell>
-                      <TableCell className="text-right font-mono tabular-nums">{formatCount(row.count)}</TableCell>
-                      <TableCell className="w-40">
-                        <div className="flex items-center gap-2">
-                          <div className="bg-muted h-1.5 flex-1 overflow-hidden rounded-full">
-                            <div className="h-full rounded-full bg-rose-500/70" style={{ width: `${share(row.count)}%` }} />
-                          </div>
-                          <span className="text-muted-foreground w-9 text-right text-xs tabular-nums">{share(row.count)}%</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              )}
-            </Table>
-            <DataTableLoadingBody isLoading={catalog.isLoading} className="h-65" />
-            <DataTableErrorBody
-              isError={catalog.isError}
-              error={catalog.error}
-              onRetry={() => catalog.refetch()}
-              className="h-65"
-            />
-            <DataTableEmptyBody
-              isLoading={catalog.isLoading}
-              isEmpty={!!catalog.data && routes.length === 0}
-              title={`No rejections in the ${periodLower}`}
-              description="Nothing has hit a rate limit — try a longer period."
-              className="h-65"
-            />
-          </TableWrapper>
+          <div className="col-span-12 lg:col-span-6">
+            <RankCard title="Top sources" subtitle={`${period.label} · the ${TOP_SOURCES} turned away most`}>
+              <WithState>
+                <ErrorState
+                  if={topSources.isError}
+                  title="Failed to load sources"
+                  error={topSources.error}
+                  onRetry={() => topSources.refetch()}
+                />
+                <EmptyState
+                  if={sourcesEmpty}
+                  title={`No rejections in the ${periodLower}`}
+                  description="No source has hit a rate limit — try a longer period."
+                />
+                <NormalState if={!topSources.isError && !sourcesEmpty}>
+                  <WithSkeleton>
+                    <SkeletonState if={!topSources.data}>
+                      <RankSkeleton />
+                    </SkeletonState>
+                    <NormalState if={!!topSources.data}>
+                      <ul className="flex flex-col gap-1">
+                        {sourceRows.map((row) => (
+                          <li key={row.identifier}>
+                            <Link href={row.href} className={ROW_LINK}>
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className={row.labelClass}>{row.label}</div>
+                                  <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                                    {row.routes.map((route) => (
+                                      <SimpleBadge key={route}>{route}</SimpleBadge>
+                                    ))}
+                                    <span className="text-muted-foreground text-xs">· seen {row.seen}</span>
+                                  </div>
+                                </div>
+                                <span className="text-sm font-medium tabular-nums">{formatCount(row.count)}</span>
+                              </div>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </NormalState>
+                  </WithSkeleton>
+                </NormalState>
+              </WithState>
+            </RankCard>
+          </div>
         </div>
-
-        <div className="col-span-12 lg:col-span-6">
-          <CardHeader>
-            <CardHeaderTitle>Top sources</CardHeaderTitle>
-            <CardHeaderSubtitle>{period.label} · the {TOP_SOURCES} turned away most</CardHeaderSubtitle>
-          </CardHeader>
-          <TableWrapper>
-            <Table scrollable horizontal vertical height={300}>
-              <TableHeader>
-                <TableHeaderRow>
-                  <TableHead>Source</TableHead>
-                  <TableHead className="text-right">Rejections</TableHead>
-                  <TableHead>Routes</TableHead>
-                </TableHeaderRow>
-              </TableHeader>
-              {topSources.data && topSources.data.length > 0 && (
-                <TableBody>
-                  {topSources.data.map((row) => (
-                    <TableRow
-                      key={row.identifier}
-                      className="cursor-pointer"
-                      onClick={() => router.push(periodLink(topSources.dataUpdatedAt, period, { identifier: row.identifier }))}
-                    >
-                      {/* When it was last turned away, beneath — a third column doesn't fit at half width. */}
-                      <TableCell className="whitespace-nowrap">
-                        <div className={isOverflow(row.identifier) ? 'text-muted-foreground text-sm' : 'font-mono text-xs'}>
-                          {sourceLabel(row.identifier)}
-                        </div>
-                        <div className="text-muted-foreground mt-0.5 text-xs">
-                          seen {formatDateTime(row.lastRejectedAt, { style: 'relative' })}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-mono tabular-nums">{formatCount(row.count)}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {row.routes.map((route) => (
-                            <SimpleBadge key={route}>{route}</SimpleBadge>
-                          ))}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              )}
-            </Table>
-            <DataTableLoadingBody isLoading={topSources.isLoading} className="h-65" />
-            <DataTableErrorBody
-              isError={topSources.isError}
-              error={topSources.error}
-              onRetry={() => topSources.refetch()}
-              className="h-65"
-            />
-            <DataTableEmptyBody
-              isLoading={topSources.isLoading}
-              isEmpty={!!topSources.data && topSources.data.length === 0}
-              title={`No rejections in the ${periodLower}`}
-              description="No source has hit a rate limit — try a longer period."
-              className="h-65"
-            />
-          </TableWrapper>
-        </div>
-      </div>
+      </DashboardContent>
     </>
   );
 }
 
-/**
- * Volume & retention — not tied to the period picker: always the past 30 calendar days in the viewer's zone, plus
- * what's stored. Retention is the app's (it prunes with its own cutoff); the oldest window shows the prune is running.
- */
-function VolumeSection() {
-  const router = useRouter();
-  const placeholderPerDay = useMemo(() => buildPlaceholderPerDay(), []);
-  const volume = useQuery({ queryKey: ['rate-limit-volume'], queryFn: () => rateLimitApi.volume(viewerTimeZone()) });
-  const perDay = volume.data?.perDay ?? [];
+/** A row that opens the list — the whole row is the link, highlighted on hover like a table row. */
+const ROW_LINK =
+  'hover:bg-muted/60 focus-visible:outline-primary -mx-2 block rounded-md px-2 py-2 transition-colors focus-visible:outline-2';
 
-  const subtitle = volume.data
-    ? `Past 30 days · ${formatDateTime(perDay[0].day)} – ${formatDateTime(perDay[perDay.length - 1].day)}`
-    : 'Past 30 days';
-
-  const oldest = volume.data?.oldestWindowAt;
-  const tableSize = volume.data?.tableSizeBytes;
-  const tiles = [
-    {
-      key: 'oldest',
-      label: 'Oldest window',
-      value: oldest ? formatDateTime(oldest) : '—',
-      caption: oldest ? formatDateTime(oldest, { style: 'relative', relativeFallbackDays: 400 }) : 'Nothing stored yet',
-    },
-    { key: 'rows', label: 'Stored windows', value: formatCount(volume.data?.rowCount ?? 0), caption: 'One per source, route and minute' },
-    {
-      key: 'size',
-      label: 'Table size',
-      value: tableSize == null ? '—' : formatBytes(tableSize),
-      caption: 'Every application sharing the table',
-    },
-  ];
-
+/** A dashboard card with its title on top, as the showcase dashboards' ranked lists have — no separate header band. */
+function RankCard({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
-    <WithError>
-      <ErrorState if={volume.isError}>
-        <Card>
-          <CardPanel>
-            <ErrorMessage title="Failed to load volume" error={volume.error} onRetry={() => volume.refetch()} />
-          </CardPanel>
-        </Card>
-      </ErrorState>
-      <NormalState if={!volume.isError}>
-        <Card>
-          <CardHeader>
-            <CardHeaderTitle>Volume &amp; retention</CardHeaderTitle>
-            <CardHeaderSubtitle>{subtitle}</CardHeaderSubtitle>
-          </CardHeader>
-          <CardPanel>
-            <div className="p-5">
-              <WithSkeleton>
-                <SkeletonState if={!volume.data}>
-                  <ChartContainer config={chartConfig} className="h-48 w-full animate-pulse">
-                    <BarChart data={placeholderPerDay} margin={{ top: 4, right: 12, left: 0, bottom: 0 }}>
-                      <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.6} strokeWidth={0.5} />
-                      <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} interval={4} tickFormatter={formatDayTick} />
-                      <YAxis tickLine={false} axisLine={false} tick={false} width={40} />
-                      <Bar dataKey="count" fill="var(--muted)" radius={[3, 3, 0, 0]} />
-                    </BarChart>
-                  </ChartContainer>
-                </SkeletonState>
-                <NormalState if={!!volume.data}>
-                  <ChartContainer config={chartConfig} className="h-48 w-full cursor-pointer">
-                    {/* A click anywhere in a day's column (not just its bar) opens that day's rejections. */}
-                    <BarChart
-                      data={perDay}
-                      margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
-                      onClick={(state) => {
-                        if (state.activeLabel != null) {
-                          const day = String(state.activeLabel);
-                          router.push(rejectionsLink(day, day));
-                        }
-                      }}
-                    >
-                      <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.6} strokeWidth={0.5} />
-                      <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} interval={4} tickFormatter={formatDayTick} />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tick={{ fontSize: 11 }}
-                        width={40}
-                        allowDecimals={false}
-                        tickFormatter={(v: number) => formatCount(v)}
-                      />
-                      <ChartTooltip content={<ChartTooltipContent formatter={(v) => [formatCount(Number(v)), ' Rejections']} />} />
-                      <Bar dataKey="count" fill="var(--color-count)" radius={[3, 3, 0, 0]} />
-                    </BarChart>
-                  </ChartContainer>
-                </NormalState>
-              </WithSkeleton>
-            </div>
-            <div className="grid grid-cols-1 gap-4 px-5 pb-5 sm:grid-cols-3">
-              {tiles.map((tile) => (
-                <KpiTile key={tile.key} className="bg-background rounded-lg p-4">
-                  <KpiLabel>{tile.label}</KpiLabel>
-                  <div className="pt-2">
-                    <WithSkeleton>
-                      <SkeletonState if={!volume.data}>
-                        <Skeleton className="h-7 w-24" />
-                      </SkeletonState>
-                      <NormalState if={!!volume.data}>
-                        <KpiValue className="text-xl">{tile.value}</KpiValue>
-                      </NormalState>
-                    </WithSkeleton>
-                  </div>
-                  <KpiCaption className="text-muted-foreground/60 mt-1 text-[0.6875rem]">{tile.caption}</KpiCaption>
-                </KpiTile>
-              ))}
-            </div>
-          </CardPanel>
-        </Card>
-      </NormalState>
-    </WithError>
+    <Card className="h-full">
+      <CardPanel>
+        <div className="flex flex-1 flex-col p-5">
+          <p className="text-sm font-medium">{title}</p>
+          <p className="text-muted-foreground mb-4 text-xs">{subtitle}</p>
+          {children}
+        </div>
+      </CardPanel>
+    </Card>
+  );
+}
+
+function RankSkeleton() {
+  return (
+    <div className="flex flex-col gap-4 py-2">
+      {Array.from({ length: SKELETON_ROWS }, (_, i) => (
+        <div key={i} className="flex flex-col gap-2">
+          <div className="flex justify-between">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-10" />
+          </div>
+          <Skeleton className="h-1.5 w-full" />
+        </div>
+      ))}
+    </div>
   );
 }

@@ -17,7 +17,7 @@ export const rateLimitRejectionColumns: ColumnDef<RateLimitRejection>[] = [
   },
   { key: 'route', label: 'Route', filter: true },
   { key: 'identifier', label: 'Source', filter: true, searchValue: (value) => sourceLabel(value as string) },
-  { key: 'count', label: 'Rejections', type: 'number' },
+  { key: 'count', label: 'Rejections', type: 'number', align: 'right' },
   { key: 'lastRejectedAt', label: 'Span', sortable: false, searchValue: (_value, row) => spanLabel(row) },
   { key: 'limit', label: 'Limit', searchValue: (_value, row) => limitLabel(row) },
   { key: 'correlationId', label: 'Correlation', sortable: false },
@@ -28,7 +28,7 @@ export const rateLimitQueryIds = { recent: 'recent', advancedFilter: 'advanced-f
 
 /**
  * Two scenarios, as audit-logging.ui has: every rejection newest first, and one Advanced Filter — the API ANDs route,
- * source and a time range independently (AUI-028). The range is one `daterange` field (AUI-038), split into
+ * source, correlation id and a time range independently (AUI-028). The range is one `daterange` field (AUI-038), split into
  * `since`/`until` by the client; it bounds the window's minute. Up to 90 days — the sandbox keeps 90, and a
  * product's retention is its own. Route is a select fed by the catalog (`rateLimitFieldOptionsFor`).
  */
@@ -43,7 +43,7 @@ export const rateLimitQueryDefs: QueryDef[] = [
     id: rateLimitQueryIds.advancedFilter,
     title: 'Advanced Filter',
     description: 'Filter rejections by any combination of the fields below.',
-    info: 'Rejected between is required (up to 90 days); route and source are optional. Results must match all of them (AND logic).',
+    info: 'Rejected between is required (up to 90 days); route, source and correlation ID are optional. Results must match all of them (AND logic).',
     group: 'filter',
     columns: { sm: 1, md: 2, lg: 3 },
     params: [
@@ -57,6 +57,16 @@ export const rateLimitQueryDefs: QueryDef[] = [
         maxLength: 100,
         optional: true,
         description: 'What the limit counted by — usually an IP',
+      },
+      {
+        name: 'correlationId',
+        label: 'Correlation ID',
+        type: 'text',
+        placeholder: '5b9e1c04-2a71-4c3e-9f8a-d3b6e0c1a1a1',
+        span: 1,
+        maxLength: 64,
+        optional: true,
+        description: 'Only a caller that sends one — rarely an attacker',
       },
       { _type: 'section', title: 'Rejected', showTitle: true },
       {

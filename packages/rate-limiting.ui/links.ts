@@ -3,7 +3,8 @@ import { buildQuerySearch, type TriggerParams } from '@/ascendra-ui';
 /**
  * Fixed base path (`/observability/rate-limiting`) — where `packages/observability` (the shell) mounts this module's
  * pages, as `audit-logging.ui` does with `audit/`. `overview` is the landing page (nav.ts's target); `list` is the
- * Rejections log. The trace is a sheet on the list, so it has no link.
+ * Rejections log; `retention` is Volume & Retention, a button on the overview. The trace is a sheet on the list, so it
+ * has no link.
  */
 export const rateLimitLinks = {
   overview: () => '/observability/rate-limiting',
@@ -13,4 +14,5 @@ export const rateLimitLinks = {
     run
       ? `/observability/rate-limiting/rejections?${buildQuerySearch(run.queryId, run.params)}`
       : '/observability/rate-limiting/rejections',
+  retention: () => '/observability/rate-limiting/retention',
 };

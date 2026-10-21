@@ -16,17 +16,19 @@ buffer, counted together — its count is exact, its sources aren't
 
 ## Shipped
 
-- **Overview** — the one nav.ts entry, the landing page. A period picker (past
-  hour / 24 hours / 7 days) drives three tiles (rejections, routes affected, busiest
-  route with its share), **Rejections by route** (`GET …/catalog`) and **Top
+- **Overview** — the one nav.ts entry, the landing page. A period picker
+  (`SegmentedControl`: past hour / 24 hours / 7 days) drives three tiles
+  (rejections, routes affected, busiest route with its share) and two ranked-list
+  cards: **Rejections by route** (`GET …/catalog`, a share bar per route) and **Top
   sources** (`GET …/top-identifiers`, the 10 turned away most, with the routes each
-  hit) — two independent queries. Below, **Volume & retention**
-  (`GET …/volume?tz`): rejections per day for the past 30 calendar days in the
-  viewer's zone, the oldest stored window, stored windows and table size. Not tied
-  to the period picker.
+  hit and when last seen) — two independent queries. Every row opens the list.
+- **Volume & Retention** — a button on the Overview, like audit's Retention &
+  Volume (`GET …/volume?tz`): oldest stored window, stored windows, table size, a
+  "set by the app" retention tile, and rejections per day for the past 30 calendar
+  days in the viewer's zone (a bar opens that day's list).
 - **Rejections** — the log (`GET /rate-limits/rejections`), two query scenarios:
   Recent (no filters) and Advanced Filter (route select fed by the catalog, source,
-  a required "Rejected between" range up to 90 days — AND logic). Columns: Minute,
+  correlation ID, a required "Rejected between" range up to 90 days — AND logic). Columns: Minute,
   Route, Source, Rejections, Span, Limit, Correlation. Clicking a source filters the
   list to it; row actions filter by source / route and copy the source. No export —
   the API has none.
