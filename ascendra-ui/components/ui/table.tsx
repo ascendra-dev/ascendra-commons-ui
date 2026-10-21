@@ -64,19 +64,20 @@ function filterChildrenByColumns(
 }
 
 /** The body card's ring and shadow, drawn on the non-scrolling host so all four edges stay put while the rows
- *  scroll. Starts under the header row (fixed at h-10) and ends 1px above the host's bottom, so the scrollbar
+ *  scroll. Starts under the header row — at --table-head-h, which TableHeader measures onto the host; 40px (the
+ *  default header row's fixed h-10) when nothing sets it, e.g. under DataTable's own header — and ends 1px above the host's bottom, so the scrollbar
  *  library's overflow clip on the host keeps the bottom ring (the 1px comes from tableClasses' mb-px, taken back by
  *  the host's -mb-px). The layer-coloured spread under the ring covers whatever scrolls into the rounded corners;
  *  the clip-path trims it to 4px around the card, rounded like the layer's own corners (card radius + 4px) — square,
  *  it filled the layer's rounded corners when the card sat at the layer's bottom. Drawn only with a body. */
 export const tableCardFrameClasses = cn(
   "relative -mb-px",
-  "has-[tbody]:after:pointer-events-none has-[tbody]:after:absolute has-[tbody]:after:inset-x-1 has-[tbody]:after:top-10 has-[tbody]:after:bottom-px has-[tbody]:after:z-2 has-[tbody]:after:rounded-lg has-[tbody]:after:[clip-path:inset(-4px_round_calc(var(--radius-lg)+4px))]",
+  "has-[tbody]:after:pointer-events-none has-[tbody]:after:absolute has-[tbody]:after:inset-x-1 has-[tbody]:after:top-[var(--table-head-h,2.5rem)] has-[tbody]:after:bottom-px has-[tbody]:after:z-2 has-[tbody]:after:rounded-lg has-[tbody]:after:[clip-path:inset(-4px_round_calc(var(--radius-lg)+4px))]",
   "has-[tbody]:after:ring-1 has-[tbody]:after:ring-(--color-umbra)/4 dark:has-[tbody]:after:ring-black/20",
   "has-[tbody]:after:shadow-[0_1px_2px_0_rgba(25,28,33,0.06),0_0_2px_0_rgba(0,0,0,0.08),0_0_0_var(--radius-lg)_var(--muted)]",
   // The vertical scrollbar runs beside the rows only, not the sticky header. Important: the library's stylesheet
   // is unlayered, so it beats any Tailwind utility.
-  "[&>.os-scrollbar-vertical]:top-10!",
+  "[&>.os-scrollbar-vertical]:top-[var(--table-head-h,2.5rem)]!",
 );
 
 /** Clips the scroll viewport at the card's sides, so scrolled cells never slide out over the layer. Overscroll stays
@@ -155,7 +156,7 @@ function Table({
     <TableScrollContext.Provider
       value={{ scrolled, vscroll: scrollable && vertical && !!height }}
     >
-      <div ref={hostRef} className={tableCardFrameClasses}>
+      <div ref={hostRef} data-slot="table-frame" className={tableCardFrameClasses}>
         <div
           ref={ref}
           data-slot="table-container"
@@ -182,11 +183,33 @@ function Table({
 function TableHeader({
   sticky = true,
   className,
+  ref,
   ...props
 }: React.ComponentProps<"thead"> & { sticky?: boolean }) {
   const { scrolled, vscroll } = React.useContext(TableScrollContext);
+  const headerRef = React.useRef<HTMLTableSectionElement>(null);
+  React.useImperativeHandle(ref, () => headerRef.current!);
+
+  // The card frame starts under the header — hand it the header's real height, so a taller row (size="lg", or
+  // content that outgrows the default row) doesn't sit under the body card's ring.
+  React.useLayoutEffect(() => {
+    const el = headerRef.current;
+    const frame = el?.closest<HTMLElement>('[data-slot="table-frame"]');
+    if (!el || !frame) return;
+    const measure = () =>
+      frame.style.setProperty("--table-head-h", `${el.getBoundingClientRect().height}px`);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      frame.style.removeProperty("--table-head-h");
+    };
+  }, []);
+
   return (
     <thead
+      ref={headerRef}
       data-slot="table-header"
       className={cn(
         "",
@@ -201,18 +224,28 @@ function TableHeader({
 
 function TableHeaderRow({
   columns,
+  size = "default",
   className,
   children,
   ...props
-}: React.ComponentProps<"tr"> & { columns?: ColVisibility[] }) {
+}: React.ComponentProps<"tr"> & {
+  columns?: ColVisibility[];
+  /** default: a fixed 40px row of column labels. lg: 16px above and below, height from the content — for a
+   *  header that carries a title and subtitle. */
+  size?: "default" | "lg";
+}) {
   const content = columns
     ? filterChildrenByColumns(columns, children)
     : children;
   return (
     <tr
       data-slot="table-header-row"
-      // A fixed height — the card frame starts right under it.
-      className={cn("text-secondary-foreground h-10 text-left text-xs [&>th]:py-0", className)}
+      data-size={size}
+      className={cn(
+        "text-secondary-foreground text-left text-xs",
+        size === "default" ? "h-10 [&>th]:py-0" : "[&>th]:py-4",
+        className,
+      )}
       {...props}
     >
       {content}
