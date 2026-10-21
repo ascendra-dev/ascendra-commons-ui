@@ -27,8 +27,7 @@ import {
   PageHeaderGroup,
   PageSubtitle,
   PageTitle,
-  SegmentedControl,
-  SegmentedControlItem,
+  SegmentControl,
   SimpleBadge,
   Skeleton,
   SkeletonState,
@@ -188,17 +187,12 @@ export default function RateLimitOverviewPage() {
         </PageHeaderAction>
       </PageHeader>
       <DashboardContent>
-        <SegmentedControl
+        <SegmentControl
           aria-label="Period"
+          segments={PERIODS}
           value={period.value}
           onValueChange={(v) => setPeriodValue(v as Period['value'])}
-        >
-          {PERIODS.map((p) => (
-            <SegmentedControlItem key={p.value} value={p.value}>
-              {p.label}
-            </SegmentedControlItem>
-          ))}
-        </SegmentedControl>
+        />
 
         <WithError>
           <ErrorState if={catalog.isError}>

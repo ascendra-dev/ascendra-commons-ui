@@ -17,7 +17,7 @@ buffer, counted together — its count is exact, its sources aren't
 ## Shipped
 
 - **Overview** — the one nav.ts entry, the landing page. A period picker
-  (`SegmentedControl`: past hour / 24 hours / 7 days) drives three tiles
+  (`SegmentControl`: past hour / 24 hours / 7 days) drives three tiles
   (rejections, routes affected, busiest route with its share) and two ranked
   lists, styled as the showcase's Sales Rep Performance (accent top border and
   background, inline share bar) with the title and subtitle in the header row
