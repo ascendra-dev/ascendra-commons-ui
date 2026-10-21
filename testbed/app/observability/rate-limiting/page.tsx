@@ -8,7 +8,6 @@ import { LuArrowUpRight, LuDatabase } from 'react-icons/lu';
 import {
   Button,
   Card,
-  CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
   CardPanel,
@@ -36,6 +35,9 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableHeaderRow,
   TableRow,
   TableWrapper,
   WithError,
@@ -77,6 +79,11 @@ const periodLink = (asOf: number, period: Period, fields: TriggerParams = {}) =>
     queryId: rateLimitQueryIds.advancedFilter,
     params: { ...fields, rejectedRange: { from: new Date(asOf - period.ms), to: new Date(asOf) } },
   });
+
+/** A list's title and subtitle, sized to fit the table's header row — fixed at 40px, the height its card frame is drawn
+ *  under (20px + 16px lines). */
+const HEAD_TITLE = 'text-sm leading-5';
+const HEAD_SUBTITLE = 'text-xs leading-4';
 
 /** The Rate Limiting module's landing page — rateLimitingNav's one entry points here. */
 export default function RateLimitOverviewPage() {
@@ -215,28 +222,27 @@ export default function RateLimitOverviewPage() {
 
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <CardHeader>
-              <CardHeaderTitle>Rejections by route</CardHeaderTitle>
-              <CardHeaderSubtitle>{period.label} · most first</CardHeaderSubtitle>
-            </CardHeader>
-            {/* Body only — each row says what it is, so a column header would only repeat it. */}
             <TableWrapper>
               <Table horizontal>
+                {/* The header row carries the list's title, not column labels — each row says what it is. */}
+                <TableHeader>
+                  <TableHeaderRow>
+                    <TableHead colSpan={3}>
+                      <CardHeaderTitle className={HEAD_TITLE}>Rejections by route</CardHeaderTitle>
+                      <CardHeaderSubtitle className={HEAD_SUBTITLE}>{period.label} · most first</CardHeaderSubtitle>
+                    </TableHead>
+                  </TableHeaderRow>
+                </TableHeader>
                 {routeRows.length > 0 && (
-                  <TableBody>
+                  <TableBody border={{}} bg={{}}>
                     {routeRows.map((row) => (
                       <TableRow key={row.route} className="cursor-pointer" onClick={() => router.push(row.href)}>
                         <TableCell>
-                          <div className="flex items-center justify-between gap-3">
-                            <SimpleBadge>{row.route}</SimpleBadge>
-                            <span className="font-mono tabular-nums">
-                              {formatCount(row.count)}
-                              <span className="text-muted-foreground ml-1.5 font-sans text-xs">{row.share}%</span>
-                            </span>
-                          </div>
-                          <div className="bg-muted mt-2 h-1.5 overflow-hidden rounded-full">
-                            <div className="h-full rounded-full bg-rose-500/70" style={{ width: `${row.share}%` }} />
-                          </div>
+                          <SimpleBadge>{row.route}</SimpleBadge>
+                        </TableCell>
+                        <TableCell className="text-right font-mono tabular-nums">{formatCount(row.count)}</TableCell>
+                        <TableCell>
+                          <ShareBar share={row.share} />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -256,32 +262,32 @@ export default function RateLimitOverviewPage() {
           </div>
 
           <div className="col-span-12 lg:col-span-6">
-            <CardHeader>
-              <CardHeaderTitle>Top sources</CardHeaderTitle>
-              <CardHeaderSubtitle>
-                {period.label} · the {TOP_SOURCES} turned away most
-              </CardHeaderSubtitle>
-            </CardHeader>
             <TableWrapper>
               <Table horizontal>
+                <TableHeader>
+                  <TableHeaderRow>
+                    <TableHead colSpan={2}>
+                      <CardHeaderTitle className={HEAD_TITLE}>Top sources</CardHeaderTitle>
+                      <CardHeaderSubtitle className={HEAD_SUBTITLE}>
+                        {period.label} · the {TOP_SOURCES} turned away most
+                      </CardHeaderSubtitle>
+                    </TableHead>
+                  </TableHeaderRow>
+                </TableHeader>
                 {sourceRows.length > 0 && (
-                  <TableBody>
+                  <TableBody border={{}} bg={{}}>
                     {sourceRows.map((row) => (
                       <TableRow key={row.identifier} className="cursor-pointer" onClick={() => router.push(row.href)}>
                         <TableCell>
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <div className={row.labelClass}>{row.label}</div>
-                              <div className="mt-1.5 flex flex-wrap items-center gap-1">
-                                {row.routes.map((route) => (
-                                  <SimpleBadge key={route}>{route}</SimpleBadge>
-                                ))}
-                                <span className="text-muted-foreground text-xs">· seen {row.seen}</span>
-                              </div>
-                            </div>
-                            <span className="font-mono tabular-nums">{formatCount(row.count)}</span>
+                          <div className={row.labelClass}>{row.label}</div>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                            {row.routes.map((route) => (
+                              <SimpleBadge key={route}>{route}</SimpleBadge>
+                            ))}
+                            <span className="text-muted-foreground text-xs">· seen {row.seen}</span>
                           </div>
                         </TableCell>
+                        <TableCell className="text-right align-top font-mono tabular-nums">{formatCount(row.count)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -306,5 +312,17 @@ export default function RateLimitOverviewPage() {
         </div>
       </DashboardContent>
     </>
+  );
+}
+
+/** A route's share of the period's rejections — the inline bar and percentage of the showcase's Sales Rep Performance. */
+function ShareBar({ share }: { share: number }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className="bg-muted h-2 w-28 overflow-hidden rounded-full">
+        <div className="h-full rounded-full bg-orange-400 transition-all" style={{ width: `${share}%` }} />
+      </div>
+      <span className="w-12 text-right text-xs font-semibold tabular-nums text-orange-600 dark:text-orange-400">{share}%</span>
+    </div>
   );
 }

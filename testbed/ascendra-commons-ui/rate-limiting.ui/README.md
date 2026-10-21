@@ -19,8 +19,9 @@ buffer, counted together — its count is exact, its sources aren't
 - **Overview** — the one nav.ts entry, the landing page. A period picker
   (`SegmentedControl`: past hour / 24 hours / 7 days) drives three tiles
   (rejections, routes affected, busiest route with its share) and two ranked
-  lists — body-only tables under a card header (title + subtitle), no column labels,
-  as the showcase's Sales Rep Performance: **Rejections by route** (`GET …/catalog`, a share bar per route) and **Top
+  lists, styled as the showcase's Sales Rep Performance (accent top border and
+  background, inline share bar) with the title and subtitle in the header row
+  instead of column labels: **Rejections by route** (`GET …/catalog`, a share bar per route) and **Top
   sources** (`GET …/top-identifiers`, the 10 turned away most, with the routes each
   hit and when last seen) — two independent queries. Every row opens the list.
 - **Volume & Retention** — a button on the Overview, like audit's Retention &
