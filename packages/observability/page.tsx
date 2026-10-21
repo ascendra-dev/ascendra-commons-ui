@@ -17,8 +17,8 @@ export default function ObservabilityHomePage() {
         <PageHeaderGroup>
           <PageTitle>Observability</PageTitle>
           <PageSubtitle>
-            Admin &amp; observability for every ascendra-commons module bundled here — Audit Log is the
-            first.
+            Admin &amp; observability for every ascendra-commons module bundled here — Audit Log and Rate
+            Limiting so far.
           </PageSubtitle>
         </PageHeaderGroup>
       </PageHeader>

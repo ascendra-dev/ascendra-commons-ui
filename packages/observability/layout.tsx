@@ -14,6 +14,7 @@ import {
   SideBarToggle,
 } from '@/ascendra-ui';
 import { auditLoggingNav } from '@/ascendra-commons-ui/audit-logging.ui/nav';
+import { rateLimitingNav } from '@/ascendra-commons-ui/rate-limiting.ui/nav';
 import type { ModuleNavEntry } from '@/ascendra-commons-ui/shared/nav';
 import { useSession } from './auth/use-session';
 
@@ -21,7 +22,7 @@ import { useSession } from './auth/use-session';
  * Every module this shell bundles, ships in full — no cherry-picking.
  * Add a new module's nav here (and only here) as it ships.
  */
-const moduleNavEntries: ModuleNavEntry[] = [...auditLoggingNav];
+const moduleNavEntries: ModuleNavEntry[] = [...auditLoggingNav, ...rateLimitingNav];
 
 /**
  * The sidebar shell every bundled module mounts under, styled the same way

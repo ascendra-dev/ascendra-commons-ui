@@ -44,12 +44,13 @@ Cross-module infrastructure used by more than one package:
   registry (a module can't know a vertical-owned route, e.g. an audit
   `entityType` of `invoice`; the vertical registers a resolver for it at
   boot instead of the module guessing a path shape).
-- `shared/observability/` — the reusable "list + trace + catalog/health"
-  screen factory, extracted once its shape is validated against
-  `audit-logging.ui` and `background-jobs.ui` (see the repo's rollout plan).
-  Not built until then — several modules (`rate-limiting`,
-  `payment-link-security`, `payment-gateway-adapter`, `domain-events`,
-  `idempotency-key`) will configure it rather than ship a bespoke screen.
+- `shared/observability/` — the reusable "list + trace + catalog" screen
+  pieces. Not built yet, deliberately: each small observability module
+  (`rate-limiting` — shipped, then `payment-link-security`,
+  `payment-gateway-adapter`, `idempotency-key`, `domain-events`, then
+  `background-jobs`) is built by hand first, borrowing from `audit-logging.ui`;
+  the shared pieces are extracted once they are all built and the repetition is
+  real, not guessed.
 
 ## What a consumer receives
 

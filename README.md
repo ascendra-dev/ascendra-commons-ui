@@ -53,7 +53,9 @@ vertical would do — and mount its `nav.ts` into `testbed`'s dashboard shell.
 
 ## Status
 
-Foundation only — no module packages ship yet. See the rollout plan for the
-phase order (`audit-logging` first, then `background-jobs`, then the shared
-observability-log pattern's other consumers, `notification`, `file-storage`,
-`authorization` last).
+Shipped: `audit-logging.ui` and `rate-limiting.ui` (each against
+`ascendra-commons-sandbox`'s real API). Next, the other small observability
+modules, built by hand: `payment-link-security`, `payment-gateway-adapter`,
+`idempotency-key`, `domain-events`, then `background-jobs`; shared screen pieces
+are extracted after those (`packages/README.md`). Then `notification`,
+`file-storage`, `authorization` last.
