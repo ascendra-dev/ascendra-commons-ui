@@ -26,6 +26,8 @@ export interface ColumnDef<T> {
    * `DataTableHighlight`'s `text` prop — that's what keeps search and
    * highlighting in agreement with what's actually on screen.
    */
+  /** Right-aligns the column — its header and every cell — e.g. a count, so the digits line up. Default left. */
+  align?: 'left' | 'right';
   searchValue?: (value: T[keyof T], row: T) => string;
 }
 

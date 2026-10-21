@@ -10,12 +10,13 @@ interface DataTableCellProps extends Omit<React.ComponentProps<'td'>, 'column'> 
 
 export function DataTableCell({ column, className, children, ...props }: DataTableCellProps) {
   const { columns } = useDataTableColumns();
-  if (columns.find((c) => String(c.key) === column)?.active === false) return null;
+  const col = columns.find((c) => String(c.key) === column);
+  if (col?.active === false) return null;
 
   return (
     <td
       data-slot="table-cell"
-      className={cn('px-5 py-4 first:pl-6 last:pr-6', className)}
+      className={cn('px-5 py-4 first:pl-6 last:pr-6', col?.align === 'right' && 'text-right', className)}
       {...props}
     >
       {children}
