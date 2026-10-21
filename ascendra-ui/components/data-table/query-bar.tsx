@@ -66,15 +66,21 @@ export function QueryBar() {
     runParams,
     runSourceQuery,
     mutedParams,
+    runToRestore,
     fieldOptions,
   } = useQueryContext();
+  // While a filter's form is open nothing new has run (runParams is null), but closing it restores the earlier run —
+  // so the bar keeps describing that one, read-only: its mutes and sort belong to a run that's set aside.
+  const editing = runParams === null && runToRestore !== null;
+  const shownParams = editing ? runToRestore.params : runParams;
+  const shownMuted = editing ? runToRestore.muted : mutedParams;
   const runCriteria = describeQueryCriteria(
     (runSourceQuery.params ?? []).filter(isFieldDef),
-    runParams,
+    shownParams,
     fieldOptions[runSourceQuery.id],
   );
   const appliedCount = runCriteria.criteria.filter(
-    (c) => !mutedParams.includes(c.name),
+    (c) => !shownMuted.includes(c.name),
   ).length;
   // A trigger, or a query hidden in Manage Queries, can be showing without being listed — it goes last in its own
   // section (a trigger in Filters), selected like any other item.
@@ -159,6 +165,8 @@ export function QueryBar() {
                     key={query.id}
                     query={query}
                     criteria={query.id === confirmedQueryId ? runCriteria : null}
+                    muted={shownMuted}
+                    readOnly={editing}
                     onRunChanged={() => setMenuOpen(false)}
                   />
                 ))}
@@ -181,11 +189,18 @@ export function QueryBar() {
 function QueryRadioItem({
   query,
   criteria,
+  muted,
+  readOnly,
   onRunChanged,
 }: {
   query: QueryDef;
   /** The run's criteria — only on the selected item. */
   criteria: QueryCriteria | null;
+  /** The run's muted fields — shown struck through. */
+  muted: string[];
+  /** The run is set aside while a filter's form is open: its criteria show, but can't be muted or re-sorted, and
+   *  there's no link to copy. */
+  readOnly: boolean;
   onRunChanged: () => void;
 }) {
   const hasCriteria = !!criteria && (criteria.criteria.length > 0 || !!criteria.orderBy);
@@ -199,13 +214,13 @@ function QueryRadioItem({
             {criteria && <Sparkles className="text-muted-foreground size-3 shrink-0" strokeWidth={2} />}
             {query.title}
           </span>
-          {criteria && <CopyRunLinkButton />}
+          {criteria && !readOnly && <CopyRunLinkButton />}
         </span>
         <span className="text-muted-foreground text-xs">
           {query.description}
         </span>
         {hasCriteria && (
-          <RunCriteria criteria={criteria} onRunChanged={onRunChanged} />
+          <RunCriteria criteria={criteria} muted={muted} readOnly={readOnly} onRunChanged={onRunChanged} />
         )}
       </div>
     </DropdownMenuRadioItem>
@@ -214,12 +229,16 @@ function QueryRadioItem({
 
 function RunCriteria({
   criteria: { criteria, orderBy },
+  muted: mutedParams,
+  readOnly,
   onRunChanged,
 }: {
   criteria: QueryCriteria;
+  muted: string[];
+  readOnly: boolean;
   onRunChanged: () => void;
 }) {
-  const { mutedParams, toggleParamMuted } = useQueryContext();
+  const { toggleParamMuted } = useQueryContext();
   const orderByMuted = !!orderBy && mutedParams.includes(orderBy.name);
 
   // The chip's icon + label mutes or restores it, then closes the menu — without selecting the item it sits in.
@@ -247,8 +266,8 @@ function RunCriteria({
             label={
               <span className={cn("text-muted-foreground", muted && MUTED_CLASS)}>{criterion.label}</span>
             }
-            // Required fields can't be muted — the run needs them.
-            action={criterion.required ? undefined : muteAction(criterion.name, criterion.label, muted)}
+            // Required fields can't be muted — the run needs them; nor can a run that's set aside.
+            action={criterion.required || readOnly ? undefined : muteAction(criterion.name, criterion.label, muted)}
           >
             {/* A checkbox criterion has no value — just its label. */}
             {criterion.text && (
@@ -264,7 +283,7 @@ function RunCriteria({
       {orderBy && (
         <FilterChip
           label={<span className={cn("text-muted-foreground", orderByMuted && MUTED_CLASS)}>{orderBy.label}</span>}
-          action={orderBy.required ? undefined : muteAction(orderBy.name, orderBy.label, orderByMuted)}
+          action={orderBy.required || readOnly ? undefined : muteAction(orderBy.name, orderBy.label, orderByMuted)}
         >
           <FilterChipValue className={cn("flex-wrap gap-x-1.5 gap-y-0.5", orderByMuted && MUTED_CLASS)}>
             {orderBy.columns.map((column, i) => (
@@ -274,8 +293,8 @@ function RunCriteria({
                 <SortDirectionButton
                   name={orderBy.name}
                   column={column}
-                  // A muted sort isn't part of the run — nothing to flip.
-                  disabled={orderByMuted}
+                  // A muted sort isn't part of the run — nothing to flip; nor is a run that's set aside.
+                  disabled={orderByMuted || readOnly}
                   onToggled={onRunChanged}
                 />
               </span>

@@ -34,6 +34,14 @@ function Select({
     onValueChange?.(next);
   };
 
+  // A real pick is never '' (Radix forbids an empty SelectItem value), so a '' from Radix is its hidden native <select>
+  // syncing: when a value is set from code — a form's reset() restoring saved values — before the items have mounted,
+  // the native select has no matching <option>, reads back '', and fires a change Radix passes on. Taken as a choice,
+  // it would wipe the value just set. Clearing on purpose goes through `clear`, never through here.
+  const onRadixValueChange = (next: string) => {
+    if (next !== '') setValue(next);
+  };
+
   return (
     <SelectContext.Provider value={{ readOnly, disabled, hasValue: value !== '', clear: () => setValue('') }}>
       <SelectPrimitive.Root
@@ -41,7 +49,7 @@ function Select({
         open={readOnly ? false : open}
         onOpenChange={readOnly ? () => {} : onOpenChange}
         value={value}
-        onValueChange={setValue}
+        onValueChange={onRadixValueChange}
         disabled={disabled}
         {...props}
       />

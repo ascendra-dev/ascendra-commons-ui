@@ -343,6 +343,13 @@ export function DataTableQueryProvider<T = unknown>({
   }, [pendingQueryId]);
 
   const canCancelPending = pendingQueryId !== null && runBeforePending !== null;
+  const runToRestore = useMemo(
+    () =>
+      pendingQueryId !== null && runBeforePending?.params
+        ? { params: runBeforePending.params, muted: runBeforePending.muted }
+        : null,
+    [pendingQueryId, runBeforePending],
+  );
 
   const cancelPending = useCallback(() => {
     if (pendingQueryId === null || runBeforePending === null) return;
@@ -570,6 +577,7 @@ export function DataTableQueryProvider<T = unknown>({
         confirmPending,
         cancelPending,
         canCancelPending,
+        runToRestore,
         isInitializing,
         isLoading: isInitializing || isLoading,
         isError: !!triggerError || isError,

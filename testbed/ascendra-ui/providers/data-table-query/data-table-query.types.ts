@@ -170,6 +170,10 @@ export interface QueryContextValue {
   cancelPending: () => void;
   /** False when the panel has no earlier run to return to (e.g. a filter query is active on first load). */
   canCancelPending: boolean;
+  /** While a filter query's param panel is open, the run that closing it restores — its params and mutes, as they were.
+   *  `runParams` is null meanwhile (nothing new has run), so this is what the query bar describes until the panel
+   *  closes or runs. Null when no panel is open, or when it has no earlier run to return to. */
+  runToRestore: { params: QueryParamValues; muted: string[] } | null;
   /** True on the first render while localStorage preferences and the URL are being read. Use to suppress query-specific UI. */
   isInitializing: boolean;
   isLoading: boolean;
