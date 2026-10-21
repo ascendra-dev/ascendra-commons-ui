@@ -80,11 +80,6 @@ const periodLink = (asOf: number, period: Period, fields: TriggerParams = {}) =>
     params: { ...fields, rejectedRange: { from: new Date(asOf - period.ms), to: new Date(asOf) } },
   });
 
-/** A list's title and subtitle, sized to fit the table's header row — fixed at 40px, the height its card frame is drawn
- *  under (20px + 16px lines). */
-const HEAD_TITLE = 'text-sm leading-5';
-const HEAD_SUBTITLE = 'text-xs leading-4';
-
 /** The Rate Limiting module's landing page — rateLimitingNav's one entry points here. */
 export default function RateLimitOverviewPage() {
   const router = useRouter();
@@ -228,13 +223,13 @@ export default function RateLimitOverviewPage() {
                 <TableHeader>
                   <TableHeaderRow>
                     <TableHead colSpan={3}>
-                      <CardHeaderTitle className={HEAD_TITLE}>Rejections by route</CardHeaderTitle>
-                      <CardHeaderSubtitle className={HEAD_SUBTITLE}>{period.label} · most first</CardHeaderSubtitle>
+                      <CardHeaderTitle >Rejections by route</CardHeaderTitle>
+                      <CardHeaderSubtitle >{period.label} · most first</CardHeaderSubtitle>
                     </TableHead>
                   </TableHeaderRow>
                 </TableHeader>
                 {routeRows.length > 0 && (
-                  <TableBody border={{}} bg={{}}>
+                  <TableBody >
                     {routeRows.map((row) => (
                       <TableRow key={row.route} className="cursor-pointer" onClick={() => router.push(row.href)}>
                         <TableCell>
@@ -267,15 +262,15 @@ export default function RateLimitOverviewPage() {
                 <TableHeader>
                   <TableHeaderRow>
                     <TableHead colSpan={2}>
-                      <CardHeaderTitle className={HEAD_TITLE}>Top sources</CardHeaderTitle>
-                      <CardHeaderSubtitle className={HEAD_SUBTITLE}>
+                      <CardHeaderTitle>Top sources</CardHeaderTitle>
+                      <CardHeaderSubtitle>
                         {period.label} · the {TOP_SOURCES} turned away most
                       </CardHeaderSubtitle>
                     </TableHead>
                   </TableHeaderRow>
                 </TableHeader>
                 {sourceRows.length > 0 && (
-                  <TableBody border={{}} bg={{}}>
+                  <TableBody>
                     {sourceRows.map((row) => (
                       <TableRow key={row.identifier} className="cursor-pointer" onClick={() => router.push(row.href)}>
                         <TableCell>
