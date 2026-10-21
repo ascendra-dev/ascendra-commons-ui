@@ -1,6 +1,6 @@
 'use client';
 
-import { type RefObject, useLayoutEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -95,7 +95,6 @@ const periodLink = (asOf: number, period: Period, fields: TriggerParams = {}) =>
 /** The Rate Limiting module's landing page — rateLimitingNav's one entry points here. */
 export default function RateLimitOverviewPage() {
   const router = useRouter();
-  const sourcesBodyRef = useRef<HTMLTableSectionElement>(null);
   const [periodValue, setPeriodValue] = useState<Period['value']>('day');
   const period = PERIODS.find((p) => p.value === periodValue) ?? PERIODS[1];
 
@@ -164,11 +163,6 @@ export default function RateLimitOverviewPage() {
   }));
   const routesEmpty = !!catalog.data && routes.length === 0;
   const sourcesEmpty = !!topSources.data && sourceRows.length === 0;
-  const sourcesHeight = useVisibleRowsHeight(
-    sourcesBodyRef,
-    TOP_SOURCES_VISIBLE,
-    sourceRows.length,
-  );
 
   return (
     <>
@@ -334,7 +328,7 @@ export default function RateLimitOverviewPage() {
 
           <div className="col-span-12 lg:col-span-6">
             <TableWrapper>
-              <Table scrollable vertical height={sourcesHeight}>
+              <Table visibleRows={TOP_SOURCES_VISIBLE}>
                 <TableHeader>
                   <TableHeaderRow size="lg">
                     <TableHead colSpan={2}>
@@ -346,7 +340,7 @@ export default function RateLimitOverviewPage() {
                   </TableHeaderRow>
                 </TableHeader>
                 {sourceRows.length > 0 && (
-                  <TableBody ref={sourcesBodyRef}>
+                  <TableBody>
                     {sourceRows.map((row) => (
                       <TableRow
                         key={row.identifier}
@@ -395,39 +389,6 @@ export default function RateLimitOverviewPage() {
       </DashboardContent>
     </>
   );
-}
-
-/** The table height that shows the first `visible` rows whole — rows differ in height when their badges wrap, so a
- *  fixed number would cut one off. Undefined (no cap) until there are more rows than that. */
-function useVisibleRowsHeight(
-  bodyRef: RefObject<HTMLTableSectionElement | null>,
-  visible: number,
-  rowCount: number,
-) {
-  const [height, setHeight] = useState<number>();
-  useLayoutEffect(() => {
-    const body = bodyRef.current;
-    const table = body?.closest('table');
-    if (!body || !table || rowCount <= visible) {
-      setHeight(undefined);
-      return;
-    }
-    const measure = () => {
-      const last = body.rows[visible - 1];
-      if (last)
-        setHeight(
-          Math.ceil(
-            last.getBoundingClientRect().bottom -
-              table.getBoundingClientRect().top,
-          ) - 4,
-        );
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(body);
-    return () => observer.disconnect();
-  }, [bodyRef, visible, rowCount]);
-  return height;
 }
 
 /** A route's share of the period's rejections — the inline bar and percentage of the showcase's Sales Rep Performance. */
