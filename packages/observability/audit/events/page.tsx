@@ -263,6 +263,7 @@ export default function AuditLogListPage() {
                                 <IdText
                                   value={row.correlationId}
                                   size="lg"
+                                  className="text-muted-foreground"
                                   copyable={false}
                                   showTooltip={false}
                                 />
