@@ -88,8 +88,11 @@ function SegmentControl({
         data-slot="segment-control"
         aria-disabled={disabled || undefined}
         className={cn(
-          'bg-muted inline-flex w-fit items-center gap-0.5 rounded-[0.5rem] p-0.5',
-          'shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]',
+          'inline-flex w-fit items-center gap-0.5 rounded-[0.5rem] p-0.5',
+          // A sunken track: in light mode a translucent darkening (so it shows on white and on muted surfaces alike)
+          // with a top inner shadow; in dark mode the muted surface with a faint rim.
+          'bg-black/[0.055] shadow-[inset_0_1px_1px_rgba(0,0,0,0.06)]',
+          'dark:bg-muted dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]',
           disabled && 'opacity-50',
           className,
         )}
@@ -139,10 +142,10 @@ function SegmentControlItem({
           ? [
               'bg-secondary text-foreground cursor-default',
               // The secondary button's raised surface — the chosen segment reads as pressed out of the track.
-              'shadow-[inset_0_1px_0.5px_0_rgba(255,255,255,0.05),0_2px_2px_-1px_rgba(0,0,0,0.06),0_4px_4px_-2px_rgba(0,0,0,0.04),0_0_0_1px_rgba(0,0,0,0.1)]',
+              'shadow-[0_0_0_0.5px_rgba(0,0,0,0.12),0_2px_4px_-1px_rgba(0,0,0,0.10),0_1px_1px_rgba(0,0,0,0.04)]',
               'dark:shadow-[inset_0_1px_0.5px_0_rgba(255,255,255,0.05),0_2px_2px_-1px_rgba(0,0,0,0.16),0_4px_4px_-2px_rgba(0,0,0,0.24),0_0_0_1px_rgba(0,0,0,0.1)]',
             ]
-          : 'text-muted-foreground hover:text-foreground cursor-pointer',
+          : 'text-zinc-600 dark:text-muted-foreground hover:text-foreground cursor-pointer',
         className,
       )}
       onClick={() => select(value)}
