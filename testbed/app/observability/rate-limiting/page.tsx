@@ -188,7 +188,6 @@ export default function RateLimitOverviewPage() {
       </PageHeader>
       <DashboardContent>
         <SegmentControl
-          aria-label="Period"
           segments={PERIODS}
           value={period.value}
           onValueChange={(v) => setPeriodValue(v as Period['value'])}
