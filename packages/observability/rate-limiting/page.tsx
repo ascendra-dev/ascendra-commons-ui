@@ -27,8 +27,7 @@ import {
   PageHeaderGroup,
   PageSubtitle,
   PageTitle,
-  SegmentedControl,
-  SegmentedControlItem,
+  SegmentControl,
   SimpleBadge,
   Skeleton,
   SkeletonState,
@@ -46,7 +45,10 @@ import {
 } from '@/ascendra-ui';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { rateLimitApi } from '@/ascendra-commons-ui/rate-limiting.ui/api';
-import { isOverflow, sourceLabel } from '@/ascendra-commons-ui/rate-limiting.ui/display';
+import {
+  isOverflow,
+  sourceLabel,
+} from '@/ascendra-commons-ui/rate-limiting.ui/display';
 import { rateLimitLinks } from '@/ascendra-commons-ui/rate-limiting.ui/links';
 import { rateLimitQueryIds } from '@/ascendra-commons-ui/rate-limiting.ui/queries';
 
@@ -62,11 +64,17 @@ const PERIODS = [
 type Period = (typeof PERIODS)[number];
 
 const TOP_SOURCES = 10;
+/** Top sources shows this many rows, then scrolls. */
+const TOP_SOURCES_VISIBLE = 5;
 
 /** The period's numbers, counted back from when each fetch runs. */
-const fetchCatalog = (period: Period) => rateLimitApi.catalog(new Date(Date.now() - period.ms));
+const fetchCatalog = (period: Period) =>
+  rateLimitApi.catalog(new Date(Date.now() - period.ms));
 const fetchTopSources = (period: Period) =>
-  rateLimitApi.topIdentifiers({ since: new Date(Date.now() - period.ms), limit: TOP_SOURCES });
+  rateLimitApi.topIdentifiers({
+    since: new Date(Date.now() - period.ms),
+    limit: TOP_SOURCES,
+  });
 
 /**
  * The Rejections list, filtered by Advanced Filter to windows that started in the period, plus any other of its fields —
@@ -77,7 +85,10 @@ const fetchTopSources = (period: Period) =>
 const periodLink = (asOf: number, period: Period, fields: TriggerParams = {}) =>
   rateLimitLinks.list({
     queryId: rateLimitQueryIds.advancedFilter,
-    params: { ...fields, rejectedRange: { from: new Date(asOf - period.ms), to: new Date(asOf) } },
+    params: {
+      ...fields,
+      rejectedRange: { from: new Date(asOf - period.ms), to: new Date(asOf) },
+    },
   });
 
 /** The Rate Limiting module's landing page — rateLimitingNav's one entry points here. */
@@ -87,12 +98,19 @@ export default function RateLimitOverviewPage() {
   const period = PERIODS.find((p) => p.value === periodValue) ?? PERIODS[1];
 
   // Two independent queries, each keyed by the period, so a slow one never holds back the other.
-  const catalog = useQuery({ queryKey: ['rate-limit-catalog', period.value], queryFn: () => fetchCatalog(period) });
-  const topSources = useQuery({ queryKey: ['rate-limit-top-sources', period.value], queryFn: () => fetchTopSources(period) });
+  const catalog = useQuery({
+    queryKey: ['rate-limit-catalog', period.value],
+    queryFn: () => fetchCatalog(period),
+  });
+  const topSources = useQuery({
+    queryKey: ['rate-limit-top-sources', period.value],
+    queryFn: () => fetchTopSources(period),
+  });
 
   const routes = catalog.data ?? [];
   const total = routes.reduce((sum, r) => sum + r.count, 0);
-  const share = (count: number) => (total > 0 ? Math.round((count / total) * 100) : 0);
+  const share = (count: number) =>
+    total > 0 ? Math.round((count / total) * 100) : 0;
   const busiest = routes[0];
   const asOf = catalog.dataUpdatedAt;
   const periodLower = period.label.toLowerCase();
@@ -106,13 +124,22 @@ export default function RateLimitOverviewPage() {
       caption: period.label,
       href: catalog.data ? periodLink(asOf, period) : undefined,
     },
-    { key: 'routes', label: 'Routes affected', value: formatCount(routes.length), caption: period.label },
+    {
+      key: 'routes',
+      label: 'Routes affected',
+      value: formatCount(routes.length),
+      caption: period.label,
+    },
     {
       key: 'busiest',
       label: 'Busiest route',
       value: busiest ? busiest.route : '—',
-      caption: busiest ? `${share(busiest.count)}% of rejections` : 'No rejections',
-      href: busiest ? periodLink(asOf, period, { route: busiest.route }) : undefined,
+      caption: busiest
+        ? `${share(busiest.count)}% of rejections`
+        : 'No rejections',
+      href: busiest
+        ? periodLink(asOf, period, { route: busiest.route })
+        : undefined,
       mono: true,
     },
   ];
@@ -125,9 +152,13 @@ export default function RateLimitOverviewPage() {
   const sourceRows = (topSources.data ?? []).map((row) => ({
     ...row,
     label: sourceLabel(row.identifier),
-    labelClass: isOverflow(row.identifier) ? 'text-muted-foreground text-sm' : 'font-mono text-xs',
+    labelClass: isOverflow(row.identifier)
+      ? 'text-muted-foreground text-sm'
+      : 'font-mono text-xs',
     seen: formatDateTime(row.lastRejectedAt, { style: 'relative' }),
-    href: periodLink(topSources.dataUpdatedAt, period, { identifier: row.identifier }),
+    href: periodLink(topSources.dataUpdatedAt, period, {
+      identifier: row.identifier,
+    }),
   }));
   const routesEmpty = !!catalog.data && routes.length === 0;
   const sourcesEmpty = !!topSources.data && sourceRows.length === 0;
@@ -137,34 +168,41 @@ export default function RateLimitOverviewPage() {
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
           <PageTitle>Rate Limiting</PageTitle>
-          <PageSubtitle>Which routes are being hammered, and who by — every request a limit turned away.</PageSubtitle>
+          <PageSubtitle>
+            Which routes are being hammered, and who by — every request a limit
+            turned away.
+          </PageSubtitle>
         </PageHeaderGroup>
         <PageHeaderAction className="flex w-fit gap-2">
-          <Button variant="secondary" onClick={() => router.push(rateLimitLinks.retention())}>
+          <Button
+            variant="secondary"
+            onClick={() => router.push(rateLimitLinks.retention())}
+          >
             <LuDatabase />
             Volume &amp; Retention
           </Button>
-          <Button onClick={() => router.push(rateLimitLinks.list())}>Go to Rejections</Button>
+          <Button onClick={() => router.push(rateLimitLinks.list())}>
+            Go to Rejections
+          </Button>
         </PageHeaderAction>
       </PageHeader>
       <DashboardContent>
-        <SegmentedControl
+        <SegmentControl
           aria-label="Period"
+          segments={PERIODS}
           value={period.value}
           onValueChange={(v) => setPeriodValue(v as Period['value'])}
-        >
-          {PERIODS.map((p) => (
-            <SegmentedControlItem key={p.value} value={p.value}>
-              {p.label}
-            </SegmentedControlItem>
-          ))}
-        </SegmentedControl>
+        />
 
         <WithError>
           <ErrorState if={catalog.isError}>
             <Card>
               <CardPanel>
-                <ErrorMessage title="Failed to load rejections" error={catalog.error} onRetry={() => catalog.refetch()} />
+                <ErrorMessage
+                  title="Failed to load rejections"
+                  error={catalog.error}
+                  onRetry={() => catalog.refetch()}
+                />
               </CardPanel>
             </Card>
           </ErrorState>
@@ -187,11 +225,21 @@ export default function RateLimitOverviewPage() {
                               <Skeleton className="h-8 w-24" />
                             </SkeletonState>
                             <NormalState if={!!catalog.data}>
-                              <KpiValue className={tile.mono ? 'truncate font-mono text-xl' : undefined}>{tile.value}</KpiValue>
+                              <KpiValue
+                                className={
+                                  tile.mono
+                                    ? 'truncate font-mono text-xl'
+                                    : undefined
+                                }
+                              >
+                                {tile.value}
+                              </KpiValue>
                             </NormalState>
                           </WithSkeleton>
                         </div>
-                        <KpiCaption className="text-muted-foreground/60 mt-1 text-[0.6875rem]">{tile.caption}</KpiCaption>
+                        <KpiCaption className="text-muted-foreground/60 mt-1 text-[0.6875rem]">
+                          {tile.caption}
+                        </KpiCaption>
                       </KpiTile>
                     </CardPanel>
                   </Card>
@@ -221,22 +269,30 @@ export default function RateLimitOverviewPage() {
               <Table horizontal>
                 {/* The header row carries the list's title, not column labels — each row says what it is. */}
                 <TableHeader>
-                  <TableHeaderRow>
+                  <TableHeaderRow size="lg">
                     <TableHead colSpan={3}>
-                      <CardHeaderTitle >Rejections by route</CardHeaderTitle>
-                      <CardHeaderSubtitle >{period.label} · most first</CardHeaderSubtitle>
+                      <CardHeaderTitle>Rejections by route</CardHeaderTitle>
+                      <CardHeaderSubtitle>
+                        {period.label} · most first
+                      </CardHeaderSubtitle>
                     </TableHead>
                   </TableHeaderRow>
                 </TableHeader>
                 {routeRows.length > 0 && (
-                  <TableBody >
+                  <TableBody>
                     {routeRows.map((row) => (
-                      <TableRow key={row.route} className="cursor-pointer" onClick={() => router.push(row.href)}>
+                      <TableRow
+                        key={row.route}
+                        className="cursor-pointer"
+                        onClick={() => router.push(row.href)}
+                      >
                         <TableCell>
                           <SimpleBadge>{row.route}</SimpleBadge>
                         </TableCell>
-                        <TableCell className="text-right font-mono tabular-nums">{formatCount(row.count)}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-right font-mono tabular-nums">
+                          {formatCount(row.count)}
+                        </TableCell>
+                        <TableCell className="w-full">
                           <ShareBar share={row.share} />
                         </TableCell>
                       </TableRow>
@@ -244,8 +300,16 @@ export default function RateLimitOverviewPage() {
                   </TableBody>
                 )}
               </Table>
-              <DataTableLoadingBody isLoading={catalog.isLoading} className="h-65" />
-              <DataTableErrorBody isError={catalog.isError} error={catalog.error} onRetry={() => catalog.refetch()} className="h-65" />
+              <DataTableLoadingBody
+                isLoading={catalog.isLoading}
+                className="h-65"
+              />
+              <DataTableErrorBody
+                isError={catalog.isError}
+                error={catalog.error}
+                onRetry={() => catalog.refetch()}
+                className="h-65"
+              />
               <DataTableEmptyBody
                 isLoading={catalog.isLoading}
                 isEmpty={routesEmpty}
@@ -258,9 +322,9 @@ export default function RateLimitOverviewPage() {
 
           <div className="col-span-12 lg:col-span-6">
             <TableWrapper>
-              <Table horizontal>
+              <Table visibleRows={TOP_SOURCES_VISIBLE}>
                 <TableHeader>
-                  <TableHeaderRow>
+                  <TableHeaderRow size="lg">
                     <TableHead colSpan={2}>
                       <CardHeaderTitle>Top sources</CardHeaderTitle>
                       <CardHeaderSubtitle>
@@ -272,23 +336,34 @@ export default function RateLimitOverviewPage() {
                 {sourceRows.length > 0 && (
                   <TableBody>
                     {sourceRows.map((row) => (
-                      <TableRow key={row.identifier} className="cursor-pointer" onClick={() => router.push(row.href)}>
+                      <TableRow
+                        key={row.identifier}
+                        className="cursor-pointer"
+                        onClick={() => router.push(row.href)}
+                      >
                         <TableCell>
                           <div className={row.labelClass}>{row.label}</div>
                           <div className="mt-1.5 flex flex-wrap items-center gap-1">
                             {row.routes.map((route) => (
                               <SimpleBadge key={route}>{route}</SimpleBadge>
                             ))}
-                            <span className="text-muted-foreground text-xs">· seen {row.seen}</span>
+                            <span className="text-muted-foreground text-xs">
+                              · seen {row.seen}
+                            </span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right align-top font-mono tabular-nums">{formatCount(row.count)}</TableCell>
+                        <TableCell className="text-right align-top font-mono tabular-nums">
+                          {formatCount(row.count)}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 )}
               </Table>
-              <DataTableLoadingBody isLoading={topSources.isLoading} className="h-65" />
+              <DataTableLoadingBody
+                isLoading={topSources.isLoading}
+                className="h-65"
+              />
               <DataTableErrorBody
                 isError={topSources.isError}
                 error={topSources.error}
@@ -314,10 +389,15 @@ export default function RateLimitOverviewPage() {
 function ShareBar({ share }: { share: number }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div className="bg-muted h-2 w-28 overflow-hidden rounded-full">
-        <div className="h-full rounded-full bg-orange-400 transition-all" style={{ width: `${share}%` }} />
+      <div className="bg-muted h-2 flex-1 overflow-hidden rounded-full">
+        <div
+          className="h-full rounded-full bg-orange-400 transition-all"
+          style={{ width: `${share}%` }}
+        />
       </div>
-      <span className="w-12 text-right text-xs font-semibold tabular-nums text-orange-600 dark:text-orange-400">{share}%</span>
+      <span className="w-12 text-right text-xs font-semibold tabular-nums text-orange-600 dark:text-orange-400">
+        {share}%
+      </span>
     </div>
   );
 }
