@@ -200,6 +200,7 @@ export * from './components/charts/chart-target-legend';
 // Hooks
 export * from './hooks/use-is-small-screen';
 export * from './hooks/use-overlay-scrollbars';
+export * from './hooks/use-visible-rows-height';
 
 // Providers
 export * from './providers/data-table/data-table.types';

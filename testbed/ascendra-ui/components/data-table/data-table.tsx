@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/ascendra-ui/shadcn';
 import { useOverlayScrollbars } from '@/ascendra-ui/hooks/use-overlay-scrollbars';
+import { useVisibleRowsHeight } from '@/ascendra-ui/hooks/use-visible-rows-height';
 import { tableCardFrameClasses, tableCardViewportClasses, tableClasses } from '@/ascendra-ui/components/ui/table';
 
 export const DataTableScrollContext = React.createContext({
@@ -15,6 +16,7 @@ export function DataTable({
   vertical = false,
   horizontal = true,
   height,
+  visibleRows,
   className,
   ...props
 }: React.ComponentProps<'table'> & {
@@ -22,12 +24,17 @@ export function DataTable({
   vertical?: boolean;
   horizontal?: boolean;
   height?: number;
+  /** Shows this many body rows whole, then scrolls vertically — measured, so rows of any height fit. Needs no
+   *  scrollable/vertical, and takes over from height. No cap while the table has this many rows or fewer. */
+  visibleRows?: number;
 }) {
   const [scrolled, setScrolled] = React.useState(false);
   const hostRef = React.useRef<HTMLDivElement>(null);
   const ref = React.useRef<HTMLDivElement>(null);
+  const rowsHeight = useVisibleRowsHeight(ref, visibleRows);
+  const maxHeight = visibleRows ? rowsHeight : scrollable && vertical ? height : undefined;
   const scrollX = scrollable && horizontal;
-  const scrollY = scrollable && vertical && !!height;
+  const scrollY = !!maxHeight;
   useOverlayScrollbars(hostRef, ref, {
     x: scrollX ? 'scroll' : 'hidden',
     y: scrollY ? 'scroll' : 'hidden',
@@ -36,15 +43,16 @@ export function DataTable({
 
   React.useEffect(() => {
     const el = ref.current;
-    if (!el || !vertical) return;
+    if (!el || !scrollY) return;
     const handler = () => setScrolled(el.scrollTop > 0);
+    handler();
     el.addEventListener('scroll', handler, { passive: true });
     return () => el.removeEventListener('scroll', handler);
-  }, [vertical]);
+  }, [scrollY]);
 
   return (
     <DataTableScrollContext.Provider
-      value={{ scrolled, vscroll: scrollable && vertical && !!height }}
+      value={{ scrolled, vscroll: scrollY }}
     >
       <div ref={hostRef} className={tableCardFrameClasses}>
         <div
@@ -57,7 +65,7 @@ export function DataTable({
             scrollX && 'overflow-x-auto',
             scrollY && 'overflow-y-auto'
           )}
-          style={scrollY ? { maxHeight: `${height}px` } : undefined}
+          style={scrollY ? { maxHeight: `${maxHeight}px` } : undefined}
         >
           <table
             data-slot="table"

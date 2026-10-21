@@ -13,6 +13,7 @@ import {
 import { PaginationButton } from "@/ascendra-ui/components/common-ui/pagination-button";
 import { cn, Separator } from "@/ascendra-ui/shadcn";
 import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars";
+import { useVisibleRowsHeight } from "@/ascendra-ui/hooks/use-visible-rows-height";
 import { type PaginationState } from "@/ascendra-ui/providers/data-table/use-pagination.hook";
 import {
   buildBorderClasses,
@@ -120,6 +121,7 @@ function Table({
   horizontal = true,
   height,
   minHeight,
+  visibleRows,
   className,
   ...props
 }: React.ComponentProps<"table"> & {
@@ -128,12 +130,17 @@ function Table({
   horizontal?: boolean;
   height?: number;
   minHeight?: number;
+  /** Shows this many body rows whole, then scrolls vertically — measured, so rows of any height fit. Needs no
+   *  scrollable/vertical, and takes over from height. No cap while the table has this many rows or fewer. */
+  visibleRows?: number;
 }) {
   const [scrolled, setScrolled] = React.useState(false);
   const hostRef = React.useRef<HTMLDivElement>(null);
   const ref = React.useRef<HTMLDivElement>(null);
+  const rowsHeight = useVisibleRowsHeight(ref, visibleRows);
+  const maxHeight = visibleRows ? rowsHeight : scrollable && vertical ? height : undefined;
   const scrollX = scrollable && horizontal;
-  const scrollY = scrollable && vertical && !!height;
+  const scrollY = !!maxHeight;
   useOverlayScrollbars(hostRef, ref, {
     x: scrollX ? "scroll" : "hidden",
     y: scrollY ? "scroll" : "hidden",
@@ -142,20 +149,19 @@ function Table({
 
   React.useEffect(() => {
     const el = ref.current;
-    if (!el || !vertical) return;
+    if (!el || !scrollY) return;
     const handler = () => setScrolled(el.scrollTop > 0);
+    handler();
     el.addEventListener("scroll", handler, { passive: true });
     return () => el.removeEventListener("scroll", handler);
-  }, [vertical]);
+  }, [scrollY]);
 
   const wrapperStyle: React.CSSProperties = {};
-  if (scrollable && vertical && height) wrapperStyle.maxHeight = `${height}px`;
+  if (maxHeight) wrapperStyle.maxHeight = `${maxHeight}px`;
   if (minHeight) wrapperStyle.minHeight = `${minHeight}px`;
 
   return (
-    <TableScrollContext.Provider
-      value={{ scrolled, vscroll: scrollable && vertical && !!height }}
-    >
+    <TableScrollContext.Provider value={{ scrolled, vscroll: scrollY }}>
       <div ref={hostRef} data-slot="table-frame" className={tableCardFrameClasses}>
         <div
           ref={ref}
