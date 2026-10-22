@@ -23,6 +23,7 @@ import {
   TableHead,
   TableHeader,
   TableHeaderRow,
+  TableNote,
   TableRow,
   TableWrapper,
 } from '@/ascendra-ui';
@@ -233,12 +234,12 @@ export default function DomainEventWiringPage() {
             }
             className="h-65"
           />
+          <TableNote>
+            The listener catalogue reads this process&apos;s{' '}
+            <code>@OnEvent()</code> / <code>@OnCriticalEvent()</code> decorators
+            — listeners in another service don&apos;t appear.
+          </TableNote>
         </TableWrapper>
-        <p className="text-muted-foreground text-xs">
-          The listener catalogue reads this process&apos;s{' '}
-          <code>@OnEvent()</code> / <code>@OnCriticalEvent()</code> decorators —
-          listeners in another service don&apos;t appear.
-        </p>
       </DashboardContent>
     </>
   );

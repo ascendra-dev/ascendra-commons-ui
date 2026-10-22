@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { LuArrowUpRight, LuDatabase, LuNetwork } from 'react-icons/lu';
+import { LuArrowUpRight, LuDatabase, LuHistory, LuNetwork } from 'react-icons/lu';
 import {
   Button,
   Card,
@@ -41,6 +41,7 @@ import {
   TableWrapper,
   WithError,
   WithSkeleton,
+  WithTooltip,
   type TriggerParams,
 } from '@/ascendra-ui';
 import { cn } from '@/ascendra-ui/shadcn';
@@ -169,7 +170,11 @@ export default function DomainEventsOverviewPage() {
         </PageHeaderAction>
       </PageHeader>
       <DashboardContent>
-        <SegmentControl segments={PERIODS} value={period.value} onValueChange={(v) => setPeriodValue(v as Period['value'])} />
+        {/* The period picker, and how far back the log goes — page-wide, so it sits beside the picker. */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <SegmentControl segments={PERIODS} value={period.value} onValueChange={(v) => setPeriodValue(v as Period['value'])} />
+          <OldestKept />
+        </div>
 
         <WithError>
           <ErrorState if={summary.isError}>
@@ -339,8 +344,6 @@ export default function DomainEventsOverviewPage() {
             </TableWrapper>
           </div>
         </div>
-
-        <OldestFootnote />
       </DashboardContent>
     </>
   );
@@ -381,12 +384,15 @@ function wiringProblems(period: WiringRow[], retained: WiringRow[]) {
 }
 
 /** How far back the log goes — from the volume read, so it shows the prune is running. */
-function OldestFootnote() {
+function OldestKept() {
   const volume = useQuery({ queryKey: ['domain-events-volume'], queryFn: () => domainEventsApi.volume(Intl.DateTimeFormat().resolvedOptions().timeZone) });
   if (!volume.data?.oldestOccurredAt) return null;
   return (
-    <p className="text-muted-foreground text-xs">
-      Oldest delivery kept: {formatDateTime(volume.data.oldestOccurredAt, { time: true })} — the app prunes on its own schedule.
-    </p>
+    <WithTooltip tooltip="How far back the log goes — the app prunes on its own schedule">
+      <SimpleBadge>
+        <LuHistory />
+        Oldest delivery kept · {formatDateTime(volume.data.oldestOccurredAt, { time: true })}
+      </SimpleBadge>
+    </WithTooltip>
   );
 }

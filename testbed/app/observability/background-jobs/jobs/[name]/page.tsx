@@ -42,7 +42,7 @@ import {
   WithTooltip,
   toast,
 } from '@/ascendra-ui';
-import { cn } from '@/ascendra-ui/shadcn';
+import { Separator, cn } from '@/ascendra-ui/shadcn';
 import { isApiError } from '@/ascendra-ui/lib/api';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { backgroundJobsApi, type JobRun, type JobStatus } from '@/ascendra-commons-ui/background-jobs.ui/api';
@@ -319,11 +319,19 @@ function FailedItemsCard({ query }: { query: ListQuery<Awaited<ReturnType<typeof
             </TableHead>
           </TableHeaderRow>
           {items.length > 0 && (
-            <TableHeaderRow>
-              <TableHead>Item</TableHead>
-              <TableHead className="text-right whitespace-nowrap">Runs failed in</TableHead>
-              <TableHead>Last failed</TableHead>
-            </TableHeaderRow>
+            <>
+              {/* Divides the card's title from the column labels below it. */}
+              <TableHeaderRow aria-hidden className="h-auto">
+                <TableHead colSpan={3} className="p-0 first:pl-0">
+                  <Separator />
+                </TableHead>
+              </TableHeaderRow>
+              <TableHeaderRow>
+                <TableHead>Item</TableHead>
+                <TableHead className="text-right whitespace-nowrap">Runs failed in</TableHead>
+                <TableHead>Last failed</TableHead>
+              </TableHeaderRow>
+            </>
           )}
         </TableHeader>
         {items.length > 0 && (

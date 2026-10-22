@@ -25,6 +25,7 @@ import {
   TableRow,
   TableWrapper,
 } from '@/ascendra-ui';
+import { Separator } from '@/ascendra-ui/shadcn';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { backgroundJobsApi } from '@/ascendra-commons-ui/background-jobs.ui/api';
 import { backgroundJobsLinks } from '@/ascendra-commons-ui/background-jobs.ui/links';
@@ -66,13 +67,21 @@ export default function BackgroundJobLocksPage() {
                 </TableHead>
               </TableHeaderRow>
               {rows.length > 0 && (
-                <TableHeaderRow>
-                  <TableHead>Job</TableHead>
-                  <TableHead>Holder</TableHead>
-                  <TableHead>Taken</TableHead>
-                  <TableHead>Lease until</TableHead>
-                  <TableHead>State</TableHead>
-                </TableHeaderRow>
+                <>
+                  {/* Divides the card's title from the column labels below it. */}
+                  <TableHeaderRow aria-hidden className="h-auto">
+                    <TableHead colSpan={5} className="p-0 first:pl-0">
+                      <Separator />
+                    </TableHead>
+                  </TableHeaderRow>
+                  <TableHeaderRow>
+                    <TableHead>Job</TableHead>
+                    <TableHead>Holder</TableHead>
+                    <TableHead>Taken</TableHead>
+                    <TableHead>Lease until</TableHead>
+                    <TableHead>State</TableHead>
+                  </TableHeaderRow>
+                </>
               )}
             </TableHeader>
             {rows.length > 0 && (

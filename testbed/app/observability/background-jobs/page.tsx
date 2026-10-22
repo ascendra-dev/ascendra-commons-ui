@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { LuArrowUpRight, LuDatabase, LuLock } from 'react-icons/lu';
+import { LuArrowUpRight, LuDatabase, LuHistory, LuLock } from 'react-icons/lu';
 import {
   Button,
   Card,
@@ -37,10 +37,12 @@ import {
   TableHead,
   TableHeader,
   TableHeaderRow,
+  TableNote,
   TableRow,
   TableWrapper,
   WithError,
   WithSkeleton,
+  WithTooltip,
   type TriggerParams,
 } from '@/ascendra-ui';
 import { cn } from '@/ascendra-ui/shadcn';
@@ -149,7 +151,11 @@ export default function BackgroundJobsOverviewPage() {
         </PageHeaderAction>
       </PageHeader>
       <DashboardContent>
-        <SegmentControl segments={PERIODS} value={period.value} onValueChange={(v) => setPeriodValue(v as Period['value'])} />
+        {/* The period picker, and how far back the history goes — page-wide, so it sits beside the picker. */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <SegmentControl segments={PERIODS} value={period.value} onValueChange={(v) => setPeriodValue(v as Period['value'])} />
+          <OldestKept />
+        </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <WithError>
@@ -203,11 +209,14 @@ export default function BackgroundJobsOverviewPage() {
               }
               onOpen={(name) => router.push(backgroundJobsLinks.job(name))}
               renderMeta={jobMeta}
+              note={
+                jobs.data?.length
+                  ? `${plural(jobs.data.length, 'job', 'jobs')} in all, both lists — every job that ran, declares a cadence, or can be run now.`
+                  : undefined
+              }
             />
           </div>
         </div>
-
-        <OldestFootnote jobCount={jobs.data?.length} />
       </DashboardContent>
     </>
   );
@@ -305,6 +314,7 @@ function JobsCard({
   emptyDescription,
   onOpen,
   renderMeta,
+  note,
 }: {
   title: string;
   subtitle: string;
@@ -314,6 +324,8 @@ function JobsCard({
   emptyDescription: string;
   onOpen: (name: string) => void;
   renderMeta: (job: JobStatus) => string;
+  /** What the rows don't say on their own, under the card. */
+  note?: string;
 }) {
   return (
     <TableWrapper>
@@ -358,21 +370,24 @@ function JobsCard({
         description={emptyDescription}
         className="h-65"
       />
+      {note && <TableNote>{note}</TableNote>}
     </TableWrapper>
   );
 }
 
 /** How far back the history goes — from the volume read, so it shows the prune is running. */
-function OldestFootnote({ jobCount }: { jobCount?: number }) {
+function OldestKept() {
   const volume = useQuery({
     queryKey: ['background-jobs-volume'],
     queryFn: () => backgroundJobsApi.volume(Intl.DateTimeFormat().resolvedOptions().timeZone),
   });
   if (!volume.data?.oldestStartedAt) return null;
   return (
-    <p className="text-muted-foreground text-xs">
-      Oldest run kept: {formatDateTime(volume.data.oldestStartedAt, { time: true })} — the app prunes on its own schedule.
-      {jobCount != null && ` ${plural(jobCount, 'job', 'jobs')}: every job that ran, declares a cadence, or can be run now.`}
-    </p>
+    <WithTooltip tooltip="How far back the run history goes — the app prunes on its own schedule">
+      <SimpleBadge>
+        <LuHistory />
+        Oldest run kept · {formatDateTime(volume.data.oldestStartedAt, { time: true })}
+      </SimpleBadge>
+    </WithTooltip>
   );
 }
