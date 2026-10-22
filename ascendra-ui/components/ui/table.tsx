@@ -381,21 +381,6 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   );
 }
 
-/**
- * A note under the table, inside its wrapper — what the rows don't say on their own (where a list comes from, what it
- * leaves out). Sits on the wrapper's surface below the body card, lined up with the header's title. Not pagination:
- * that's `TableFoot`.
- */
-function TableNote({ className, ...props }: React.ComponentProps<"footer">) {
-  return (
-    <footer
-      data-slot="table-note"
-      className={cn("text-muted-foreground px-6 pt-3 pb-2 text-xs", className)}
-      {...props}
-    />
-  );
-}
-
 function TableCaption({
   className,
   ...props
@@ -567,7 +552,6 @@ export {
   TableHead,
   TableHeader,
   TableHeaderRow,
-  TableNote,
   TableRow,
   TableWrapper,
 };
