@@ -46,9 +46,9 @@ Cross-module infrastructure used by more than one package:
   boot instead of the module guessing a path shape).
 - `shared/observability/` — the reusable "list + trace + catalog" screen
   pieces. Not built yet, deliberately: each small observability module
-  (`rate-limiting` — shipped, then `payment-link-security`,
-  `payment-gateway-adapter`, `idempotency-key`, `domain-events`, then
-  `background-jobs`) is built by hand first, borrowing from `audit-logging.ui`;
+  (`rate-limiting` and `idempotency-key` — shipped, then `domain-events`,
+  `background-jobs`, and the deferred `payment-link-security` and
+  `payment-gateway-adapter`) is built by hand first, borrowing from `audit-logging.ui`;
   the shared pieces are extracted once they are all built and the repetition is
   real, not guessed.
 
