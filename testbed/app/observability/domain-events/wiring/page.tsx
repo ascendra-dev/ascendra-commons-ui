@@ -26,11 +26,18 @@ import {
   TableRow,
   TableWrapper,
 } from '@/ascendra-ui';
+import { Separator } from '@/ascendra-ui/shadcn';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { domainEventsApi } from '@/ascendra-commons-ui/domain-events.ui/api';
 import { domainEventsLinks } from '@/ascendra-commons-ui/domain-events.ui/links';
-import { MAX_RANGE_DAYS, domainEventsQueryIds } from '@/ascendra-commons-ui/domain-events.ui/queries';
-import { wiringRows, type WiringRow } from '@/ascendra-commons-ui/domain-events.ui/wiring';
+import {
+  MAX_RANGE_DAYS,
+  domainEventsQueryIds,
+} from '@/ascendra-commons-ui/domain-events.ui/queries';
+import {
+  wiringRows,
+  type WiringRow,
+} from '@/ascendra-commons-ui/domain-events.ui/wiring';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -52,7 +59,9 @@ const SHOW = [
 
 /** The delivery catalog over the period, counted back from when the fetch runs — everything retained has no bound. */
 const fetchCatalog = (period: Period) =>
-  domainEventsApi.catalog(period.ms === null ? undefined : new Date(Date.now() - period.ms));
+  domainEventsApi.catalog(
+    period.ms === null ? undefined : new Date(Date.now() - period.ms),
+  );
 
 /** Deliveries for one event over the period (all retained → the filter's widest range), ending when the numbers were fetched. */
 const eventLink = (asOf: number, period: Period, eventName: string) =>
@@ -60,7 +69,10 @@ const eventLink = (asOf: number, period: Period, eventName: string) =>
     queryId: domainEventsQueryIds.advancedFilter,
     params: {
       eventName,
-      occurredRange: { from: new Date(asOf - (period.ms ?? MAX_RANGE_DAYS * DAY_MS)), to: new Date(asOf) },
+      occurredRange: {
+        from: new Date(asOf - (period.ms ?? MAX_RANGE_DAYS * DAY_MS)),
+        to: new Date(asOf),
+      },
     },
   });
 
@@ -76,29 +88,60 @@ export default function DomainEventWiringPage() {
   const period = PERIODS.find((p) => p.value === periodValue) ?? PERIODS[2];
 
   const catalog = useQuery({
-    queryKey: ['domain-events-catalog', period.ms === null ? 'retained' : period.value],
+    queryKey: [
+      'domain-events-catalog',
+      period.ms === null ? 'retained' : period.value,
+    ],
     queryFn: () => fetchCatalog(period),
   });
-  const listeners = useQuery({ queryKey: ['domain-events-listeners'], queryFn: () => domainEventsApi.listeners() });
+  const listeners = useQuery({
+    queryKey: ['domain-events-listeners'],
+    queryFn: () => domainEventsApi.listeners(),
+  });
 
-  const all = catalog.data && listeners.data ? wiringRows(catalog.data, listeners.data) : null;
-  const rows = all ? (show === 'problems' ? all.filter((r) => r.problem) : all) : [];
-  const failed = catalog.isError ? catalog : listeners.isError ? listeners : null;
+  const all =
+    catalog.data && listeners.data
+      ? wiringRows(catalog.data, listeners.data)
+      : null;
+  const rows = all
+    ? show === 'problems'
+      ? all.filter((r) => r.problem)
+      : all
+    : [];
+  const failed = catalog.isError
+    ? catalog
+    : listeners.isError
+      ? listeners
+      : null;
   const problemCount = all?.filter((r) => r.problem).length ?? 0;
 
   return (
     <>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
-          <BackLink href={domainEventsLinks.overview()}>Back to overview</BackLink>
+          <BackLink href={domainEventsLinks.overview()}>
+            Back to overview
+          </BackLink>
           <PageTitle>Wiring</PageTitle>
-          <PageSubtitle>What fired, against what the code says should listen — and the three ways they disagree.</PageSubtitle>
+          <PageSubtitle>
+            What fired, against what the code says should listen — and the three
+            ways they disagree.
+          </PageSubtitle>
         </PageHeaderGroup>
       </PageHeader>
       <DashboardContent>
         <div className="flex flex-wrap items-center gap-3">
-          <SegmentControl segments={PERIODS} value={period.value} onValueChange={(v) => setPeriodValue(v as Period['value'])} />
-          <SegmentControl segments={SHOW} value={show} onValueChange={(v) => setShow(v as typeof show)} aria-label="Show" />
+          <SegmentControl
+            segments={PERIODS}
+            value={period.value}
+            onValueChange={(v) => setPeriodValue(v as Period['value'])}
+          />
+          <SegmentControl
+            segments={SHOW}
+            value={show}
+            onValueChange={(v) => setShow(v as typeof show)}
+            aria-label="Show"
+          />
         </div>
 
         <TableWrapper>
@@ -108,8 +151,17 @@ export default function DomainEventWiringPage() {
                 <TableHead colSpan={5}>
                   <CardHeaderTitle>Events</CardHeaderTitle>
                   <CardHeaderSubtitle>
-                    {period.label} · {all ? `${formatCount(problemCount)} with a problem, first` : 'problems first'}
+                    {period.label} ·{' '}
+                    {all
+                      ? `${formatCount(problemCount)} with a problem, first`
+                      : 'problems first'}
                   </CardHeaderSubtitle>
+                </TableHead>
+              </TableHeaderRow>
+              {/* Divides the card's title from the column labels below it. */}
+              <TableHeaderRow aria-hidden className="h-auto">
+                <TableHead colSpan={5} className="py-0">
+                  <Separator />
                 </TableHead>
               </TableHeaderRow>
               <TableHeaderRow>
@@ -123,18 +175,29 @@ export default function DomainEventWiringPage() {
             {rows.length > 0 && (
               <TableBody>
                 {rows.map((row) => {
-                  const href = row.fired ? eventLink(catalog.dataUpdatedAt, period, row.eventName) : undefined;
+                  const href = row.fired
+                    ? eventLink(catalog.dataUpdatedAt, period, row.eventName)
+                    : undefined;
                   return (
-                    <TableRow key={row.eventName} className={href ? 'cursor-pointer' : undefined} onClick={href ? () => router.push(href) : undefined}>
+                    <TableRow
+                      key={row.eventName}
+                      className={href ? 'cursor-pointer' : undefined}
+                      onClick={href ? () => router.push(href) : undefined}
+                    >
                       <TableCell className="align-top whitespace-nowrap">
                         <SimpleBadge>{row.eventName}</SimpleBadge>
                         {row.fired && (
                           <div className="text-muted-foreground mt-1 text-xs">
-                            last {formatDateTime(row.fired.lastOccurredAt, { style: 'relative' })}
+                            last{' '}
+                            {formatDateTime(row.fired.lastOccurredAt, {
+                              style: 'relative',
+                            })}
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className={`text-right align-top font-mono tabular-nums ${row.fired ? '' : 'text-muted-foreground'}`}>
+                      <TableCell
+                        className={`text-right align-top font-mono tabular-nums ${row.fired ? '' : 'text-muted-foreground'}`}
+                      >
                         {formatCount(row.fired?.total ?? 0)}
                       </TableCell>
                       <TableCell className="align-top whitespace-nowrap">
@@ -153,7 +216,12 @@ export default function DomainEventWiringPage() {
             )}
           </Table>
           <DataTableLoadingBody isLoading={!all && !failed} className="h-65" />
-          <DataTableErrorBody isError={!!failed} error={failed?.error} onRetry={() => failed?.refetch()} className="h-65" />
+          <DataTableErrorBody
+            isError={!!failed}
+            error={failed?.error}
+            onRetry={() => failed?.refetch()}
+            className="h-65"
+          />
           <DataTableEmptyBody
             isLoading={!all}
             isEmpty={!!all && rows.length === 0}
@@ -167,8 +235,9 @@ export default function DomainEventWiringPage() {
           />
         </TableWrapper>
         <p className="text-muted-foreground text-xs">
-          The listener catalogue reads this process&apos;s <code>@OnEvent()</code> / <code>@OnCriticalEvent()</code> decorators — listeners in
-          another service don&apos;t appear.
+          The listener catalogue reads this process&apos;s{' '}
+          <code>@OnEvent()</code> / <code>@OnCriticalEvent()</code> decorators —
+          listeners in another service don&apos;t appear.
         </p>
       </DashboardContent>
     </>
@@ -181,18 +250,28 @@ function RaisedWith({ row }: { row: WiringRow }) {
   const { emitCount, emitCriticalCount } = row.fired;
   return (
     <div className="flex flex-col gap-0.5 text-sm">
-      {emitCriticalCount > 0 && <span>critical {formatCount(emitCriticalCount)}</span>}
-      {emitCount > 0 && <span className={row.criticalViaEmit ? 'text-negative' : undefined}>emit {formatCount(emitCount)}</span>}
+      {emitCriticalCount > 0 && (
+        <span>critical {formatCount(emitCriticalCount)}</span>
+      )}
+      {emitCount > 0 && (
+        <span className={row.criticalViaEmit ? 'text-negative' : undefined}>
+          emit {formatCount(emitCount)}
+        </span>
+      )}
     </div>
   );
 }
 
 function Listeners({ row }: { row: WiringRow }) {
-  if (row.listeners.length === 0) return <span className="text-muted-foreground">none</span>;
+  if (row.listeners.length === 0)
+    return <span className="text-muted-foreground">none</span>;
   return (
     <div className="flex flex-col gap-1">
       {row.listeners.map((l) => (
-        <span key={`${l.listenerClass}.${l.listenerMethod}`} className="flex flex-wrap items-center gap-1.5 text-sm">
+        <span
+          key={`${l.listenerClass}.${l.listenerMethod}`}
+          className="flex flex-wrap items-center gap-1.5 text-sm"
+        >
           {l.listenerClass}.{l.listenerMethod}
           {l.critical && <SimpleBadge variant="blue">critical</SimpleBadge>}
         </span>
@@ -205,8 +284,14 @@ function Checks({ row }: { row: WiringRow }) {
   if (!row.problem) return <SimpleBadge variant="green">ok</SimpleBadge>;
   return (
     <div className="flex flex-wrap gap-1">
-      {row.criticalViaEmit && <SimpleBadge variant="red">critical listener, raised with emit()</SimpleBadge>}
-      {row.firesIntoNothing && <SimpleBadge variant="orange">fires into nothing</SimpleBadge>}
+      {row.criticalViaEmit && (
+        <SimpleBadge variant="red">
+          critical listener, raised with emit()
+        </SimpleBadge>
+      )}
+      {row.firesIntoNothing && (
+        <SimpleBadge variant="orange">fires into nothing</SimpleBadge>
+      )}
       {row.neverFires && <SimpleBadge variant="blue">never fires</SimpleBadge>}
     </div>
   );

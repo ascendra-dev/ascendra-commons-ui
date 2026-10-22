@@ -47,7 +47,6 @@ import {
   WithEmptyValue,
   WithSheetIcon,
   WithTooltip,
-  useQueryContext,
 } from '@/ascendra-ui';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -124,7 +123,11 @@ export default function DomainEventDeliveriesPage() {
                             <DataTableHighlight text={formatDateTime(row.occurredAt, { time: true })} item={row} itemKey="occurredAt" />
                           </DataTableCell>
                           <DataTableCell column="eventName">
-                            <EventCell row={row} />
+                            <SimpleBadge>
+                              <span>
+                                <DataTableHighlight text={row.eventName} item={row} itemKey="eventName" />
+                              </span>
+                            </SimpleBadge>
                           </DataTableCell>
                           <DataTableCell column="method">
                             {row.method === 'emitCritical' ? (
@@ -182,25 +185,6 @@ export default function DomainEventDeliveriesPage() {
         </PageWrapper>
       </PageMain>
     </>
-  );
-}
-
-/** The event name, clickable: it filters the list to that event (a fresh Advanced Filter run, over its default range). */
-function EventCell({ row }: { row: EventDelivery }) {
-  const { runQuery } = useQueryContext();
-  return (
-    <button
-      type="button"
-      className="cursor-pointer text-left"
-      title="Filter the list to this event"
-      onClick={() => runQuery(domainEventsQueryIds.advancedFilter, { eventName: row.eventName })}
-    >
-      <SimpleBadge>
-        <span>
-          <DataTableHighlight text={row.eventName} item={row} itemKey="eventName" />
-        </span>
-      </SimpleBadge>
-    </button>
   );
 }
 

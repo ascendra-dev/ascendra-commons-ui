@@ -46,7 +46,6 @@ import {
   SimpleBadge,
   WithEmptyValue,
   WithSheetIcon,
-  useQueryContext,
 } from '@/ascendra-ui';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -208,22 +207,12 @@ export default function RateLimitRejectionsPage() {
   );
 }
 
-/**
- * The source, clickable: it filters the list to that source (a fresh Advanced Filter run, over its default range).
- * `(overflow)` filters too — to the windows a wide flood spilled past the recorder's buffer — and says what it is.
- */
+/** The source — an address reads as code; the overflow label as plain words. Filtering by it is a row action. */
 function SourceCell({ row }: { row: RateLimitRejection }) {
-  const { runQuery } = useQueryContext();
-  // An address reads as code; the overflow label as plain words.
   const textClass = isOverflow(row.identifier) ? 'text-muted-foreground text-sm' : 'font-mono text-xs';
   return (
-    <button
-      type="button"
-      className={`cursor-pointer text-left whitespace-nowrap hover:underline ${textClass}`}
-      title="Filter the list to this source"
-      onClick={() => runQuery(rateLimitQueryIds.advancedFilter, { identifier: row.identifier })}
-    >
+    <span className={`whitespace-nowrap ${textClass}`}>
       <DataTableHighlight text={sourceLabel(row.identifier)} item={row} itemKey="identifier" />
-    </button>
+    </span>
   );
 }
