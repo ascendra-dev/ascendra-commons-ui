@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo, Suspense } from 'react';
+import { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo, useId, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { hashKey, useQuery } from '@tanstack/react-query';
 import {
@@ -88,6 +88,10 @@ export function DataTableQueryProvider<T = unknown>({
   children,
 }: DataTableQueryProviderProps<T>) {
   const [activeId, setActiveId] = useState(propQueries[0].id);
+  // Scopes the React Query cache to this table: query ids repeat across tables ('recent' on every log), and two tables
+  // sharing a key would render each other's rows. Without a tableId, this instance's own id — no cache across mounts.
+  const instanceId = useId();
+  const cacheScope = tableId ?? instanceId;
   const [pendingQueryId, setPendingQueryId] = useState<string | null>(null);
   const [confirmedParamsState, setConfirmedParamsRaw] = useState<QueryParamValues | null>(null);
   const [mutedParams, setMutedParams] = useState<string[]>([]);
@@ -538,7 +542,7 @@ export function DataTableQueryProvider<T = unknown>({
   const enabled =
     !isInitializing && !triggerError && (!takesParams(confirmedQuery.group) || confirmedParamsState !== null);
 
-  const runKey = ['data-table', activeId, effectiveParams];
+  const runKey = ['data-table', cacheScope, activeId, effectiveParams];
   const { data: queryData, isLoading, isError, error, refetch, isPlaceholderData } = useQuery<QueryResult<T>, Error>({
     queryKey: [...runKey, currentBatch],
     queryFn: () => queryFn!(effectiveParams ?? {}, currentBatch),
