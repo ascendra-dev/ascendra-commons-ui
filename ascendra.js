@@ -6,6 +6,9 @@
  *   node ascendra.js update       Pull the latest ascendra-ui/ folder from the public repo,
  *                                 into BOTH copies this project keeps
  *   node ascendra.js update --yes Same, without the confirmation prompt (also works with no TTY)
+ *   node ascendra.js update --from <path>
+ *                                 Same, from a local ascendra-ui checkout instead of GitHub — its
+ *                                 committed HEAD (cloned), never uncommitted edits; for unpushed work
  *
  * This is a one-off project, already set up — there is no `setup` command here (see
  * ascendra-ui/ascendra.js in the sibling ascendra-ui repo for that; it's for turning a fresh
@@ -52,8 +55,9 @@ function ask(question) {
   });
 }
 
-async function update({ yes }) {
-  const commitsUrl = SOURCE_REPO.replace(/\.git$/, "") + "/commits";
+async function update({ yes, from }) {
+  const source = from ? `file://${path.resolve(from)}` : SOURCE_REPO;
+  const commitsUrl = from ? `git -C ${path.resolve(from)} log` : SOURCE_REPO.replace(/\.git$/, "") + "/commits";
 
   console.log("This will DELETE AND REPLACE ascendra-ui/ at both:");
   for (const target of TARGETS) {
@@ -62,7 +66,7 @@ async function update({ yes }) {
   }
   console.log("\nEverything currently inside those folders is deleted first. This cannot be undone");
   console.log("unless it's tracked in git — commit first if you want an easy way back.\n");
-  console.log(`Pulling the current default branch from: ${SOURCE_REPO}`);
+  console.log(`Pulling the current ${from ? "committed HEAD" : "default branch"} from: ${source}`);
   console.log("There's no version pinning, so this may include breaking changes. There's no");
   console.log("CHANGELOG either — review recent commits on the source repo first:");
   console.log(`  ${commitsUrl}\n`);
@@ -92,11 +96,13 @@ async function update({ yes }) {
     }
   }
 
-  console.log(`\nFetching the latest ascendra-ui/ from ${SOURCE_REPO} ...`);
+  console.log(`\nFetching the latest ascendra-ui/ from ${source} ...`);
 
   const tmpDir = path.join(os.tmpdir(), `ascendra-ui-update-${Date.now()}`);
   try {
-    execSync(`git clone --depth 1 "${SOURCE_REPO}" "${tmpDir}"`, { stdio: "inherit" });
+    execSync(`git clone --depth 1 "${source}" "${tmpDir}"`, { stdio: "inherit" });
+    const commit = execSync("git rev-parse --short HEAD", { cwd: tmpDir, stdio: "pipe" }).toString().trim();
+    console.log(`  at ${commit}`);
 
     const srcLib = path.join(tmpDir, "ascendra-ui");
     if (!fs.existsSync(srcLib)) {
@@ -122,13 +128,20 @@ async function update({ yes }) {
 const [, , command, ...flags] = process.argv;
 
 if (command === "update") {
-  update({ yes: flags.includes("--yes") || flags.includes("-y") }).catch((err) => {
+  const fromAt = flags.indexOf("--from");
+  if (fromAt !== -1 && !flags[fromAt + 1]) {
+    console.error("--from needs a path to an ascendra-ui checkout.");
+    process.exit(1);
+  }
+  const from = fromAt === -1 ? undefined : flags[fromAt + 1];
+  update({ yes: flags.includes("--yes") || flags.includes("-y"), from }).catch((err) => {
     console.error(err.message);
     process.exit(1);
   });
 } else {
   console.log("Usage:");
-  console.log("  node ascendra.js update [--yes]    (pulls the latest ascendra-ui/ into both vendored copies;");
-  console.log("                                    --yes skips the confirmation prompt)");
+  console.log("  node ascendra.js update [--yes] [--from <path>]");
+  console.log("      pulls the latest ascendra-ui/ into both vendored copies; --yes skips the confirmation prompt;");
+  console.log("      --from takes a local checkout's committed HEAD instead of GitHub (unpushed work)");
   process.exit(1);
 }
