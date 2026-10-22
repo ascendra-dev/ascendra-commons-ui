@@ -18,7 +18,9 @@ export function DataTableHead({ column, children, className }: DataTableHeadProp
   if (col?.active === false) return null;
   const sortable = isColSortable(column);
   const label = children ?? col?.label;
-  // The label sits in a flex row (beside the sort icon), so a text-right on the th alone can't move it.
+  // The label sits in a flex row (beside the sort icon), so a text-right on the th alone can't move it. Right-aligned,
+  // the icon goes before the label — after it, its (hover-only) space would hold the label off the column's edge,
+  // out of line with the numbers under it.
   const alignRight = col?.align === 'right';
 
   return (
@@ -32,7 +34,7 @@ export function DataTableHead({ column, children, className }: DataTableHeadProp
       )}
       onClick={sortable ? () => handleSort(column) : undefined}
     >
-      <div className={cn('flex items-center gap-1.5', alignRight && 'justify-end')}>
+      <div className={cn('flex items-center gap-1.5', alignRight && 'flex-row-reverse justify-start')}>
         {label}
         <DataTableSortIcon column={column} />
       </div>
