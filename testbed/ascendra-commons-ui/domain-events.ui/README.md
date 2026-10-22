@@ -58,6 +58,10 @@ the other modules.
 **No mock layer.** Every screen calls the real API (`ascendra-commons-sandbox` raises demo events through the real
 emitter — `src/demo/demo-events.ts`, `src/cli/domain-event-history.ts`).
 
+**Review (2026-10-22).** The module's guide and review report — what was fixed, the open gaps (a correlation-id
+resolver so audit's events trace, alerting on wiring problems, a rollup for the catalog at scale, …) — live beside its
+backend: `ascendra-commons/domain-events/GUIDE.md` and `AUDIT-REPORT.md`.
+
 **Built by hand, not on a shared factory.** `rate-limiting.ui`'s overview, list and Volume & Retention, and
 `idempotency-key.ui`'s trace sheet, were the starting points; shared pieces get extracted once the small observability
 modules are all built (rollout plan).
