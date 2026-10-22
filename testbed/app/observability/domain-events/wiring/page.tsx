@@ -160,7 +160,7 @@ export default function DomainEventWiringPage() {
               </TableHeaderRow>
               {/* Divides the card's title from the column labels below it. */}
               <TableHeaderRow aria-hidden className="h-auto">
-                <TableHead colSpan={5} className="py-0">
+                <TableHead colSpan={5} className="p-0 first:pl-0">
                   <Separator />
                 </TableHead>
               </TableHeaderRow>
