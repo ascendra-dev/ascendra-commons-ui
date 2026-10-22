@@ -64,6 +64,10 @@ mounts it — the same deferral as the other modules.
 drives real claims through its idempotent demo routes — see its README). The seed
 ages out after 24 hours; re-run it before reviewing.
 
+**Review (2026-10-22).** The module's guide and review report — what was fixed, the open gaps (redacting the saved
+body, filters behind the three unlinked tiles, alerting on "ran twice", the stale window on screen, …) — live beside its
+backend: `ascendra-commons/idempotency-key/GUIDE.md` and `AUDIT-REPORT.md`.
+
 **Built by hand, not on a shared factory.** `rate-limiting.ui`'s overview and
 trace sheet were the starting point; shared pieces get extracted once the small
 observability modules are all built (rollout plan).
