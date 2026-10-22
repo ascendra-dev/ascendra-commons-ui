@@ -59,7 +59,7 @@ export const domainEventsQueryDefs: QueryDef[] = [
         span: 1,
         maxLength: 128,
         optional: true,
-        description: 'One request or job — audit’s own deliveries carry none',
+        description: 'One request or job — the same id its audit records carry',
       },
       { _type: 'section', title: 'Occurred', showTitle: true },
       {

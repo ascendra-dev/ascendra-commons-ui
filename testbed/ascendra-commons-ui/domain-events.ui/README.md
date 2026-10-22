@@ -49,8 +49,9 @@ is.
 **Dispatch failed is rare by design.** A listener that throws is a listener failure — logged by the emitter, owned by the
 listener's module — not a dispatch failure. Expect 0.
 
-**Audit's deliveries have no correlation id.** audit-logging passes its id through request context, not `emit()`'s third
-argument, so its rows don't open a trace (see the module's AUDIT-REPORT).
+**Every delivery can trace — audit's included.** audit-logging keeps its correlation id in request context and never
+passes it to `emit()`; the app wires the emitter's `correlationIdResolver` to that context, so audit's deliveries carry
+the same id as their audit records (a delivery with none shows "—" and doesn't link).
 
 **`links.ts` hardcodes `/observability/domain-events`**, where `packages/observability` mounts it — the same deferral as
 the other modules.
@@ -58,8 +59,8 @@ the other modules.
 **No mock layer.** Every screen calls the real API (`ascendra-commons-sandbox` raises demo events through the real
 emitter — `src/demo/demo-events.ts`, `src/cli/domain-event-history.ts`).
 
-**Review (2026-10-22).** The module's guide and review report — what was fixed, the open gaps (a correlation-id
-resolver so audit's events trace, alerting on wiring problems, a rollup for the catalog at scale, …) — live beside its
+**Review (2026-10-22).** The module's guide and review report — what was fixed, the open gaps (alerting on wiring
+problems, a rollup for the catalog at scale, …) — live beside its
 backend: `ascendra-commons/domain-events/GUIDE.md` and `AUDIT-REPORT.md`.
 
 **Built by hand, not on a shared factory.** `rate-limiting.ui`'s overview, list and Volume & Retention, and

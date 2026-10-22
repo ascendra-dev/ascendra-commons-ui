@@ -152,7 +152,7 @@ export default function DomainEventDeliveriesPage() {
                             <StatusCell row={row} />
                           </DataTableCell>
                           <DataTableCell column="correlationId">
-                            {/* Audit's own deliveries carry none — it passes its id through request context, not emit(). */}
+                            {/* A delivery raised outside any request or job, without an id, has none — nothing to open. */}
                             <WithEmptyValue value={row.correlationId}>
                               <button type="button" className="cursor-pointer text-left hover:underline" onClick={() => setTraceId(row.correlationId)}>
                                 <WithSheetIcon>
