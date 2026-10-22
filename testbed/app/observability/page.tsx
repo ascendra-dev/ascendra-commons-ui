@@ -18,7 +18,7 @@ export default function ObservabilityHomePage() {
           <PageTitle>Observability</PageTitle>
           <PageSubtitle>
             Admin &amp; observability for every ascendra-commons module bundled here — Audit Log, Rate
-            Limiting and Idempotency so far.
+            Limiting, Idempotency and Domain Events so far.
           </PageSubtitle>
         </PageHeaderGroup>
       </PageHeader>
