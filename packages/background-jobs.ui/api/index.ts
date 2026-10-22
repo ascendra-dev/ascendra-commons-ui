@@ -7,8 +7,8 @@ export type {
   JobRun,
   JobRunOutcome,
   JobRunTrigger,
+  JobStarted,
   JobStatus,
-  JobTriggerResult,
   RunSummary,
   RunVolume,
 } from './background-jobs-api.types';

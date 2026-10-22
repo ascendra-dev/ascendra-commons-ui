@@ -45,7 +45,7 @@ import {
 import { cn } from '@/ascendra-ui/shadcn';
 import { isApiError } from '@/ascendra-ui/lib/api';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
-import { backgroundJobsApi, type JobRun, type JobStatus, type JobTriggerResult } from '@/ascendra-commons-ui/background-jobs.ui/api';
+import { backgroundJobsApi, type JobRun, type JobStatus } from '@/ascendra-commons-ui/background-jobs.ui/api';
 import {
   ALERT_CONSECUTIVE_FAILURES,
   STREAK_WINDOW,
@@ -239,27 +239,39 @@ function cadenceCaption(job: JobStatus | undefined, leftBehind: boolean | undefi
   );
 }
 
+/** Every read that counts runs or locks — refreshed when a run starts and again when it's recorded. */
+const RUN_QUERY_KEYS = [
+  'background-jobs-jobs',
+  'background-jobs-failed-items',
+  'background-jobs-recent-runs',
+  'background-jobs-summary',
+  'background-jobs-locks',
+  'background-jobs-volume',
+];
+
 /**
- * Run now — waits for the run (a spinner), then toasts the result and refreshes everything that counts runs. "Retry"
- * is the same thing: the job looks for its due items afresh, so the failed ones run again. A 409 is the lock doing its
- * job. Disabled, with the reason on hover, without `job.run`; absent for a job the app can't trigger.
+ * Run now — the API answers once the job has its lock (202), never after the run, so a long job can't time the request
+ * out. A "running…" toast then follows the run by its correlation id and turns into the result when the run is
+ * recorded; it's the app-wide toaster, so it still lands after the viewer leaves this screen. "Retry" is the same
+ * thing: the job looks for its due items afresh, so the failed ones run again. A 409 is the lock doing its job.
+ * Disabled, with the reason on hover, without `job.run`; absent for a job the app can't trigger.
  */
 function RunNowButton({ job }: { job: JobStatus }) {
   const queryClient = useQueryClient();
   const canRun = useSession().data?.allowedActions.includes('job.run') ?? false;
+  const refresh = () => RUN_QUERY_KEYS.forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
   const runNow = useMutation({
     mutationFn: () => backgroundJobsApi.runNow(job.name),
-    onSuccess: (result) => toastResult(job.name, result),
+    onSuccess: ({ correlationId }) => {
+      // Shows the held lock and the run's absence from the history — until it's recorded.
+      refresh();
+      void followRun(job.name, correlationId, refresh);
+    },
     onError: (error) => {
       if (isApiError(error) && error.status === 409) {
         toast.warning(`${job.name} is running now — try again when it finishes`);
       } else {
         toast.error(`Couldn't run ${job.name}`, { description: error instanceof Error ? error.message : undefined });
-      }
-    },
-    onSettled: () => {
-      for (const key of ['background-jobs-jobs', 'background-jobs-failed-items', 'background-jobs-recent-runs', 'background-jobs-summary', 'background-jobs-locks']) {
-        queryClient.invalidateQueries({ queryKey: [key] });
       }
     },
   });
@@ -274,13 +286,20 @@ function RunNowButton({ job }: { job: JobStatus }) {
   return canRun ? button : <WithTooltip tooltip="You don't have permission to run jobs">{button}</WithTooltip>;
 }
 
-function toastResult(name: string, result: JobTriggerResult) {
-  if (result.status === 'job_failed') {
-    toast.error(`${name} couldn't find its work — see the run`, { description: result.error.split('\n')[0] });
-  } else if (result.itemsFailed > 0) {
-    toast.warning(`${name} ran — ${formatCount(result.itemsDue)} due, ${formatCount(result.itemsProcessed)} processed, ${formatCount(result.itemsFailed)} failed`);
+/** One toast for the run's life: "running…", then its result in place — or, after 10 minutes, where to look. */
+async function followRun(name: string, correlationId: string, refresh: () => void) {
+  const id = `run-now-${correlationId}`;
+  toast.loading(`${name} is running…`, { id, description: "You can leave this page — this updates when it's done." });
+  const run = await backgroundJobsApi.waitForRun(correlationId);
+  refresh();
+  if (!run) {
+    toast.info(`${name} is still running`, { id, description: 'No result after 10 minutes — check Runs, or Locks if it never finishes.' });
+  } else if (run.outcome === 'job_failed') {
+    toast.error(`${name} couldn't find its work — see the run`, { id, description: run.error?.split('\n')[0] });
+  } else if (run.itemsFailed > 0) {
+    toast.warning(`${name} ran — ${formatCount(run.itemsDue)} due, ${formatCount(run.itemsProcessed)} processed, ${formatCount(run.itemsFailed)} failed`, { id, description: null });
   } else {
-    toast.success(`${name} ran — ${formatCount(result.itemsDue)} due, ${formatCount(result.itemsProcessed)} processed`);
+    toast.success(`${name} ran — ${formatCount(run.itemsDue)} due, ${formatCount(run.itemsProcessed)} processed`, { id, description: null });
   }
 }
 

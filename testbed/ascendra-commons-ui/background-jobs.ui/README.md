@@ -35,9 +35,10 @@ Every period is on when the run **started** (`startedAt`). The app keeps runs 90
 - **Job** (`/jobs/:name`) — tiles (last run, last clean run, failing in a row — "50+" when the streak fills the 50 runs
   it's read from — and cadence, declared or inferred, amber when overdue, linking Locks when a dead holder's lock is
   left), **Failed items** (items failing in 2+ of its last 50 runs, `GET /jobs/:name/failed-items`) and **Recent runs**
-  (its latest 20, opening the Run sheet). Header: All runs of this job, and **Run now** (`POST /jobs/:name/run`) — waits
-  with a spinner, toasts the result (ran / items failed / couldn't find its work / already running — the 409), and
-  refreshes every read. Disabled with "You don't have permission to run jobs" without `job.run`; absent, with a note,
+  (its latest 20, opening the Run sheet). Header: All runs of this job, and **Run now** (`POST /jobs/:name/run`) — the API
+  answers 202 once the job has its lock; a "running…" toast then follows the run by its correlation id
+  (`waitForRun()`, polling its trace every 2s) and turns into the result — ran / items failed / couldn't find its
+  work — refreshing every read; a second press while it runs is the 409's "running now". Disabled with "You don't have permission to run jobs" without `job.run`; absent, with a note,
   for a job the app can't trigger.
 - **Locks** — `GET /jobs/locks`: held (a run in progress) or expired (its holder died mid-run). Read-only, no
   force-release. On the session-level advisory lock (`supported: false`) it says why nothing can be listed.
@@ -50,6 +51,11 @@ Every period is on when the run **started** (`startedAt`). The app keeps runs 90
 **Outcome is three-way in the UI, two-way on the wire.** The API's `outcome` is `completed | job_failed`; "items
 failed" is `completed` + `hasFailedItems=true`. The list derives `result` per row (`toRunRow`) so the table's own
 filter and search see the three, while the Advanced Filter keeps the API's two fields.
+
+**Run now never waits on the run.** A job can outlast any proxy's timeout, so the request ends at "started" and the
+screen follows the run in the history. The toast is the app-wide one, so the result still lands after the viewer leaves
+the Job screen. After 10 minutes with no row it says to check Runs (still running) or Locks (its process died mid-run
+and recorded nothing — the lock shows `expired`).
 
 **Needs attention is computed in the browser** from `GET /jobs` with `/jobs/alerts`' rule (`needsAttention()` in
 `display.ts`), so the tile, its panel and the Job screen agree without a second read.

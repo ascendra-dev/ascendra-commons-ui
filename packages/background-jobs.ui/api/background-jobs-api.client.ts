@@ -5,13 +5,15 @@ import type {
   FailedItemSummary,
   JobLocks,
   JobRun,
+  JobStarted,
   JobStatus,
-  JobTriggerResult,
   RunSummary,
   RunVolume,
 } from './background-jobs-api.types';
 
 const jobPath = (name: string) => `/jobs/${encodeURIComponent(name)}`;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const backgroundJobsApi = {
   /** GET /jobs — every job's status, by name. */
@@ -41,6 +43,25 @@ export const backgroundJobsApi = {
     return api.get<CursorListResponse<JobRun>>(`/jobs/runs/trace/${encodeURIComponent(correlationId)}`, query);
   },
 
+  /**
+   * Waits for a started run to be recorded — polls its trace every `intervalMs` until the row is there, then resolves
+   * it; resolves `null` after `timeoutMs` (still running, or its process died mid-run and recorded nothing). A failed
+   * poll is retried, not thrown: the run is under way regardless.
+   */
+  async waitForRun(correlationId: string, { intervalMs = 2_000, timeoutMs = 10 * 60_000 } = {}): Promise<JobRun | null> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      await sleep(intervalMs);
+      try {
+        const page = await backgroundJobsApi.trace(correlationId, { limit: 1 });
+        if (page.data.length > 0) return page.data[0];
+      } catch {
+        // A blip between polls — keep waiting.
+      }
+    }
+    return null;
+  },
+
   /** GET /jobs/runs/summary — the tiles' totals since `since` (everything retained when omitted). */
   summary(since?: Date): Promise<RunSummary> {
     return api.get<RunSummary>('/jobs/runs/summary', { since });
@@ -61,8 +82,11 @@ export const backgroundJobsApi = {
     return api.get<JobLocks>('/jobs/locks');
   },
 
-  /** POST /jobs/:name/run — runs it and waits; a 404 for a job that can't be run, a 409 while it's already running. */
-  runNow(name: string): Promise<JobTriggerResult> {
-    return api.post<JobTriggerResult>(`${jobPath(name)}/run`);
+  /**
+   * POST /jobs/:name/run — answers once the job has its lock, never after the run: follow it with `trace()` by the
+   * returned correlation id. A 404 for a job that can't be run, a 409 while it's already running.
+   */
+  runNow(name: string): Promise<JobStarted> {
+    return api.post<JobStarted>(`${jobPath(name)}/run`);
   },
 };

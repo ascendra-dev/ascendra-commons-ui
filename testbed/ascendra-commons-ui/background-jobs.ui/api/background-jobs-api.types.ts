@@ -89,10 +89,14 @@ export interface JobLocks {
   locks: JobLock[];
 }
 
-/** `POST /jobs/:name/run` — 200 only; unknown job is a 404, already running a 409. */
-export type JobTriggerResult =
-  | { status: 'completed'; itemsDue: number; itemsProcessed: number; itemsFailed: number; failedItemRefs: string[] }
-  | { status: 'job_failed'; error: string };
+/**
+ * `POST /jobs/:name/run` — 202 once the job has its lock; unknown job is a 404, already running a 409. The run goes on:
+ * its result is the run that `GET /jobs/runs/trace/:correlationId` returns once it's recorded.
+ */
+export interface JobStarted {
+  status: 'started';
+  correlationId: string;
+}
 
 /** `GET /jobs/runs/volume` — the Volume & Retention screen. */
 export interface RunVolume {
