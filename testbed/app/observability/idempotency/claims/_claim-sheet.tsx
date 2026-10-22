@@ -126,7 +126,8 @@ function SavedResponseBlock({ claim }: { claim: IdempotencyClaim }) {
     queryKey: ['idempotency-saved-response', claim.scope, claim.key],
     queryFn: () => idempotencyApi.savedResponse(claim),
     enabled: shown,
-    retry: (count, error) => !(isApiError(error) && error.status === 403) && count < 2,
+    // 403 (no view-response) and 404 (cleaned up since the list loaded) are answers, not failures — no retry.
+    retry: (count, error) => !(isApiError(error) && (error.status === 403 || error.status === 404)) && count < 2,
   });
 
   if (claim.status === 'pending') {

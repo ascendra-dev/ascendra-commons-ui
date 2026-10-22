@@ -24,14 +24,17 @@ export const idempotencyApi = {
     return api.get<CursorListResponse<IdempotencyClaim>>(`/idempotency-keys/trace/${encodeURIComponent(correlationId)}`, query);
   },
 
-  /** GET /idempotency-keys/:scope/:key — one claim, without its saved body. */
-  claim(claim: { scope: string; key: string }): Promise<IdempotencyClaim | null> {
-    return api.get<IdempotencyClaim | null>(claimPath(claim));
+  /** GET /idempotency-keys/:scope/:key — one claim, without its saved body; a 404 once it's cleaned up. */
+  claim(claim: { scope: string; key: string }): Promise<IdempotencyClaim> {
+    return api.get<IdempotencyClaim>(claimPath(claim));
   },
 
-  /** GET /idempotency-keys/:scope/:key/response — the saved body; a 403 without `idempotency.view-response`. */
-  savedResponse(claim: { scope: string; key: string }): Promise<SavedResponse | null> {
-    return api.get<SavedResponse | null>(`${claimPath(claim)}/response`);
+  /**
+   * GET /idempotency-keys/:scope/:key/response — the saved body; a 403 without `idempotency.view-response`, a 404
+   * once cleaned up (or while still in progress).
+   */
+  savedResponse(claim: { scope: string; key: string }): Promise<SavedResponse> {
+    return api.get<SavedResponse>(`${claimPath(claim)}/response`);
   },
 
   /** GET /idempotency-keys/health — claims made since `since`, plus how far back the store goes. */
