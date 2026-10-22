@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
   BackLink,
+  CardFooter,
+  CardFooterIcon,
   CardHeaderSubtitle,
   CardHeaderTitle,
   DashboardContent,
@@ -23,7 +25,6 @@ import {
   TableHead,
   TableHeader,
   TableHeaderRow,
-  TableNote,
   TableRow,
   TableWrapper,
 } from '@/ascendra-ui';
@@ -234,11 +235,14 @@ export default function DomainEventWiringPage() {
             }
             className="h-65"
           />
-          <TableNote>
-            The listener catalogue reads this process&apos;s{' '}
-            <code>@OnEvent()</code> / <code>@OnCriticalEvent()</code> decorators
-            — listeners in another service don&apos;t appear.
-          </TableNote>
+          <CardFooter>
+            <CardFooterIcon />
+            <span>
+              The listener catalogue reads this process&apos;s{' '}
+              <code>@OnEvent()</code> / <code>@OnCriticalEvent()</code>{' '}
+              decorators — listeners in another service don&apos;t appear.
+            </span>
+          </CardFooter>
         </TableWrapper>
       </DashboardContent>
     </>

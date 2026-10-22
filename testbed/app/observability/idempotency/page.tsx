@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { LuArrowUpRight } from 'react-icons/lu';
+import { LuArrowUpRight, LuHistory } from 'react-icons/lu';
 import {
   Button,
   Card,
@@ -42,6 +42,7 @@ import {
   TableWrapper,
   WithError,
   WithSkeleton,
+  WithTooltip,
   type TriggerParams,
 } from '@/ascendra-ui';
 import { cn } from '@/ascendra-ui/shadcn';
@@ -170,7 +171,18 @@ export default function IdempotencyOverviewPage() {
         </PageHeaderAction>
       </PageHeader>
       <DashboardContent>
-        <SegmentControl segments={PERIODS} value={period.value} onValueChange={(v) => setPeriodValue(v as Period['value'])} />
+        {/* The period picker, and how far back the store goes — page-wide, so it sits beside the picker. */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <SegmentControl segments={PERIODS} value={period.value} onValueChange={(v) => setPeriodValue(v as Period['value'])} />
+          {h?.oldestRetainedAt && (
+            <WithTooltip tooltip="How far back the store goes — the app deletes claims after 24 hours">
+              <SimpleBadge>
+                <LuHistory />
+                Oldest claim kept · {formatDateTime(h.oldestRetainedAt, { time: true })}
+              </SimpleBadge>
+            </WithTooltip>
+          )}
+        </div>
 
         <WithError>
           <ErrorState if={health.isError}>
@@ -339,12 +351,6 @@ export default function IdempotencyOverviewPage() {
             </TableWrapper>
           </div>
         </div>
-
-        {h?.oldestRetainedAt && (
-          <p className="text-muted-foreground text-xs">
-            Oldest claim kept: {formatDateTime(h.oldestRetainedAt, { time: true })} — the app deletes claims after 24 hours.
-          </p>
-        )}
       </DashboardContent>
       {selected && <ClaimSheet claim={selected} onClose={() => setSelected(null)} />}
     </>

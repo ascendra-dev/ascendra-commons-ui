@@ -8,6 +8,8 @@ import { LuArrowUpRight, LuDatabase, LuHistory, LuLock } from 'react-icons/lu';
 import {
   Button,
   Card,
+  CardFooter,
+  CardFooterIcon,
   CardHeaderSubtitle,
   CardHeaderTitle,
   CardPanel,
@@ -37,7 +39,6 @@ import {
   TableHead,
   TableHeader,
   TableHeaderRow,
-  TableNote,
   TableRow,
   TableWrapper,
   WithError,
@@ -370,7 +371,12 @@ function JobsCard({
         description={emptyDescription}
         className="h-65"
       />
-      {note && <TableNote>{note}</TableNote>}
+      {note && (
+        <CardFooter>
+          <CardFooterIcon />
+          <span>{note}</span>
+        </CardFooter>
+      )}
     </TableWrapper>
   );
 }

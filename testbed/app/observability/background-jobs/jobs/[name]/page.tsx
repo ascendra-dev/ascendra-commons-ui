@@ -27,6 +27,7 @@ import {
   PageHeaderGroup,
   PageSubtitle,
   PageTitle,
+  SimpleAlert,
   SimpleBadge,
   Skeleton,
   SkeletonState,
@@ -128,10 +129,10 @@ export default function BackgroundJobPage() {
           !jobs.isError && (
             <>
               {job && !job.triggerable && (
-                <p className="text-muted-foreground text-xs">
+                <SimpleAlert variant="secondary">
                   Nothing in the app can run this job — it isn&apos;t registered for triggering (<code>jobs: […]</code>), so
                   there&apos;s no Run now.
-                </p>
+                </SimpleAlert>
               )}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {jobTiles(job, leftBehind).map((tile) => (
@@ -199,9 +200,10 @@ function jobTiles(job: JobStatus | undefined, leftBehind: boolean | undefined) {
     {
       key: 'streak',
       label: 'Failing in a row',
-      value: streakLabel(streak),
-      caption:
-        streak >= STREAK_WINDOW
+      value: last ? streakLabel(streak) : '—',
+      caption: !last
+        ? 'never run'
+        : streak >= STREAK_WINDOW
           ? `every one of its last ${STREAK_WINDOW} runs`
           : streak === 0
             ? 'its last run was clean'
