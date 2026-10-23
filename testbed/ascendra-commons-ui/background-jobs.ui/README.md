@@ -69,6 +69,10 @@ as the other modules.
 **No mock layer.** Every screen calls the real API (`ascendra-commons-sandbox` runs demo jobs through the real runner —
 `src/demo/demo-jobs.ts`, `src/cli/job-history.ts`).
 
+**Review (2026-10-23).** The module's guide and review report — what was fixed, the open gaps (a run that dies
+mid-run leaves no run, nothing alerts, a chronic item retries forever, …) — live beside its backend:
+`ascendra-commons/background-jobs/GUIDE.md` and `AUDIT-REPORT.md`.
+
 **Built by hand, not on a shared factory.** `domain-events.ui`'s overview, list, trace sheet and Volume & Retention, and
 `idempotency-key.ui`'s detail sheet, were the starting points; shared pieces get extracted now that the small
 observability modules are all built (rollout plan).
