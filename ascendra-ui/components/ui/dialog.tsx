@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { cn } from "@/ascendra-ui/shadcn";
 import { OverlayPopupLayer } from "./popup-layer";
@@ -49,18 +50,20 @@ function DialogClose({
 
 /* ── Content ──────────────────────────────────────────────────────────────── */
 
+/**
+ * Where a DialogFooter goes — the gray strip under the raised card. `undefined` outside a DialogContent; `null` until
+ * the strip has mounted.
+ */
+const DialogFooterSlotContext = React.createContext<HTMLElement | null | undefined>(undefined);
+
 function DialogContent({
   className,
   children,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
-  const childArray = React.Children.toArray(children);
-  const isFooter = (c: React.ReactNode) =>
-    React.isValidElement(c) &&
-    (c.type as { displayName?: string }).displayName === "DialogFooter";
-
-  const footerChild = childArray.find(isFooter);
-  const innerChildren = childArray.filter((c) => !isFooter(c));
+  // A DialogFooter anywhere inside — a direct child, or within a component that renders a step of the dialog — moves
+  // itself into the strip below the card (a portal; React context and events still follow the tree).
+  const [footerSlot, setFooterSlot] = React.useState<HTMLElement | null>(null);
 
   return (
     <DialogPrimitive.Portal>
@@ -100,15 +103,13 @@ function DialogContent({
             "shadow-[0_1px_2px_rgba(0,0,0,0.08),0_0_2px_rgba(0,0,0,0.06)]",
           )}
         >
-          <OverlayPopupLayer>{innerChildren}</OverlayPopupLayer>
+          <DialogFooterSlotContext.Provider value={footerSlot}>
+            <OverlayPopupLayer>{children}</OverlayPopupLayer>
+          </DialogFooterSlotContext.Provider>
         </div>
 
         {/* DialogFooter renders outside the raised card, flat in the gray shell */}
-        {footerChild && (
-          <div data-slot="dialog-footer-wrapper" className="p-4">
-            <OverlayPopupLayer>{footerChild}</OverlayPopupLayer>
-          </div>
-        )}
+        <div ref={setFooterSlot} data-slot="dialog-footer-wrapper" className="p-4 empty:hidden" />
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   );
@@ -170,7 +171,8 @@ function DialogBody({ className, ...props }: React.ComponentProps<"div">) {
 /* ── Footer — button grid, rendered outside the raised card in the gray shell */
 
 function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
-  return (
+  const slot = React.useContext(DialogFooterSlotContext);
+  const footer = (
     <div
       data-slot="dialog-footer"
       className={cn(
@@ -181,6 +183,8 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
       {...props}
     />
   );
+  if (slot === undefined) return footer;
+  return slot ? createPortal(footer, slot) : null;
 }
 DialogFooter.displayName = "DialogFooter";
 

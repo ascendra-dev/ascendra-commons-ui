@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Button,
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
   DatePicker,
   Dialog,
   DialogBody,
@@ -21,7 +25,6 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  SimpleBadge,
   toast,
 } from '@/ascendra-ui';
 import { authorizationApi } from '@/ascendra-commons-ui/authorization.ui';
@@ -118,13 +121,17 @@ export function AssignRoleContent({ userIds, label, tenantId, fixedRoleId, peopl
         {people && people.length > 0 && (
           <Field>
             <FieldLabel>To</FieldLabel>
-            <div className="flex flex-wrap gap-1">
-              {people.map((p) => (
-                <SimpleBadge key={p.id} variant="secondary">
-                  {p.name}
-                </SimpleBadge>
-              ))}
-            </div>
+            {/* Who was picked in the step before — shown, not edited here (Back changes it). */}
+            <Combobox multiple readOnly items={people.map((p) => p.id)} value={people.map((p) => p.id)}>
+              <ComboboxChips>
+                {people.map((p) => (
+                  <ComboboxChip key={p.id} showRemove={false}>
+                    {p.name}
+                  </ComboboxChip>
+                ))}
+                <ComboboxChipsInput readOnly aria-label="People" className="w-0 min-w-0 flex-none p-0" />
+              </ComboboxChips>
+            </Combobox>
           </Field>
         )}
         {!fixedRoleId && (
