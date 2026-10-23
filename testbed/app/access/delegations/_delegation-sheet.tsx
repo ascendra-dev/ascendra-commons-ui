@@ -34,10 +34,11 @@ import { tenantName } from '../tenants';
 
 /**
  * One delegation in full — who lent what to whom, why, until when, and what no longer grants. Revoke for its lender,
- * receiver, a role admin of its tenant or a platform admin (the API decides; the button shows for anyone who may lend).
+ * receiver, a role admin of its tenant or a platform admin — the API's own rule, so the button shows only to them.
  */
 export function DelegationSheet({ delegation: d, onClose }: { delegation: DelegationRow; onClose: () => void }) {
-  const { can } = useAccessScope();
+  const { can, platform, actorId } = useAccessScope();
+  const mayRevoke = platform || can('authz.assign_roles') || d.granterId === actorId || d.granteeId === actorId;
   const [confirming, setConfirming] = useState(false);
   const invalidate = useInvalidateAccess();
   const state = DELEGATION_STATE[delegationState(d)];
@@ -100,7 +101,7 @@ export function DelegationSheet({ delegation: d, onClose }: { delegation: Delega
             </SheetProperties>
           </SheetSection>
         </SheetBody>
-        {d.status === 'active' && can('authz.manage_delegations') && (
+        {d.status === 'active' && mayRevoke && (
           <SheetFooter>
             <Button variant="destructive" onClick={() => setConfirming(true)}>
               Revoke

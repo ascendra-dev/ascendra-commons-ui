@@ -50,13 +50,13 @@ const MAX_LEND_DAYS = 90;
 
 /**
  * For anyone signed in — what I can do here and why, what I lent and was lent, and lending some of mine while I'm
- * away. Reading needs no action (`GET /authz/me/access`); lending needs `authz.manage_delegations`. Names of the
+ * away. Reading, giving back and taking back need no action; lending needs `authz.manage_delegations`. Names of the
  * people involved come from the directory only for those who can read it — everyone else sees ids.
  */
 export default function MyAccessPage() {
   const { can, ownTenantId } = useAccessScope();
   const access = useQuery({ queryKey: ['authz-me'], queryFn: () => authorizationApi.myAccess() });
-  const mine = useQuery({ queryKey: ['authz-me-delegations'], queryFn: () => authorizationApi.myDelegations(), enabled: can('authz.manage_delegations') });
+  const mine = useQuery({ queryKey: ['authz-me-delegations'], queryFn: () => authorizationApi.myDelegations() });
   const a = access.data;
   const all = a?.effectiveActions === '*';
   const actions = all ? [] : ((a?.effectiveActions as string[] | undefined) ?? []);
@@ -114,12 +114,10 @@ export default function MyAccessPage() {
             </Card>
           </div>
           <div className="col-span-12 flex flex-col gap-4 lg:col-span-6">
+            <LentCard title="I lent" rows={mine.data?.granted} loading={mine.isLoading} lent />
+            <LentCard title="Lent to me" rows={mine.data?.received} loading={mine.isLoading} />
             {can('authz.manage_delegations') ? (
-              <>
-                <LentCard title="I lent" rows={mine.data?.granted} loading={mine.isLoading} lent />
-                <LentCard title="Lent to me" rows={mine.data?.received} loading={mine.isLoading} />
-                <LendForm actions={fromRoles} />
-              </>
+              <LendForm actions={fromRoles} />
             ) : (
               <Card>
                 <CardHeader>
