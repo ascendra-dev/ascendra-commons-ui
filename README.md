@@ -53,9 +53,8 @@ vertical would do — and mount its `nav.ts` into `testbed`'s dashboard shell.
 
 ## Status
 
-Shipped: `audit-logging.ui`, `rate-limiting.ui`, `idempotency-key.ui` and
-`domain-events.ui` (each against `ascendra-commons-sandbox`'s real API). Next, the
-other small observability modules, built by hand: `background-jobs`
-(`payment-link-security` and `payment-gateway-adapter` deferred); shared screen pieces
-are extracted after those (`packages/README.md`). Then `notification`,
-`file-storage`, `authorization` last.
+Shipped: `audit-logging.ui`, `rate-limiting.ui`, `idempotency-key.ui`, `domain-events.ui` and
+`background-jobs.ui` — the observability shell — and `authorization.ui`, the access console (its own shell at
+`/access`; `testbed/app/access`, distributed as `packages/access`). Each against `ascendra-commons-sandbox`'s real API.
+Next: `notification`, `file-storage`; the observability screens' shared pieces are extracted later
+(`packages/README.md`).

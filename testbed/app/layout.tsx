@@ -59,6 +59,8 @@ export default function RootLayout({
               {/* The vertical's one link out to the observability shell — everything past
                   this point (routing, sidebar) belongs to packages/observability. */}
               <NavLink href="/observability">Observability</NavLink>
+              {/* And to the access console (authorization) — its own shell, packages/access. */}
+              <NavLink href="/access">Access</NavLink>
             </Nav>
             <MainContainer>{children}</MainContainer>
           </PageLayout>
