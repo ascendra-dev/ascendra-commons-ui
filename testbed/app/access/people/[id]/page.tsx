@@ -167,7 +167,7 @@ export default function AccessPersonPage() {
                       className="underline underline-offset-2"
                       href={authorizationLinks.denials({
                         queryId: authorizationQueryIds.denialsFilter,
-                        params: { actorId: userId, deniedRange: { from: '-6d', to: 'today' } },
+                        params: { actorId: userId, deniedRange: { from: new Date(refused.dataUpdatedAt - 7 * 24 * 60 * 60 * 1000), to: new Date(refused.dataUpdatedAt) } },
                       })}
                     >
                       All their denied requests

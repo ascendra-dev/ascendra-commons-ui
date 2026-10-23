@@ -99,7 +99,8 @@ export default function AccessDenialsPage() {
     queryFn: () => authorizationApi.denialSummary(period.days, tenantId),
   });
   const names = usePeopleNames(useMemo(() => (summary.data?.topActors ?? []).map((a) => a.actorId), [summary.data]));
-  const range = { from: `-${period.days - 1}d`, to: 'today' };
+  // The panels' window, anchored to when they were fetched — each row link opens exactly what it counted.
+  const range = { from: new Date(summary.dataUpdatedAt - period.days * 24 * 60 * 60 * 1000), to: new Date(summary.dataUpdatedAt) };
   const topAction = summary.data?.topActions[0]?.count ?? 0;
 
   return (

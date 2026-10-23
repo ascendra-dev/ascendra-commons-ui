@@ -50,6 +50,14 @@ const PERIODS = [
 ] as const;
 type Period = (typeof PERIODS)[number];
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * The window a denial number was counted over, as the Denied requests filter's range — anchored to when the numbers
+ * were fetched (`dataUpdatedAt`), never render time, so the list shows exactly what the number counted.
+ */
+const deniedRange = (asOf: number, days: number) => ({ from: new Date(asOf - days * DAY_MS), to: new Date(asOf) });
+
 /** "Who holds what" shows this many roles, then scrolls. */
 const ROLES_VISIBLE = 6;
 
@@ -125,7 +133,7 @@ export default function AccessOverviewPage() {
       title: `${who(a.actorId)} refused ${formatCount(a.count)} ${a.count === 1 ? 'time' : 'times'}`,
       meta: `${a.actions} ${a.actions === 1 ? 'action' : 'actions'} · ${period.label.toLowerCase()} · a missing grant, or curiosity`,
       badge: { label: 'refused', variant: 'blue' as const },
-      href: authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { actorId: a.actorId, deniedRange: { from: `-${period.days - 1}d`, to: 'today' } } }),
+      href: authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { actorId: a.actorId, deniedRange: deniedRange(denials.dataUpdatedAt, period.days) } }),
     })),
   ];
 
@@ -200,7 +208,7 @@ export default function AccessOverviewPage() {
             label="Denied requests"
             value={denials.data?.total ?? null}
             caption={denials.data ? `by ${formatCount(denials.data.actors)} ${denials.data.actors === 1 ? 'person' : 'people'} · ${period.label.toLowerCase()}` : '…'}
-            href={authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { deniedRange: { from: `-${period.days - 1}d`, to: 'today' } } })}
+            href={denials.data && authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { deniedRange: deniedRange(denials.dataUpdatedAt, period.days) } })}
             loading={denials.isLoading}
           />
           {platform && (
