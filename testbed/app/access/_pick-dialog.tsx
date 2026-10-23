@@ -47,7 +47,7 @@ export function PickDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogBody className="flex flex-col gap-3">
-          <Input placeholder="Search by name or email" value={search} onChange={(e) => setSearch(e.target.value)} full />
+          <Input type="search" placeholder="Search by name or email" value={search} onChange={(e) => setSearch(e.target.value)} full />
           <div className="max-h-72 overflow-y-auto">
             {loading && <p className="text-muted-foreground text-sm">Loading…</p>}
             {!loading && shown.length === 0 && <p className="text-muted-foreground text-sm">Nobody to pick.</p>}

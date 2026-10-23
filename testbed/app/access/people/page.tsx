@@ -204,10 +204,9 @@ function RoleChips({ row }: { row: PersonRow }) {
 
 /** The bar's "Give a role" — enabled once people are selected; they must share a tenant (the role lands there). */
 function GiveRoleToSelected() {
-  const { selectedRows, pagedData, clearSelection } = useDataTable<PersonRow>();
+  const { selectedData: people, clearSelection } = useDataTable<PersonRow>();
   const [open, setOpen] = useState(false);
-  const ids = [...selectedRows];
-  const people = pagedData.filter((p) => selectedRows.has(p.id));
+  const ids = people.map((p) => p.id);
   const tenants = new Set(people.map((p) => p.tenantId));
   const mixed = tenants.size > 1;
   const button = (

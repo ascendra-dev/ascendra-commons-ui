@@ -9,6 +9,7 @@ import {
   CardHeaderSubtitle,
   CardHeaderTitle,
   Combobox,
+  ComboboxCollection,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxInput,
@@ -104,12 +105,14 @@ function ActionPicker({ value, onChange }: { value?: string; onChange: (action: 
         <ComboboxInput placeholder={catalog.isLoading ? 'Loading…' : 'payout.approve'} />
         <ComboboxContent>
           <ComboboxList>
-            {names.map((n) => (
-              <ComboboxItem key={n} value={n}>
-                {n}
-              </ComboboxItem>
-            ))}
             <ComboboxEmpty>No such action.</ComboboxEmpty>
+            <ComboboxCollection>
+              {(n: string) => (
+                <ComboboxItem key={n} value={n}>
+                  {n}
+                </ComboboxItem>
+              )}
+            </ComboboxCollection>
           </ComboboxList>
         </ComboboxContent>
       </Combobox>
@@ -133,19 +136,26 @@ function PersonPicker({ value, tenantId, onChange }: { value?: string; tenantId?
         value={value ?? null}
         onValueChange={(v) => v && onChange(v as string)}
         itemToStringLabel={(id: string) => byId.get(id)?.name ?? id}
+        filter={(id: string, query: string) => {
+          const u = byId.get(id);
+          const q = query.trim().toLowerCase();
+          return !q || [u?.name, u?.email, id].some((s) => s?.toLowerCase().includes(q));
+        }}
       >
-        <ComboboxInput placeholder={people.isLoading ? 'Loading…' : 'Search by name'} />
+        <ComboboxInput placeholder={people.isLoading ? 'Loading…' : 'Search by name or email'} />
         <ComboboxContent>
           <ComboboxList>
-            {list.map((u) => (
-              <ComboboxItem key={u.id} value={u.id}>
-                <span className="flex flex-col">
-                  <span>{u.name}</span>
-                  <span className="text-muted-foreground text-xs">{u.email ?? u.id}</span>
-                </span>
-              </ComboboxItem>
-            ))}
-            <ComboboxEmpty>Nobody by that name.</ComboboxEmpty>
+            <ComboboxEmpty>Nobody by that name or email.</ComboboxEmpty>
+            <ComboboxCollection>
+              {(id: string) => (
+                <ComboboxItem key={id} value={id}>
+                  <span className="flex flex-col">
+                    <span>{byId.get(id)?.name ?? id}</span>
+                    <span className="text-muted-foreground text-xs">{byId.get(id)?.email ?? id}</span>
+                  </span>
+                </ComboboxItem>
+              )}
+            </ComboboxCollection>
           </ComboboxList>
         </ComboboxContent>
       </Combobox>

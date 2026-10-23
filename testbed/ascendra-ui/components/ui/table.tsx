@@ -339,6 +339,19 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   );
 }
 
+/**
+ * A row holding a TableRowLink: the link's overlay is placed against the row, and the row's own controls (buttons,
+ * checkboxes, other links, tooltip triggers — and a selection cell as a whole) sit above it (z-2 over its z-1) so they
+ * still take their clicks and hovers. Every row component (TableRow, DataTableRow) carries these — a row without
+ * them lets each link's overlay cover the whole table, so the last row takes every click. Written out in full, not
+ * interpolated — Tailwind only generates classes it finds as literal text.
+ */
+const rowLinkRowClasses = [
+  "has-data-[slot=table-row-link]:relative",
+  "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],[role=checkbox],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip],[data-slot=table-checkbox-cell])]:relative",
+  "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],[role=checkbox],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip],[data-slot=table-checkbox-cell])]:z-2",
+];
+
 function TableRow({
   columns,
   className,
@@ -353,12 +366,7 @@ function TableRow({
       data-slot="table-row"
       className={cn(
         "group/row transition-colors hover:bg-gray-700/4",
-        // A row holding a TableRowLink: the link's overlay is placed against the row, and the row's own controls
-        // (buttons, other links, tooltip triggers) sit above it (z-2 over its z-1) so they still take their clicks
-        // and hovers.
-        "has-data-[slot=table-row-link]:relative",
-        "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip])]:relative",
-        "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip])]:z-2",
+        ...rowLinkRowClasses,
         className,
       )}
       {...props}
@@ -583,4 +591,5 @@ export {
   TableRow,
   TableRowLink,
   TableWrapper,
+  rowLinkRowClasses,
 };

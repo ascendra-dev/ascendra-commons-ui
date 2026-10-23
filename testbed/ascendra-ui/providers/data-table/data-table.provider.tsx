@@ -104,6 +104,7 @@ export function DataTableProvider<T extends object>({
 
   const {
     selectedRows,
+    selectedData,
     toggleRow,
     selectAll,
     selectAllData,
@@ -174,8 +175,8 @@ export function DataTableProvider<T extends object>({
   );
 
   const selectionCtx = useMemo<DataTableSelectionContextValue>(
-    () => ({ selectedRows, isAllSelected, isAllDataSelected, isIndeterminate, isRowSelected, toggleRow, selectAll, selectAllData, clearSelection, clearPage, selectionEnabled }),
-    [selectedRows, isAllSelected, isAllDataSelected, isIndeterminate, isRowSelected, toggleRow, selectAll, selectAllData, clearSelection, clearPage, selectionEnabled]
+    () => ({ selectedRows, selectedData, isAllSelected, isAllDataSelected, isIndeterminate, isRowSelected, toggleRow, selectAll, selectAllData, clearSelection, clearPage, selectionEnabled }),
+    [selectedRows, selectedData, isAllSelected, isAllDataSelected, isIndeterminate, isRowSelected, toggleRow, selectAll, selectAllData, clearSelection, clearPage, selectionEnabled]
   );
 
   return (

@@ -83,6 +83,8 @@ export interface DataTableDataContextValue {
 
 export interface DataTableSelectionContextValue {
   selectedRows: Set<string>;
+  /** The selected rows' data, across every page of the loaded data. */
+  selectedData: unknown[];
   isAllSelected: boolean;
   isAllDataSelected: boolean;
   isIndeterminate: boolean;
@@ -120,6 +122,7 @@ export interface DataTableContextValue {
   totalFiltered: number;
   pagination: PaginationState;
   selectedRows: Set<string>;
+  selectedData: unknown[];
   isAllSelected: boolean;
   isIndeterminate: boolean;
   isRowSelected: (id: string) => boolean;
@@ -154,6 +157,8 @@ export interface DataTableState<T extends object> {
   totalFiltered: number;
   pagination: PaginationState;
   selectedRows: Set<string>;
+  /** The selected rows' data, across every page of the loaded data. */
+  selectedData: T[];
   isAllSelected: boolean;
   isIndeterminate: boolean;
   isRowSelected: (id: string) => boolean;

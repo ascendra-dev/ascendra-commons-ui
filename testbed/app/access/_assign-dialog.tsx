@@ -32,7 +32,7 @@ export function useInvalidateAccess() {
   const queryClient = useQueryClient();
   return () =>
     Promise.all(
-      ['authz-stats', 'authz-person', 'authz-holders', 'authz-role', 'authz-assignments-expiring', 'data-table', 'authz-lapsed', 'authz-delegations-expiring'].map((key) =>
+      ['authz-stats', 'authz-me', 'authz-me-delegations', 'authz-person', 'authz-holders', 'authz-role', 'authz-assignments-expiring', 'data-table', 'authz-lapsed', 'authz-delegations-expiring'].map((key) =>
         queryClient.invalidateQueries({ queryKey: [key] }),
       ),
     );

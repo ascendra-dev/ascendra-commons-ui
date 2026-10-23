@@ -46,6 +46,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           data-slot="input-control"
           type={type}
+          // A search box: the browser's history of past entries is noise, not a suggestion.
+          autoComplete={type === 'search' ? 'off' : undefined}
           onMouseDown={() => setIsPointer(true)}
           onBlur={(e) => {
             setIsPointer(false);
@@ -55,6 +57,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             'flex h-8 w-full bg-transparent px-3 py-1 text-sm',
             'outline-none placeholder:text-gray-500 dark:placeholder:text-gray-700',
             'disabled:cursor-not-allowed',
+            '[&::-webkit-search-cancel-button]:appearance-none',
             className
           )}
           {...props}

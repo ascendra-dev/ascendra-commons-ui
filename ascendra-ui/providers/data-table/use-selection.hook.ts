@@ -61,6 +61,13 @@ export function useSelection<T>(
     });
   }, []);
 
+  // The selected rows themselves, from every page of the loaded data — what a bar action acts on (a row picked on
+  // another page is still here; one no longer loaded is not).
+  const selectedData = useMemo(
+    () => (getRowId && selectedRows.size > 0 ? allData.filter((row) => selectedRows.has(getRowId(row))) : []),
+    [allData, selectedRows, getRowId],
+  );
+
   const isRowSelected = useCallback(
     (id: string) => selectedRows.has(id),
     [selectedRows],
@@ -88,6 +95,7 @@ export function useSelection<T>(
 
   return {
     selectedRows,
+    selectedData,
     toggleRow,
     selectAll,
     selectAllData,

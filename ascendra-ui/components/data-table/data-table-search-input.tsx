@@ -38,6 +38,7 @@ export function DataTableSearchInput() {
       <InputGroupInput
         ref={inputRef}
         placeholder="Search..."
+        autoComplete="off"
         // Narrower below sm, so the search and the bar's buttons fit a phone's width on one row.
         className="w-40 sm:w-65"
         value={searchTerm}

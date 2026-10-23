@@ -14,7 +14,7 @@ export function DataTableCheckboxCell({ rowId }: DataTableCheckboxCellProps) {
 
   return (
     <td
-      data-slot="table-cell"
+      data-slot="table-checkbox-cell"
       className="py-4 pl-5 first:pl-6 w-10"
     >
       <Checkbox

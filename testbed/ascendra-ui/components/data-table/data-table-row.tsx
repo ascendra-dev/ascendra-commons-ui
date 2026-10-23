@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useDataTableColumns } from '@/ascendra-ui/providers/data-table/data-table.provider';
 import { cn } from '@/ascendra-ui/shadcn';
+import { rowLinkRowClasses } from '@/ascendra-ui/components/ui/table';
 import { orderChildrenByColumn } from './data-table-order-children';
 
 export interface DataTableRowProps extends React.ComponentProps<'tr'> {
@@ -20,6 +21,7 @@ export function DataTableRow({ className, children, active, ...props }: DataTabl
       aria-current={active || undefined}
       className={cn(
         'group/row transition-colors hover:bg-gray-700/4 data-active:bg-primary/8 data-active:hover:bg-primary/10',
+        ...rowLinkRowClasses,
         className
       )}
       {...props}
