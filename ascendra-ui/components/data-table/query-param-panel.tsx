@@ -173,13 +173,13 @@ function QueryParamPanelInner() {
                 </p>
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-1">
+            <div className="flex shrink-0 items-center gap-2">
               {isValid && (
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="secondary"
                   size="sm"
-                  className="text-muted-foreground hover:text-foreground shrink-0 gap-1.5"
+                  className="shrink-0 gap-1.5"
                   onClick={() => setSaveDialogOpen(true)}
                 >
                   <BookmarkPlus className="size-3.5" />
@@ -188,9 +188,9 @@ function QueryParamPanelInner() {
               )}
               <Button
                 type="button"
-                variant="ghost"
+                variant="secondary"
                 size="sm"
-                className="text-muted-foreground hover:text-foreground size-7 shrink-0 px-0"
+                className="size-7 shrink-0 px-0"
                 aria-label="Close filter and return to the previous results"
                 disabled={!canCancelPending}
                 onClick={cancelPending}

@@ -104,8 +104,8 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
 
   return (
     <Field>
-      {/* Label + optional subtitle — checkbox renders its own inline label */}
-      {field.type !== "checkbox" && (
+      {/* Label + optional subtitle — a checkbox renders its own inline label, unless it has a checkboxLabel */}
+      {(field.type !== "checkbox" || field.checkboxLabel) && (
         <FieldLabelGroup>
           <FieldLabel id={labelId} htmlFor={inputId}>
             {field.label}
@@ -286,7 +286,8 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
           name={field.name}
           control={control}
           render={({ field: f }) => (
-            <Field orientation="horizontal">
+            // Under a label: as tall as an input, so the box sits on the inputs' line.
+            <Field orientation="horizontal" className={field.checkboxLabel ? "min-h-8 items-center" : undefined}>
               <Checkbox
                 id={inputId}
                 checked={f.value as boolean}
@@ -298,7 +299,7 @@ export function QueryFieldRenderer({ field }: QueryFieldRendererProps) {
                 htmlFor={inputId}
                 className="cursor-pointer font-normal"
               >
-                {field.label}
+                {field.checkboxLabel ?? field.label}
               </FieldLabel>
             </Field>
           )}

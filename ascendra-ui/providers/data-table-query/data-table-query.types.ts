@@ -31,6 +31,9 @@ export type FieldDefaultValue = string | number | boolean | string[] | { from: D
 export interface FieldDef {
   name: string;
   label: string;
+  /** checkbox: the text beside the box. With it, `label` sits above like every other field's, so the box lines up
+   *  with the inputs in its row; without it, `label` is the text beside the box. */
+  checkboxLabel?: string;
   type: FieldType;
   placeholder?: string;
   required?: boolean;

@@ -34,7 +34,7 @@ export function peopleQueryDefs(platform: boolean): QueryDef[] {
       params: [
         { name: 'search', label: 'Name or email', type: 'text', span: 1, maxLength: 200, optional: true, placeholder: 'farah' },
         { name: 'roleId', label: 'Holds role', type: 'select', span: 1, optional: true },
-        { name: 'roleless', label: 'No role', type: 'select', span: 1, optional: true, description: 'People who can do nothing yet' },
+        { name: 'roleless', label: 'No role', checkboxLabel: 'Holding no role — can do nothing yet', type: 'checkbox', span: 1, optional: true },
         ...(platform ? [tenantParam] : []),
       ],
     },
@@ -106,7 +106,6 @@ export function authorizationFieldOptions(roles: readonly Role[], actions: reado
   return {
     [authorizationQueryIds.peopleFilter]: {
       roleId: roles.map((r) => ({ value: r.id, label: r.id })),
-      roleless: [{ value: 'true', label: 'Holding no role' }],
       tenantId: tenantOptions,
     },
     [authorizationQueryIds.delegationsFilter]: {

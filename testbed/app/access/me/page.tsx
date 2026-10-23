@@ -185,8 +185,8 @@ function LentCard({ title, rows, loading, lent = false }: { title: string; rows?
           </TableBody>
         )}
       </Table>
-      <DataTableLoadingBody isLoading={loading} className="h-28" />
-      <DataTableEmptyBody isLoading={loading} isEmpty={!loading && list.length === 0} title="Nothing running" description={lent ? "You haven't lent anything." : 'Nobody lent you anything.'} className="h-28" />
+      <DataTableLoadingBody isLoading={loading} className="h-40" />
+      <DataTableEmptyBody isLoading={loading} isEmpty={!loading && list.length === 0} title="Nothing running" description={lent ? "You haven't lent anything." : 'Nobody lent you anything.'} className="h-40" />
     </TableWrapper>
   );
 }

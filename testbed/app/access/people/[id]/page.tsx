@@ -364,8 +364,8 @@ function DelegationsCard({ userId, delegations, loading, names }: { userId: stri
               return (
                 <TableRow key={d.id}>
                   <TableCell className="text-sm">
-                    {lent ? `→ ${personLabel(d.granteeId, names)}` : `← ${personLabel(d.granterId, names)}`}
-                    <div className="text-muted-foreground text-xs">{lent ? 'lent' : 'received'}</div>
+                    <div className="text-muted-foreground text-xs">{lent ? 'Lent to' : 'Lent by'}</div>
+                    {lent ? personLabel(d.granteeId, names) : personLabel(d.granterId, names)}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { LuHandshake, LuUsers } from 'react-icons/lu';
+import { LuHandshake, LuShieldAlert, LuUsers } from 'react-icons/lu';
 import Link from 'next/link';
 import {
   Button,
@@ -168,9 +168,13 @@ export default function AccessOverviewPage() {
         </PageHeaderAction>
       </PageHeader>
       <DashboardContent>
-        <div className="flex flex-wrap items-center gap-3">
+        {/* The period picker, and what it applies to — page-wide, so it sits beside the picker. */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <SegmentControl segments={PERIODS} value={period.value} onValueChange={(v) => setPeriodValue(v as Period['value'])} />
-          <span className="text-muted-foreground text-xs">the period applies to denied requests</span>
+          <SimpleBadge>
+            <LuShieldAlert />
+            The period applies to denied requests
+          </SimpleBadge>
         </div>
 
         <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${platform ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>

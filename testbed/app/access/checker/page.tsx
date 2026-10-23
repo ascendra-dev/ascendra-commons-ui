@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { LuCircleCheck, LuCircleX } from 'react-icons/lu';
+import { LuArrowUp, LuCircleCheck, LuCircleX } from 'react-icons/lu';
 import {
   CardHeaderSubtitle,
   CardHeaderTitle,
@@ -37,6 +37,7 @@ import {
   TableRowLink,
   TableWrapper,
   useBackTo,
+  SimpleAlert,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -195,17 +196,16 @@ function CanThisPerson({
         <PersonPicker value={userId} tenantId={tenantId} onChange={(id) => onChange({ userId: id })} />
         <ActionPicker value={action} onChange={(next) => onChange({ action: next })} />
       </div>
-      {answer.isError && <p className="text-negative text-sm">{answer.error instanceof Error ? answer.error.message : 'Could not check.'}</p>}
+      {answer.isError && (
+        <SimpleAlert variant="destructive">{answer.error instanceof Error ? answer.error.message : 'Could not check.'}</SimpleAlert>
+      )}
       {a && (
-        <div
-          className={`flex items-start gap-3 rounded-xl p-4 ring-1 ${a.allowed ? 'bg-positive/5 ring-positive/20' : 'bg-negative/5 ring-negative/20'}`}
-        >
-          {a.allowed ? <LuCircleCheck className="text-positive mt-0.5 size-5 shrink-0" /> : <LuCircleX className="text-negative mt-0.5 size-5 shrink-0" />}
-          <div className="flex flex-col gap-1">
+        <SimpleAlert variant={a.allowed ? 'success' : 'destructive'} icon={a.allowed ? LuCircleCheck : LuCircleX}>
+          <div className="flex flex-col gap-0.5">
             <span className="font-medium">
               {a.allowed ? `Yes — ${who} can ${action}.` : `No — ${who} can't ${action}.`}
             </span>
-            <span className="text-muted-foreground text-sm">
+            <span className="text-muted-foreground">
               {via
                 ? via.grantsAll
                   ? `Their role ${via.roleId} grants every action.`
@@ -216,11 +216,11 @@ function CanThisPerson({
                     ? `${personLabel(lapsed.granterId, names)} lends it, but no longer holds it — so it grants nothing. No role of theirs grants it.`
                     : 'No role of theirs grants it, and nobody lent it to them.'}
             </span>
-            {a.tenantId && <span className="text-muted-foreground text-xs">In {tenantName(a.tenantId)}</span>}
+            {a.tenantId && <span className="text-muted-foreground">In {tenantName(a.tenantId)}</span>}
           </div>
-        </div>
+        </SimpleAlert>
       )}
-      {!userId || !action ? <p className="text-muted-foreground text-sm">Pick a person and an action.</p> : null}
+      {!userId || !action ? <PickPrompt>Pick a person and an action.</PickPrompt> : null}
     </div>
   );
 }
@@ -293,7 +293,17 @@ function WhoCan({
           <DataTableEmptyBody isLoading={answer.isLoading} isEmpty={!!answer.data && rows.length === 0} title="Nobody" description="No role held here grants it, and nobody lent it." className="h-40" />
         </TableWrapper>
       )}
-      {!action && <p className="text-muted-foreground text-sm">Pick an action.</p>}
+      {!action && <PickPrompt>Pick an action.</PickPrompt>}
     </div>
+  );
+}
+
+/** What to do before there's an answer — small and muted, pointing up at the pickers. */
+function PickPrompt({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+      <LuArrowUp className="size-3.5" />
+      {children}
+    </p>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { LuShieldAlert } from 'react-icons/lu';
 import {
   CardHeaderSubtitle,
   CardHeaderTitle,
@@ -121,11 +122,14 @@ export default function AccessDenialsPage() {
         <PageWrapper>
           <PageContent>
             <MainContent>
-              <div className="mb-4 flex flex-wrap items-center gap-3">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <SegmentControl segments={PERIODS} value={period.value} onValueChange={(v) => setPeriodValue(v as Period['value'])} />
-                <span className="text-muted-foreground text-xs">
-                  {summary.data ? `${formatCount(summary.data.total)} refused, ${formatCount(summary.data.actors)} ${summary.data.actors === 1 ? 'person' : 'people'}` : ' '}
-                </span>
+                {summary.data && (
+                  <SimpleBadge>
+                    <LuShieldAlert />
+                    {formatCount(summary.data.total)} refused · {formatCount(summary.data.actors)} {summary.data.actors === 1 ? 'person' : 'people'}
+                  </SimpleBadge>
+                )}
               </div>
               <div className="mb-6 grid grid-cols-12 gap-4">
                 <div className="col-span-12 lg:col-span-6">

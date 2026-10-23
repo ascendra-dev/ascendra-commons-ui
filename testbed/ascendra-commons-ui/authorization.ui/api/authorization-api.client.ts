@@ -36,7 +36,8 @@ export const authorizationApi = {
     const { roleless, ...rest } = params;
     return api.get<CursorListResponse<PersonRow>>('/authz/users', {
       ...rest,
-      ...(roleless === 'true' ? { roleless: 'true' } : {}),
+      // A checkbox in the filter (true), or 'true' from a link.
+      ...(roleless === true || roleless === 'true' ? { roleless: 'true' } : {}),
       limit,
       cursor,
     });
