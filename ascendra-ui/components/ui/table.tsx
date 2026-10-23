@@ -30,7 +30,6 @@ import {
   LuChevronLeft,
   LuChevronRight,
   LuLoaderCircle,
-  LuPanelRight,
 } from "react-icons/lu";
 
 export type ColVisibility = { key: PropertyKey; active?: boolean };
@@ -351,12 +350,37 @@ const rowLinkRowClasses = [
   "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],[role=checkbox],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip],[data-slot=table-checkbox-cell])]:z-2",
 ];
 
+/** Lucide's panel-right, as a mask — the same icon RowEndIcon draws for a sheet, drawn by the row itself. */
+const SHEET_ICON_MASK =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='3' rx='2'/%3E%3Cpath d='M15 3v18'/%3E%3C/svg%3E\")";
+
+/**
+ * `opensSheet` on a row (TableRow, DataTableRow, CardListItem): the row opens a sheet with its own `onClick`, and
+ * ends in the panel icon — drawn on the row's ::after, so it needs no cell and survives hidden or reordered columns.
+ * Same place, size and reveal as a linked row's chevron.
+ */
+function rowSheetIcon(opensSheet: boolean | undefined) {
+  if (!opensSheet) return { className: undefined, style: undefined };
+  return {
+    className: cn(
+      "relative",
+      "after:pointer-events-none after:absolute after:top-1/2 after:right-1.5 after:z-2 after:size-3 after:-translate-y-1/2 after:content-['']",
+      "after:bg-muted-foreground after:[mask:var(--row-sheet-icon)_center/contain_no-repeat]",
+      "after:opacity-0 after:transition-opacity hover:after:opacity-100 focus-within:after:opacity-100 pointer-coarse:after:opacity-100",
+    ),
+    style: { "--row-sheet-icon": SHEET_ICON_MASK } as React.CSSProperties,
+  };
+}
+
 function TableRow({
   columns,
+  opensSheet,
   className,
+  style,
   children,
   ...props
-}: React.ComponentProps<"tr"> & { columns?: ColVisibility[] }) {
+}: React.ComponentProps<"tr"> & { columns?: ColVisibility[]; opensSheet?: boolean }) {
+  const sheet = rowSheetIcon(opensSheet);
   const content = columns
     ? filterChildrenByColumns(columns, children)
     : children;
@@ -366,8 +390,10 @@ function TableRow({
       className={cn(
         "group/row transition-colors hover:bg-gray-700/4",
         ...rowLinkRowClasses,
+        sheet.className,
         className,
       )}
+      style={{ ...sheet.style, ...style }}
       {...props}
     >
       {content}
@@ -376,12 +402,13 @@ function TableRow({
 }
 
 /**
- * Where a row goes, at its right end — a chevron for a page, a panel for a sheet, an arrow out for another site — so
+ * Where a row goes, at its right end — a chevron for a page, an arrow out for another site (a sheet's panel: see
+ * rowSheetIcon) — so
  * it can be told before the click. In the row's right padding (it pushes no column), shown on hover or keyboard focus,
  * and always on a touch screen. Positioned against the row (which every row component makes `relative` for it).
  */
-function RowEndIcon({ kind }: { kind: "page" | "sheet" | "external" }) {
-  const Icon = kind === "sheet" ? LuPanelRight : kind === "external" ? LuArrowUpRight : LuChevronRight;
+function RowEndIcon({ kind }: { kind: "page" | "external" }) {
+  const Icon = kind === "external" ? LuArrowUpRight : LuChevronRight;
   return (
     <span
       data-slot="row-end-icon"
@@ -391,8 +418,7 @@ function RowEndIcon({ kind }: { kind: "page" | "sheet" | "external" }) {
         "opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100 pointer-coarse:opacity-100",
       )}
     >
-      {/* The panel is a box — a size down keeps it as light as the chevron's single stroke. */}
-      <Icon className={kind === "sheet" ? "size-3" : "size-3.5"} />
+      <Icon className="size-3.5" />
     </span>
   );
 }
@@ -401,7 +427,7 @@ function RowEndIcon({ kind }: { kind: "page" | "sheet" | "external" }) {
  * Makes the whole row a link to `href` — a real `<a>`, so the browser shows where it goes, and cmd/middle-click,
  * "copy link" and Tab focus work. Put it in one cell (usually the first, around that cell's label); its overlay
  * stretches over every cell of the row. One per row: a cell that goes somewhere else uses an ordinary link, which
- * sits above the overlay. A row that opens a sheet keeps its `onClick` and puts a RowSheetIcon in a cell instead.
+ * sits above the overlay. A row that opens a sheet keeps its `onClick` and takes `opensSheet` instead.
  * The row ends in a chevron (an arrow out with `external`).
  */
 function TableRowLink({
@@ -426,11 +452,6 @@ function TableRowLink({
       <RowEndIcon kind={external ? "external" : "page"} />
     </Link>
   );
-}
-
-/** For a row that opens a sheet (its own `onClick`): put this in any cell — the row ends in a panel icon. */
-function RowSheetIcon() {
-  return <RowEndIcon kind="sheet" />;
 }
 
 function TableHead({ className, ...props }: React.ComponentProps<"th">) {
@@ -626,7 +647,7 @@ export {
   TableHeaderRow,
   TableRow,
   TableRowLink,
-  RowSheetIcon,
   TableWrapper,
   rowLinkRowClasses,
+  rowSheetIcon,
 };

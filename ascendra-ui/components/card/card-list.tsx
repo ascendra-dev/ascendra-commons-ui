@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/ascendra-ui/shadcn";
-import { TableRowLink, rowLinkRowClasses } from "@/ascendra-ui/components/ui/table";
+import { TableRowLink, rowLinkRowClasses, rowSheetIcon } from "@/ascendra-ui/components/ui/table";
 import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars";
 import { useVisibleRowsHeight } from "@/ascendra-ui/hooks/use-visible-rows-height";
 
@@ -55,9 +55,18 @@ export function CardList({
   );
 }
 
-/** One row — a separator below it (not the last), the table's hover tint, and room for a CardListLink. */
-export function CardListItem({ className, ...props }: React.ComponentProps<"div">) {
+/**
+ * One row — a separator below it (not the last), the table's hover tint, and room for a CardListLink. `opensSheet`:
+ * the row opens a sheet (its own onClick) and ends in the panel icon.
+ */
+export function CardListItem({
+  className,
+  style,
+  opensSheet,
+  ...props
+}: React.ComponentProps<"div"> & { opensSheet?: boolean }) {
   const { columns } = React.useContext(CardListContext);
+  const sheet = rowSheetIcon(opensSheet);
   return (
     <div
       role="listitem"
@@ -67,8 +76,10 @@ export function CardListItem({ className, ...props }: React.ComponentProps<"div"
         "first:rounded-t-lg last:rounded-b-lg",
         columns ? "col-span-full grid grid-cols-subgrid items-center gap-x-10" : "flex items-center gap-4",
         ...rowLinkRowClasses,
+        sheet.className,
         className,
       )}
+      style={{ ...sheet.style, ...style }}
       {...props}
     />
   );

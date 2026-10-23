@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useMutation } from '@tanstack/react-query';
 import {
   Button,
@@ -18,11 +17,12 @@ import {
   SheetValue,
   SimpleBadge,
   toast,
+  useQueryContext,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
   authorizationApi,
-  authorizationLinks,
+  authorizationQueryIds,
   DELEGATION_STATE,
   delegationState,
   type DelegationRow,
@@ -35,6 +35,7 @@ import { tenantName } from '../tenants';
 /**
  * One delegation in full — who lent what to whom, why, until when, and what no longer grants. Revoke for its lender,
  * receiver, a role admin of its tenant or a platform admin — the API's own rule, so the button shows only to them.
+ * No links out of a sheet: a person's "Their delegations" filters the list behind it to them, and closes the sheet.
  */
 export function DelegationSheet({ delegation: d, onClose }: { delegation: DelegationRow; onClose: () => void }) {
   const { can, platform, actorId } = useAccessScope();
@@ -42,6 +43,15 @@ export function DelegationSheet({ delegation: d, onClose }: { delegation: Delega
   const [confirming, setConfirming] = useState(false);
   const invalidate = useInvalidateAccess();
   const state = DELEGATION_STATE[delegationState(d)];
+  const { runQuery } = useQueryContext();
+  const showTheirs = (userId: string) => {
+    runQuery(authorizationQueryIds.delegationsFilter, { userId });
+    onClose();
+  };
+  const people = [
+    { id: d.granterId, name: d.granterName, role: 'lent it' },
+    { id: d.granteeId, name: d.granteeName, role: 'was lent it' },
+  ];
   const revoke = useMutation({
     mutationFn: () => authorizationApi.revokeDelegation(d.id),
     onSuccess: async () => {
@@ -94,9 +104,17 @@ export function DelegationSheet({ delegation: d, onClose }: { delegation: Delega
                 </>
               )}
               <SheetKey>People</SheetKey>
-              <SheetValue className="flex flex-col">
-                <Link className="underline underline-offset-2" href={authorizationLinks.person(d.granterId)}>{d.granterName}</Link>
-                <Link className="underline underline-offset-2" href={authorizationLinks.person(d.granteeId)}>{d.granteeName}</Link>
+              <SheetValue className="flex flex-col gap-2">
+                {people.map((person) => (
+                  <div key={person.id} className="flex items-center justify-between gap-3">
+                    <span>
+                      {person.name} <span className="text-muted-foreground text-xs">· {person.role}</span>
+                    </span>
+                    <Button variant="secondary" size="sm" onClick={() => showTheirs(person.id)}>
+                      Their delegations
+                    </Button>
+                  </div>
+                ))}
               </SheetValue>
             </SheetProperties>
           </SheetSection>

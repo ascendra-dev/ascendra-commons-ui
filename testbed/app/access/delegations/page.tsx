@@ -37,7 +37,6 @@ import {
   PageWrapper,
   QueryBar,
   QueryParamPanel,
-  RowSheetIcon,
   SimpleBadge,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
@@ -118,11 +117,10 @@ export default function AccessDelegationsPage() {
                         const state = DELEGATION_STATE[delegationState(row)];
                         const soon = row.status === 'active' ? expiresSoon(row.expiresAt) : null;
                         return (
-                          <DataTableRow key={row.id} active={row.id === selected?.id} className="cursor-pointer" onClick={() => setSelected(row)}>
+                          <DataTableRow key={row.id} active={row.id === selected?.id} opensSheet className="cursor-pointer" onClick={() => setSelected(row)}>
                             <DataTableCell column="granterName" className="whitespace-nowrap">
-                              {/* The whole row opens the sheet — its end says so; no icon on this one cell. */}
+                              {/* The whole row opens the sheet — its end says so (opensSheet); no icon on this one cell. */}
                               <DataTableHighlight text={`${row.granterName} → ${row.granteeName}`} item={row} itemKey="granterName" />
-                              <RowSheetIcon />
                               {platform && !tenantId && <div className="text-muted-foreground text-xs">{tenantName(row.tenantId)}</div>}
                             </DataTableCell>
                             <DataTableCell column="actions">

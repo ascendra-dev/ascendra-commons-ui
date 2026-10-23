@@ -155,6 +155,7 @@ export default function AuditLogListPage() {
                         <DataTableRow
                           key={row.id}
                           active={row.id === selected?.id}
+                          opensSheet
                           className="cursor-pointer"
                           onClick={() => {
                             setCellSheet(null);
@@ -173,21 +174,26 @@ export default function AuditLogListPage() {
                               itemKey="occurredAt"
                             />
                           </DataTableCell>
-                          <DataTableCell column="actor">
+                          {/* The row's spare width, a long actor truncated — so the table fits its card and the row's
+                              end (its sheet icon, its menu) stays in view. */}
+                          <DataTableCell column="actor" className="w-full max-w-0">
                             <button
                               type="button"
-                              className="cursor-pointer hover:underline"
+                              className="flex max-w-full cursor-pointer hover:underline"
+                              title={row.actor}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 openCellSheet({ kind: 'actor', actor: row.actor });
                               }}
                             >
-                              <WithSheetIcon>
-                                <DataTableHighlight
-                                  text={row.actor}
-                                  item={row}
-                                  itemKey="actor"
-                                />
+                              <WithSheetIcon className="min-w-0">
+                                <span className="truncate">
+                                  <DataTableHighlight
+                                    text={row.actor}
+                                    item={row}
+                                    itemKey="actor"
+                                  />
+                                </span>
                               </WithSheetIcon>
                             </button>
                           </DataTableCell>

@@ -31,7 +31,6 @@ import {
   PageHeaderGroup,
   PageSubtitle,
   PageTitle,
-  RowSheetIcon,
   SimpleAlert,
   SimpleBadge,
   Skeleton,
@@ -382,9 +381,8 @@ function RecentRunsCard({
             {runs.map((run) => {
               const result = runResult(run);
               return (
-                <CardListItem key={run.id} className="cursor-pointer" onClick={() => onOpen(run)}>
+                <CardListItem key={run.id} opensSheet className="cursor-pointer" onClick={() => onOpen(run)}>
                   <div className="whitespace-nowrap">
-                    <RowSheetIcon />
                     {formatDateTime(run.startedAt, { style: 'short', time: true })}{' '}
                     <span className="text-muted-foreground">· {run.trigger}</span>
                     <div className="text-muted-foreground mt-1 text-xs">

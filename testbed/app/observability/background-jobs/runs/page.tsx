@@ -124,6 +124,7 @@ export default function BackgroundJobRunsPage() {
                         <DataTableRow
                           key={row.id}
                           active={row.id === selected?.id}
+                          opensSheet
                           className="cursor-pointer"
                           onClick={() => {
                             setTraceId(null);

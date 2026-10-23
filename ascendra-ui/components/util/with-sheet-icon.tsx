@@ -1,4 +1,4 @@
-import { LuPanelRightOpen } from 'react-icons/lu';
+import { LuPanelRight } from 'react-icons/lu';
 import { cn } from '@/ascendra-ui/shadcn';
 
 /**
@@ -19,9 +19,10 @@ export function WithSheetIcon({
     >
       {children}
       {/* Space is always reserved, so revealing the icon never shifts the text. */}
-      <LuPanelRightOpen
+      {/* The same panel, at the same size, as a row that opens a sheet ends in. */}
+      <LuPanelRight
         aria-hidden
-        className="text-muted-foreground size-3.5 shrink-0 opacity-0 transition-opacity group-hover/sheet-icon:opacity-100 group-active/sheet-icon:opacity-100 in-focus-visible:opacity-100"
+        className="text-muted-foreground size-3 shrink-0 opacity-0 transition-opacity group-hover/sheet-icon:opacity-100 group-active/sheet-icon:opacity-100 in-focus-visible:opacity-100"
       />
     </span>
   );
