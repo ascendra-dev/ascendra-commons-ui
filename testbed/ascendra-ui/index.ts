@@ -194,6 +194,7 @@ export * from './components/reports/report-summary';
 export * from './components/reports/report-pdf-export-button';
 
 // Charts
+export * from './components/charts/chart-bar-link';
 export * from './components/charts/chart-legend';
 export * from './components/charts/chart-target-legend';
 

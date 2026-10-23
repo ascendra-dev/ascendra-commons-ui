@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 
 import {
   Select,
@@ -352,12 +353,37 @@ function TableRow({
       data-slot="table-row"
       className={cn(
         "group/row transition-colors hover:bg-gray-700/4",
+        // A row holding a TableRowLink: the link's overlay is placed against the row, and the row's own controls
+        // (buttons, other links, tooltip triggers) sit above it so they still take their clicks and hovers.
+        "has-data-[slot=table-row-link]:relative",
+        "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip])]:relative",
+        "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip])]:z-1",
         className,
       )}
       {...props}
     >
       {content}
     </tr>
+  );
+}
+
+/**
+ * Makes the whole row a link to `href` — a real `<a>`, so the browser shows where it goes, and cmd/middle-click,
+ * "copy link" and Tab focus work. Put it in one cell (usually the first, around that cell's label); its overlay
+ * stretches over every cell of the row. One per row: a cell that goes somewhere else uses an ordinary link, which
+ * sits above the overlay. A row that opens a sheet keeps its `onClick` — that's not a page.
+ */
+function TableRowLink({ className, ...props }: React.ComponentProps<typeof Link>) {
+  return (
+    <Link
+      data-slot="table-row-link"
+      className={cn(
+        "outline-none after:absolute after:inset-0 after:content-['']",
+        "focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-ring",
+        className,
+      )}
+      {...props}
+    />
   );
 }
 
@@ -553,5 +579,6 @@ export {
   TableHeader,
   TableHeaderRow,
   TableRow,
+  TableRowLink,
   TableWrapper,
 };
