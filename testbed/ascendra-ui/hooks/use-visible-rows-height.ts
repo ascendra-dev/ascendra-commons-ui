@@ -9,8 +9,8 @@ import * as React from 'react';
 const ROW_END_OFFSET = 4;
 
 /**
- * The max height that shows a table's first `visibleRows` body rows whole, then scrolls — for `visibleRows` on Table
- * and DataTable. Rows differ in height (wrapping content), so it is measured rather than rows × a fixed height.
+ * The max height that shows a table's first `visibleRows` body rows whole, then scrolls — for `visibleRows` on Table,
+ * DataTable and CardList (its rows). Rows differ in height (wrapping content), so it is measured rather than rows × a fixed height.
  *
  * `viewport` is the scroll container holding the <table>. Re-measures whenever the table resizes — rows added or
  * removed, content wrapping at a new width, a header that grows. Undefined (no cap) when `visibleRows` is unset or
@@ -23,23 +23,26 @@ export function useVisibleRowsHeight(
   const [height, setHeight] = React.useState<number>();
 
   React.useLayoutEffect(() => {
+    // A table's body rows, or a CardList's rows.
     const table = viewport.current?.querySelector('table');
-    if (!visibleRows || !table) {
+    const list = table ? null : viewport.current?.querySelector<HTMLElement>('[data-slot="card-list"]');
+    const content = table ?? list;
+    if (!visibleRows || !content) {
       setHeight(undefined);
       return;
     }
     const measure = () => {
-      const rows = table.tBodies[0]?.rows;
+      const rows = table ? table.tBodies[0]?.rows : list!.children;
       const last = rows && rows.length > visibleRows ? rows[visibleRows - 1] : undefined;
       setHeight(
         last
-          ? Math.ceil(last.getBoundingClientRect().bottom - table.getBoundingClientRect().top) - ROW_END_OFFSET
+          ? Math.ceil(last.getBoundingClientRect().bottom - content.getBoundingClientRect().top) - ROW_END_OFFSET
           : undefined
       );
     };
     measure();
     const observer = new ResizeObserver(measure);
-    observer.observe(table);
+    observer.observe(content);
     return () => observer.disconnect();
   }, [viewport, visibleRows]);
 

@@ -319,6 +319,8 @@ function EmptyBody({ className, ...props }: React.ComponentProps<"div">) {
         "before:shadow-[0_1px_2px_0_rgba(25,28,33,0.06),0_0_2px_0_rgba(0,0,0,0.08)]",
         "dark:before:shadow-[inset_0_0_1px_1px_rgba(255,255,255,0.01),0_1px_3px_0_rgba(0,0,0,2),0_0_3px_0_rgba(0,0,0,0.2)",
         "[&>tr:not(:last-child)>td]:border-border [&>tr:not(:last-child)>td]:border-b",
+        // Inside a CardPanel (a CardList's loading/empty/error state): the panel is already the raised card.
+        "in-data-[slot=card-panel]:before:hidden",
         className,
       )}
       {...props}

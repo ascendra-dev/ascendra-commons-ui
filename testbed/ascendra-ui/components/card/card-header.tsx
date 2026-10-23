@@ -1,9 +1,16 @@
 "use client";
 
-import { LuMaximize, LuMinimize } from "react-icons/lu";
+import { LuChevronDown } from "react-icons/lu";
 
 import { cn } from "@/ascendra-ui/shadcn";
 import { useCardContext } from "@/ascendra-ui/components/card/card";
+
+/** Over an open CardTable, a line under the header (the table's column header sits in the same grey); folded, none —
+ *  the footer's separator divides them then. */
+const headerClasses = cn(
+  "px-6 py-4",
+  "border-border group-has-[>[data-slot=card-table][data-collapsed=false]]:border-b",
+);
 
 export function CardHeader({
   className,
@@ -16,7 +23,7 @@ export function CardHeader({
     return (
       <header
         data-slot="card-header"
-        className={cn("px-6 py-4", className)}
+        className={cn(headerClasses, className)}
         {...props}
       >
         {children}
@@ -27,7 +34,7 @@ export function CardHeader({
   return (
     <header
       data-slot="card-header"
-      className={cn("px-6 py-4", className)}
+      className={cn(headerClasses, className)}
       {...props}
     >
       <div className="flex items-center justify-between">
@@ -38,11 +45,8 @@ export function CardHeader({
           onClick={onToggle}
           className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
-          {collapsed ? (
-            <LuMaximize className="size-3.5" />
-          ) : (
-            <LuMinimize className="size-3.5" />
-          )}
+          {/* A chevron — maximize/minimize icons are for a card that fills the screen, not one that folds. */}
+          <LuChevronDown className={cn("size-4 transition-transform duration-300", !collapsed && "rotate-180")} />
         </button>
       </div>
     </header>

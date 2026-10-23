@@ -89,11 +89,13 @@ export * from './components/card/card-footer-icon';
 export * from './components/card/card-header';
 export * from './components/card/card-header-subtitle';
 export * from './components/card/card-header-title';
+export * from './components/card/card-list';
 export * from './components/card/card-panel';
 export * from './components/card/card-panel-field';
 export * from './components/card/card-panel-item';
 export * from './components/card/card-panel-item-crown';
 export * from './components/card/card-panel-item-group';
+export * from './components/card/card-table';
 
 // Data Table
 export * from './components/data-table/batch-navigator';
