@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useCallback } from "react";
+import { WithTooltip } from "@/ascendra-ui/components/util/with-tooltip";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { LuArrowLeft } from "react-icons/lu";
@@ -18,33 +19,10 @@ type BackLinkProps = {
 };
 
 /**
- * The page's way back. By default its parent (`href`); opened from somewhere else by a link built with `useBackTo`,
- * it goes back there instead — "Back to denied requests", with that page's filters as they were.
+ * The page's way up — to its parent (`href`), always. Opened from another section by a link built with `useBackTo`,
+ * the page also shows a back icon beside its title (PageTitle → PageBackButton) that returns there.
  */
-export function BackLink(props: BackLinkProps) {
-  return (
-    <Suspense fallback={<BackLinkView {...props} />}>
-      <BackLinkFromUrl {...props} />
-    </Suspense>
-  );
-}
-
-function BackLinkFromUrl({ href, children, className }: BackLinkProps) {
-  const params = useSearchParams();
-  const back = samePath(params.get(BACK));
-  const label = params.get(BACK_LABEL);
-  return back ? (
-    <BackLinkView href={back} className={className}>
-      {label ? `Back to ${label}` : children}
-    </BackLinkView>
-  ) : (
-    <BackLinkView href={href} className={className}>
-      {children}
-    </BackLinkView>
-  );
-}
-
-function BackLinkView({ href, children, className }: BackLinkProps) {
+export function BackLink({ href, children, className }: BackLinkProps) {
   return (
     <Link
       href={href}
@@ -60,8 +38,40 @@ function BackLinkView({ href, children, className }: BackLinkProps) {
 }
 
 /**
+ * A back arrow beside the page title — only when the page was opened by a cross-link built with `useBackTo`; it
+ * returns there ("Back to denied requests", with that page's filters as they were). Nothing otherwise. PageTitle
+ * renders it.
+ */
+export function PageBackButton() {
+  return (
+    <Suspense fallback={null}>
+      <PageBackButtonFromUrl />
+    </Suspense>
+  );
+}
+
+function PageBackButtonFromUrl() {
+  const params = useSearchParams();
+  const back = samePath(params.get(BACK));
+  if (!back) return null;
+  const label = `Back to ${params.get(BACK_LABEL) || "the previous page"}`;
+  return (
+    <WithTooltip tooltip={label} className="mr-2 align-middle">
+      <Link
+        href={back}
+        aria-label={label}
+        data-slot="page-back-button"
+        className="text-muted-foreground hover:text-foreground hover:bg-foreground/6 focus-visible:ring-primary flex size-7 items-center justify-center rounded-md transition-colors focus:outline-none focus-visible:ring-2"
+      >
+        <LuArrowLeft className="size-4 stroke-2" />
+      </Link>
+    </WithTooltip>
+  );
+}
+
+/**
  * For a link that leaves this page for another section's page: `backTo(href)` adds this page's URL (with its query)
- * and `label` to `href`, so that page's BackLink returns here — "Back to {label}".
+ * and `label` to `href`, so that page shows a back icon beside its title that returns here — "Back to {label}".
  */
 export function useBackTo(label: string) {
   const pathname = usePathname();

@@ -48,9 +48,9 @@ export default function BackgroundJobLocksPage() {
 
   return (
     <>
+      <BackLink href={backgroundJobsLinks.overview()}>Back to overview</BackLink>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
-          <BackLink href={backgroundJobsLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Locks</PageTitle>
           <PageSubtitle>Which job locks are taken right now — a run in progress, or one a crashed process left behind.</PageSubtitle>
         </PageHeaderGroup>

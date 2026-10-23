@@ -86,9 +86,9 @@ export default function AuditRetentionPage() {
 
   return (
     <>
+      <BackLink href={auditLogLinks.overview()}>Back to overview</BackLink>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
-          <BackLink href={auditLogLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Retention &amp; Volume</PageTitle>
           <PageSubtitle>Read-only health of the audit store itself — how far back it goes, how big it is.</PageSubtitle>
         </PageHeaderGroup>

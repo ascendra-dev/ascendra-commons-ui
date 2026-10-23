@@ -118,11 +118,11 @@ export default function DomainEventWiringPage() {
 
   return (
     <>
+      <BackLink href={domainEventsLinks.overview()}>
+        Back to overview
+      </BackLink>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
-          <BackLink href={domainEventsLinks.overview()}>
-            Back to overview
-          </BackLink>
           <PageTitle>Wiring</PageTitle>
           <PageSubtitle>
             What fired, against what the code says should listen — and the three

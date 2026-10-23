@@ -73,9 +73,9 @@ export default function DomainEventDeliveriesPage() {
 
   return (
     <>
+      <BackLink href={domainEventsLinks.overview()}>Back to overview</BackLink>
       <PageHeader>
         <PageHeaderGroup>
-          <BackLink href={domainEventsLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Deliveries</PageTitle>
           <PageSubtitle>Every event raised — whether anyone was listening, never what they then did.</PageSubtitle>
         </PageHeaderGroup>

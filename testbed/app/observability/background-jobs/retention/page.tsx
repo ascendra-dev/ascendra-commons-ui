@@ -120,9 +120,9 @@ export default function BackgroundJobRetentionPage() {
 
   return (
     <>
+      <BackLink href={backgroundJobsLinks.overview()}>Back to overview</BackLink>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
-          <BackLink href={backgroundJobsLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Volume &amp; Retention</PageTitle>
           <PageSubtitle>The trend behind the runs, and the health of the history itself — how far back, how big.</PageSubtitle>
         </PageHeaderGroup>

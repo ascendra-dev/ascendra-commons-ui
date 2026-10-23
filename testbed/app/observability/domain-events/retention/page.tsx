@@ -115,9 +115,9 @@ export default function DomainEventRetentionPage() {
 
   return (
     <>
+      <BackLink href={domainEventsLinks.overview()}>Back to overview</BackLink>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
-          <BackLink href={domainEventsLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Volume &amp; Retention</PageTitle>
           <PageSubtitle>The trend behind the deliveries, and the health of the log itself — how far back, how big.</PageSubtitle>
         </PageHeaderGroup>

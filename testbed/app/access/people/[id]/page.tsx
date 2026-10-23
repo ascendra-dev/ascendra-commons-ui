@@ -36,6 +36,7 @@ import {
   TableWrapper,
   toast,
   WithTooltip,
+  useBackTo,
 } from '@/ascendra-ui';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -74,6 +75,7 @@ export default function AccessPersonPage() {
     queryFn: () => authorizationApi.recentDenialsOf(userId, 7, 5),
   });
   const p = person.data;
+  const backTo = useBackTo(p?.user.name ?? userId);
   const names = usePeopleNames(
     useMemo(() => [...(p?.assignments ?? []).map((a) => a.grantedBy ?? ''), ...(p?.delegations ?? []).flatMap((d) => [d.granterId, d.granteeId])].filter(Boolean), [p]),
   );
@@ -88,9 +90,9 @@ export default function AccessPersonPage() {
 
   return (
     <>
+      <BackLink href={authorizationLinks.people()}>Back to people</BackLink>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
-          <BackLink href={authorizationLinks.people()}>Back to people</BackLink>
           <PageTitle>{p?.user.name ?? userId}</PageTitle>
           <PageSubtitle>
             {p ? `${p.user.email ?? p.user.id} · ${p.user.tenantId ? tenantName(p.user.tenantId) : 'Platform staff'}` : ' '}
@@ -98,7 +100,7 @@ export default function AccessPersonPage() {
         </PageHeaderGroup>
         <PageHeaderAction className="flex w-fit gap-2">
           <Button variant="secondary" asChild>
-            <Link href={authorizationLinks.checker({ userId })}>
+            <Link href={backTo(authorizationLinks.checker({ userId }))}>
               <LuSearchCheck />
               Check an action
             </Link>
@@ -165,10 +167,10 @@ export default function AccessPersonPage() {
                   <span>
                     <Link
                       className="underline underline-offset-2"
-                      href={authorizationLinks.denials({
+                      href={backTo(authorizationLinks.denials({
                         queryId: authorizationQueryIds.denialsFilter,
                         params: { actorId: userId, deniedRange: { from: new Date(refused.dataUpdatedAt - 7 * 24 * 60 * 60 * 1000), to: new Date(refused.dataUpdatedAt) } },
-                      })}
+                      }))}
                     >
                       All their denied requests
                     </Link>

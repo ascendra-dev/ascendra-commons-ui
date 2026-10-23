@@ -73,9 +73,9 @@ export default function IdempotencyClaimsPage() {
 
   return (
     <>
+      <BackLink href={idempotencyLinks.overview()}>Back to overview</BackLink>
       <PageHeader>
         <PageHeaderGroup>
-          <BackLink href={idempotencyLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Claims</PageTitle>
           <PageSubtitle>Every request that carried an idempotency key — and the repeats it absorbed.</PageSubtitle>
         </PageHeaderGroup>

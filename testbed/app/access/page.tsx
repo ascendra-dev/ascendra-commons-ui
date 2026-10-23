@@ -112,7 +112,7 @@ export default function AccessOverviewPage() {
       title: `${who(d.granterId)} → ${who(d.granteeId)} lends ${d.lapsedActions.join(', ')}`,
       meta: `${who(d.granterId)} no longer holds it — the delegation grants nothing for it · revoke it, or give the role back`,
       badge: { label: 'lapsed', variant: 'red' as const },
-      href: authorizationLinks.delegations({ queryId: authorizationQueryIds.delegationsFilter, params: { status: 'lapsed' } }),
+      href: backTo(authorizationLinks.delegations({ queryId: authorizationQueryIds.delegationsFilter, params: { status: 'lapsed' } })),
     })),
     ...(roleEnds.data ?? []).map((a) => ({
       key: `role-${a.userId}-${a.roleId}-${a.tenantId}`,
@@ -128,14 +128,14 @@ export default function AccessOverviewPage() {
         title: `${who(d.granterId)} → ${who(d.granteeId)} lends ${d.actions.join(', ')}`,
         meta: d.reason ? `“${d.reason}”` : 'no reason given',
         badge: { label: expiresSoon(d.expiresAt) ?? 'expiring', variant: 'orange' as const },
-        href: authorizationLinks.delegations({ queryId: authorizationQueryIds.delegationsFilter, params: { status: 'expiring' } }),
+        href: backTo(authorizationLinks.delegations({ queryId: authorizationQueryIds.delegationsFilter, params: { status: 'expiring' } })),
       })),
     ...(denials.data?.topActors ?? []).slice(0, 3).map((a) => ({
       key: `denied-${a.actorId}`,
       title: `${who(a.actorId)} refused ${formatCount(a.count)} ${a.count === 1 ? 'time' : 'times'}`,
       meta: `${a.actions} ${a.actions === 1 ? 'action' : 'actions'} · ${period.label.toLowerCase()} · a missing grant, or curiosity`,
       badge: { label: 'refused', variant: 'blue' as const },
-      href: authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { actorId: a.actorId, deniedRange: deniedRange(denials.dataUpdatedAt, period.days) } }),
+      href: backTo(authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { actorId: a.actorId, deniedRange: deniedRange(denials.dataUpdatedAt, period.days) } })),
     })),
   ];
 
@@ -154,13 +154,13 @@ export default function AccessOverviewPage() {
         <PageHeaderAction className="flex w-fit gap-2">
           <TenantPicker />
           <Button variant="secondary" asChild>
-            <Link href={authorizationLinks.delegations()}>
+            <Link href={backTo(authorizationLinks.delegations())}>
               <LuHandshake />
               Delegations
             </Link>
           </Button>
           <Button asChild>
-            <Link href={authorizationLinks.people()}>
+            <Link href={backTo(authorizationLinks.people())}>
               <LuUsers />
               People
             </Link>
@@ -182,7 +182,7 @@ export default function AccessOverviewPage() {
             label="People"
             value={s?.users ?? null}
             caption={s ? `${formatCount(s.usersWithRole)} with a role` : '…'}
-            href={authorizationLinks.people({ queryId: authorizationQueryIds.everyone })}
+            href={backTo(authorizationLinks.people({ queryId: authorizationQueryIds.everyone }))}
             loading={stats.isLoading}
           />
           <Tile
@@ -190,14 +190,14 @@ export default function AccessOverviewPage() {
             value={s?.usersWithoutRole ?? null}
             caption="signed up, can do nothing yet"
             tone={s?.usersWithoutRole ? 'warn' : undefined}
-            href={authorizationLinks.people({ queryId: authorizationQueryIds.peopleFilter, params: { roleless: 'true' } })}
+            href={backTo(authorizationLinks.people({ queryId: authorizationQueryIds.peopleFilter, params: { roleless: 'true' } }))}
             loading={stats.isLoading}
           />
           <Tile
             label="Active delegations"
             value={s?.activeDelegations ?? null}
             caption={s ? `${formatCount(s.delegationsExpiring7d)} ending within 7 days` : '…'}
-            href={authorizationLinks.delegations({ queryId: authorizationQueryIds.activeDelegations })}
+            href={backTo(authorizationLinks.delegations({ queryId: authorizationQueryIds.activeDelegations }))}
             loading={stats.isLoading}
           />
           <Tile
@@ -205,7 +205,7 @@ export default function AccessOverviewPage() {
             value={s?.lapsedDelegations ?? null}
             caption="lend what the lender lost"
             tone={s?.lapsedDelegations ? 'alert' : undefined}
-            href={authorizationLinks.delegations({ queryId: authorizationQueryIds.delegationsFilter, params: { status: 'lapsed' } })}
+            href={backTo(authorizationLinks.delegations({ queryId: authorizationQueryIds.delegationsFilter, params: { status: 'lapsed' } }))}
             loading={stats.isLoading}
           />
           {/* A count of assignments, not people — no list filters by expiry, so it doesn't link; Needs a look lists them. */}
@@ -214,7 +214,7 @@ export default function AccessOverviewPage() {
             label="Denied requests"
             value={denials.data?.total ?? null}
             caption={denials.data ? `by ${formatCount(denials.data.actors)} ${denials.data.actors === 1 ? 'person' : 'people'} · ${period.label.toLowerCase()}` : '…'}
-            href={denials.data && authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { deniedRange: deniedRange(denials.dataUpdatedAt, period.days) } })}
+            href={denials.data && backTo(authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { deniedRange: deniedRange(denials.dataUpdatedAt, period.days) } }))}
             loading={denials.isLoading}
           />
           {platform && (

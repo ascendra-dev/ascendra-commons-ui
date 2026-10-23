@@ -110,9 +110,9 @@ export default function RateLimitRetentionPage() {
 
   return (
     <>
+      <BackLink href={rateLimitLinks.overview()}>Back to overview</BackLink>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
-          <BackLink href={rateLimitLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Volume &amp; Retention</PageTitle>
           <PageSubtitle>The trend behind the rejections, and the health of the log itself — how far back, how big.</PageSubtitle>
         </PageHeaderGroup>

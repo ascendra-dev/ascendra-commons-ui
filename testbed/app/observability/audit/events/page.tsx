@@ -95,9 +95,9 @@ export default function AuditLogListPage() {
 
   return (
     <>
+      <BackLink href={auditLogLinks.overview()}>Back to overview</BackLink>
       <PageHeader>
         <PageHeaderGroup>
-          <BackLink href={auditLogLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Audit Log</PageTitle>
           <PageSubtitle>
             Every recorded change, who made it, and when.

@@ -73,9 +73,9 @@ export default function BackgroundJobRunsPage() {
 
   return (
     <>
+      <BackLink href={backgroundJobsLinks.overview()}>Back to overview</BackLink>
       <PageHeader>
         <PageHeaderGroup>
-          <BackLink href={backgroundJobsLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Runs</PageTitle>
           <PageSubtitle>Every run of every job — what it found, what it processed, what failed.</PageSubtitle>
         </PageHeaderGroup>

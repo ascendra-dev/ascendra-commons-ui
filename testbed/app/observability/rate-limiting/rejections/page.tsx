@@ -73,9 +73,9 @@ export default function RateLimitRejectionsPage() {
 
   return (
     <>
+      <BackLink href={rateLimitLinks.overview()}>Back to overview</BackLink>
       <PageHeader>
         <PageHeaderGroup>
-          <BackLink href={rateLimitLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Rejections</PageTitle>
           <PageSubtitle>Every request a rate limit turned away — counted per source, per minute.</PageSubtitle>
         </PageHeaderGroup>

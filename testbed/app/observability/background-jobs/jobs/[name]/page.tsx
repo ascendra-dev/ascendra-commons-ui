@@ -88,9 +88,9 @@ export default function BackgroundJobPage() {
 
   return (
     <>
+      <BackLink href={backgroundJobsLinks.overview()}>Back to overview</BackLink>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
-          <BackLink href={backgroundJobsLinks.overview()}>Back to overview</BackLink>
           <PageTitle>{name}</PageTitle>
           <PageSubtitle>Is it healthy, what keeps failing — and run it now.</PageSubtitle>
         </PageHeaderGroup>
