@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { LuArrowUpRight, LuDatabase } from 'react-icons/lu';
 import {
@@ -38,6 +37,7 @@ import {
   TableHeader,
   TableHeaderRow,
   TableRow,
+  TableRowLink,
   TableWrapper,
   WithError,
   WithSkeleton,
@@ -93,7 +93,6 @@ const periodLink = (asOf: number, period: Period, fields: TriggerParams = {}) =>
 
 /** The Rate Limiting module's landing page — rateLimitingNav's one entry points here. */
 export default function RateLimitOverviewPage() {
-  const router = useRouter();
   const [periodValue, setPeriodValue] = useState<Period['value']>('day');
   const period = PERIODS.find((p) => p.value === periodValue) ?? PERIODS[1];
 
@@ -174,15 +173,14 @@ export default function RateLimitOverviewPage() {
           </PageSubtitle>
         </PageHeaderGroup>
         <PageHeaderAction className="flex w-fit gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => router.push(rateLimitLinks.retention())}
-          >
-            <LuDatabase />
-            Volume &amp; Retention
+          <Button variant="secondary" asChild>
+            <Link href={rateLimitLinks.retention()}>
+              <LuDatabase />
+              Volume &amp; Retention
+            </Link>
           </Button>
-          <Button onClick={() => router.push(rateLimitLinks.list())}>
-            Go to Rejections
+          <Button asChild>
+            <Link href={rateLimitLinks.list()}>Go to Rejections</Link>
           </Button>
         </PageHeaderAction>
       </PageHeader>
@@ -280,13 +278,11 @@ export default function RateLimitOverviewPage() {
                 {routeRows.length > 0 && (
                   <TableBody>
                     {routeRows.map((row) => (
-                      <TableRow
-                        key={row.route}
-                        className="cursor-pointer"
-                        onClick={() => router.push(row.href)}
-                      >
+                      <TableRow key={row.route}>
                         <TableCell>
-                          <SimpleBadge>{row.route}</SimpleBadge>
+                          <TableRowLink href={row.href}>
+                            <SimpleBadge>{row.route}</SimpleBadge>
+                          </TableRowLink>
                         </TableCell>
                         <TableCell className="text-right font-mono tabular-nums">
                           {formatCount(row.count)}
@@ -335,13 +331,14 @@ export default function RateLimitOverviewPage() {
                 {sourceRows.length > 0 && (
                   <TableBody>
                     {sourceRows.map((row) => (
-                      <TableRow
-                        key={row.identifier}
-                        className="cursor-pointer"
-                        onClick={() => router.push(row.href)}
-                      >
+                      <TableRow key={row.identifier}>
                         <TableCell>
-                          <div className={row.labelClass}>{row.label}</div>
+                          <TableRowLink
+                            href={row.href}
+                            className={`block ${row.labelClass}`}
+                          >
+                            {row.label}
+                          </TableRowLink>
                           <div className="mt-1.5 flex flex-wrap items-center gap-1">
                             {row.routes.map((route) => (
                               <SimpleBadge key={route}>{route}</SimpleBadge>

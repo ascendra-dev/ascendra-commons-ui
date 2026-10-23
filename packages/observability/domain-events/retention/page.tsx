@@ -2,7 +2,6 @@
 
 import { useMemo } from 'react';
 import { format } from 'date-fns';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
   BackLink,
@@ -11,6 +10,7 @@ import {
   CardHeaderSubtitle,
   CardHeaderTitle,
   CardPanel,
+  ChartBarLink,
   DashboardContent,
   ErrorMessage,
   ErrorState,
@@ -102,7 +102,6 @@ function volumeTiles(volume: DeliveryVolume | undefined) {
 
 /** Reached via the "Volume & Retention" button on the Domain Events overview — not nav. Rate limiting's, for deliveries. */
 export default function DomainEventRetentionPage() {
-  const router = useRouter();
   const placeholderPerDay = useMemo(() => buildPlaceholderPerDay(), []);
   // Same key as the Overview's oldest-delivery footnote — one read serves both.
   const volume = useQuery({ queryKey: ['domain-events-volume'], queryFn: fetchVolume });
@@ -190,14 +189,11 @@ export default function DomainEventRetentionPage() {
                       </ChartContainer>
                     </SkeletonState>
                     <NormalState if={!!stats}>
-                      <ChartContainer config={chartConfig} className="h-56 w-full cursor-pointer">
-                        {/* A click anywhere in a day's column (not just its bar) opens that day's deliveries. */}
+                      <ChartContainer config={chartConfig} className="h-56 w-full">
+                        {/* Each day's column is a link (ChartBarLink on the top bar) — anywhere in it, not just its bar — to that day's deliveries. */}
                         <BarChart
                           data={rows}
                           margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
-                          onClick={(state) => {
-                            if (state.activeLabel != null) router.push(dayLink(String(state.activeLabel)));
-                          }}
                         >
                           <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.6} strokeWidth={0.5} />
                           <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} interval={4} tickFormatter={formatDayTick} />
@@ -219,7 +215,10 @@ export default function DomainEventRetentionPage() {
                           />
                           <Bar dataKey="delivered" stackId="day" fill="var(--color-delivered)" />
                           <Bar dataKey="noListeners" stackId="day" fill="var(--color-noListeners)" />
-                          <Bar dataKey="dispatchFailed" stackId="day" fill="var(--color-dispatchFailed)" radius={[3, 3, 0, 0]} />
+                          <Bar
+                            dataKey="dispatchFailed" stackId="day" fill="var(--color-dispatchFailed)" radius={[3, 3, 0, 0]}
+                            shape={<ChartBarLink href={(row: { day: string }) => dayLink(row.day)} />}
+                          />
                         </BarChart>
                       </ChartContainer>
                     </NormalState>
