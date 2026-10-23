@@ -288,20 +288,24 @@ function RunNowButton({ job }: { job: JobStatus }) {
   return canRun ? button : <WithTooltip tooltip="You don't have permission to run jobs">{button}</WithTooltip>;
 }
 
-/** One toast for the run's life: "running…", then its result in place — or, after 10 minutes, where to look. */
+/**
+ * One toast for the run's life: "running…", then its result in place — or, after 10 minutes, where to look. The
+ * result stays until closed: the viewer may be on another page when it lands.
+ */
 async function followRun(name: string, correlationId: string, refresh: () => void) {
   const id = `run-now-${correlationId}`;
+  const result = { id, duration: Infinity };
   toast.loading(`${name} is running…`, { id, description: "You can leave this page — this updates when it's done." });
   const run = await backgroundJobsApi.waitForRun(correlationId);
   refresh();
   if (!run) {
-    toast.info(`${name} is still running`, { id, description: 'No result after 10 minutes — check Runs, or Locks if it never finishes.' });
+    toast.info(`${name} is still running`, { ...result, description: 'No result after 10 minutes — check Runs, or Locks if it never finishes.' });
   } else if (run.outcome === 'job_failed') {
-    toast.error(`${name} couldn't find its work — see the run`, { id, description: run.error?.split('\n')[0] });
+    toast.error(`${name} couldn't find its work — see the run`, { ...result, description: run.error?.split('\n')[0] });
   } else if (run.itemsFailed > 0) {
-    toast.warning(`${name} ran — ${formatCount(run.itemsDue)} due, ${formatCount(run.itemsProcessed)} processed, ${formatCount(run.itemsFailed)} failed`, { id, description: null });
+    toast.warning(`${name} ran — ${formatCount(run.itemsDue)} due, ${formatCount(run.itemsProcessed)} processed, ${formatCount(run.itemsFailed)} failed`, { ...result, description: null });
   } else {
-    toast.success(`${name} ran — ${formatCount(run.itemsDue)} due, ${formatCount(run.itemsProcessed)} processed`, { id, description: null });
+    toast.success(`${name} ran — ${formatCount(run.itemsDue)} due, ${formatCount(run.itemsProcessed)} processed`, { ...result, description: null });
   }
 }
 
