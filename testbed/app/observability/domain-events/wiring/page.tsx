@@ -118,7 +118,7 @@ export default function DomainEventWiringPage() {
 
   return (
     <>
-      <BackLink href={domainEventsLinks.overview()}>
+      <BackLink href={domainEventsLinks.overview()} label="Domain events">
         Back to overview
       </BackLink>
       <PageHeader variant="dashboard">

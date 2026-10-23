@@ -73,7 +73,7 @@ export default function BackgroundJobRunsPage() {
 
   return (
     <>
-      <BackLink href={backgroundJobsLinks.overview()}>Back to overview</BackLink>
+      <BackLink href={backgroundJobsLinks.overview()} label="Background jobs">Back to overview</BackLink>
       <PageHeader>
         <PageHeaderGroup>
           <PageTitle>Runs</PageTitle>

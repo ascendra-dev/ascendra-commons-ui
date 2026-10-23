@@ -90,7 +90,7 @@ export default function AccessPersonPage() {
 
   return (
     <>
-      <BackLink href={authorizationLinks.people()}>Back to people</BackLink>
+      <BackLink href={authorizationLinks.people()} label="People">Back to people</BackLink>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
           <PageTitle>{p?.user.name ?? userId}</PageTitle>

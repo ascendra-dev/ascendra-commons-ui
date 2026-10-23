@@ -35,7 +35,7 @@ it into `packages/`, caught only by chance days later). Re-derive `packages/obse
 from `testbed/app/observability/` as a distribution step instead, not as part of normal
 development.
 
-Currently vendored `ascendra-ui`: v1.4.0, commit `4c922b62897d2a811cfd8d8e7ae656ae41dc2134`.
+Currently vendored `ascendra-ui`: v1.4.0, commit `5322c7dc82a039549ba645aa116f5e39fe8279ca`.
 Update this line by hand whenever `ascendra-ui/` (here and in `testbed/`) is
 manually re-synced.
 

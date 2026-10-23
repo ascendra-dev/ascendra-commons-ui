@@ -13,17 +13,35 @@ const BACK = "back";
 const BACK_LABEL = "backLabel";
 
 type BackLinkProps = {
-  /** Where "back" goes by default — the page's parent. */
+  /** The page's parent. */
   href: string;
+  /** What the link says: "Back to people". */
   children: React.ReactNode;
+  /** The parent's name ("People") — shown instead, without the arrow, while the page title has a back icon (the
+   *  page was opened by a cross-link): one arrow on screen, for where the user came from; this link reads as where
+   *  the page sits. */
+  label?: string;
   className?: string;
 };
 
 /**
  * The page's way up — to its parent (`href`), always. Opened from another section by a link built with `useBackTo`,
- * the page also shows a back icon beside its title (PageTitle → PageBackButton) that returns there.
+ * the page title shows a back icon to where the user came from, and this link becomes the parent's name.
  */
-export function BackLink({ href, children, className }: BackLinkProps) {
+export function BackLink(props: BackLinkProps) {
+  return (
+    <Suspense fallback={<BackLinkView {...props} />}>
+      <BackLinkFromUrl {...props} />
+    </Suspense>
+  );
+}
+
+function BackLinkFromUrl(props: BackLinkProps) {
+  const crossLinked = samePath(useSearchParams().get(BACK)) !== null;
+  return <BackLinkView {...props} asLocation={crossLinked && props.label !== undefined} />;
+}
+
+function BackLinkView({ href, children, label, className, asLocation = false }: BackLinkProps & { asLocation?: boolean }) {
   return (
     <Link
       href={href}
@@ -32,8 +50,14 @@ export function BackLink({ href, children, className }: BackLinkProps) {
         className,
       )}
     >
-      <LuArrowLeft className="size-3 stroke-2" />
-      {children}
+      {asLocation ? (
+        label
+      ) : (
+        <>
+          <LuArrowLeft className="size-3 stroke-2" />
+          {children}
+        </>
+      )}
     </Link>
   );
 }
@@ -58,8 +82,13 @@ function PageBackButtonFromUrl() {
   const label = `Back to ${params.get(BACK_LABEL) || "the previous page"}`;
   return (
     <WithTooltip tooltip={label} className="mr-3 shrink-0">
-      {/* A real button, look and hover alike — it's an action ("go back there"), not a breadcrumb. */}
-      <Button variant="secondary" size="icon" asChild>
+      {/* At rest just the arrow; hovered or focused, the secondary button it is. */}
+      <Button
+        variant="secondary"
+        size="icon"
+        asChild
+        className="text-muted-foreground hover:text-foreground not-hover:not-focus-visible:bg-transparent not-hover:not-focus-visible:shadow-none not-hover:not-focus-visible:before:opacity-0"
+      >
         <Link href={back} aria-label={label} data-slot="page-back-button">
           <LuArrowLeft className="size-4" />
         </Link>

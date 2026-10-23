@@ -73,7 +73,7 @@ export default function RateLimitRejectionsPage() {
 
   return (
     <>
-      <BackLink href={rateLimitLinks.overview()}>Back to overview</BackLink>
+      <BackLink href={rateLimitLinks.overview()} label="Rate limiting">Back to overview</BackLink>
       <PageHeader>
         <PageHeaderGroup>
           <PageTitle>Rejections</PageTitle>

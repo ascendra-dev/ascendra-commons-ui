@@ -81,7 +81,7 @@ export default function AccessRolePage() {
 
   return (
     <>
-      <BackLink href={authorizationLinks.roles()}>Back to roles</BackLink>
+      <BackLink href={authorizationLinks.roles()} label="Roles">Back to roles</BackLink>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
           <PageTitle>{roleId}</PageTitle>

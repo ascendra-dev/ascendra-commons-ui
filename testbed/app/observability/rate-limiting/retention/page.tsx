@@ -110,7 +110,7 @@ export default function RateLimitRetentionPage() {
 
   return (
     <>
-      <BackLink href={rateLimitLinks.overview()}>Back to overview</BackLink>
+      <BackLink href={rateLimitLinks.overview()} label="Rate limiting">Back to overview</BackLink>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
           <PageTitle>Volume &amp; Retention</PageTitle>

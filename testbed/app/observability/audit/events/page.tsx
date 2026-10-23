@@ -95,7 +95,7 @@ export default function AuditLogListPage() {
 
   return (
     <>
-      <BackLink href={auditLogLinks.overview()}>Back to overview</BackLink>
+      <BackLink href={auditLogLinks.overview()} label="Audit log">Back to overview</BackLink>
       <PageHeader>
         <PageHeaderGroup>
           <PageTitle>Audit Log</PageTitle>

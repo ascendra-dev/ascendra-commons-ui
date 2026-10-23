@@ -73,7 +73,7 @@ export default function IdempotencyClaimsPage() {
 
   return (
     <>
-      <BackLink href={idempotencyLinks.overview()}>Back to overview</BackLink>
+      <BackLink href={idempotencyLinks.overview()} label="Idempotency">Back to overview</BackLink>
       <PageHeader>
         <PageHeaderGroup>
           <PageTitle>Claims</PageTitle>
