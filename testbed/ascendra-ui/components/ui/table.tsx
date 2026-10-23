@@ -24,11 +24,13 @@ import {
   type BgConfig,
 } from "@/ascendra-ui/components/ui/accent-styles";
 import {
+  LuArrowUpRight,
   LuChevronFirst,
   LuChevronLast,
   LuChevronLeft,
   LuChevronRight,
   LuLoaderCircle,
+  LuPanelRight,
 } from "react-icons/lu";
 
 export type ColVisibility = { key: PropertyKey; active?: boolean };
@@ -344,6 +346,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
  */
 const rowLinkRowClasses = [
   "has-data-[slot=table-row-link]:relative",
+  "has-data-[slot=row-end-icon]:relative",
   "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],[role=checkbox],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip],[data-slot=table-checkbox-cell])]:relative",
   "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],[role=checkbox],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip],[data-slot=table-checkbox-cell])]:z-2",
 ];
@@ -373,12 +376,40 @@ function TableRow({
 }
 
 /**
+ * Where a row goes, at its right end — a chevron for a page, a panel for a sheet, an arrow out for another site — so
+ * it can be told before the click. In the row's right padding (it pushes no column), shown on hover or keyboard focus,
+ * and always on a touch screen. Positioned against the row (which every row component makes `relative` for it).
+ */
+function RowEndIcon({ kind }: { kind: "page" | "sheet" | "external" }) {
+  const Icon = kind === "sheet" ? LuPanelRight : kind === "external" ? LuArrowUpRight : LuChevronRight;
+  return (
+    <span
+      data-slot="row-end-icon"
+      aria-hidden
+      className={cn(
+        "text-muted-foreground pointer-events-none absolute top-1/2 right-1.5 z-2 flex -translate-y-1/2 items-center",
+        "opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100 pointer-coarse:opacity-100",
+      )}
+    >
+      {/* The panel is a box — a size down keeps it as light as the chevron's single stroke. */}
+      <Icon className={kind === "sheet" ? "size-3" : "size-3.5"} />
+    </span>
+  );
+}
+
+/**
  * Makes the whole row a link to `href` — a real `<a>`, so the browser shows where it goes, and cmd/middle-click,
  * "copy link" and Tab focus work. Put it in one cell (usually the first, around that cell's label); its overlay
  * stretches over every cell of the row. One per row: a cell that goes somewhere else uses an ordinary link, which
- * sits above the overlay. A row that opens a sheet keeps its `onClick` — that's not a page.
+ * sits above the overlay. A row that opens a sheet keeps its `onClick` and puts a RowSheetIcon in a cell instead.
+ * The row ends in a chevron (an arrow out with `external`).
  */
-function TableRowLink({ className, ...props }: React.ComponentProps<typeof Link>) {
+function TableRowLink({
+  className,
+  children,
+  external = false,
+  ...props
+}: React.ComponentProps<typeof Link> & { external?: boolean }) {
   return (
     <Link
       data-slot="table-row-link"
@@ -388,9 +419,18 @@ function TableRowLink({ className, ...props }: React.ComponentProps<typeof Link>
         "focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-ring",
         className,
       )}
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       {...props}
-    />
+    >
+      {children}
+      <RowEndIcon kind={external ? "external" : "page"} />
+    </Link>
   );
+}
+
+/** For a row that opens a sheet (its own `onClick`): put this in any cell — the row ends in a panel icon. */
+function RowSheetIcon() {
+  return <RowEndIcon kind="sheet" />;
 }
 
 function TableHead({ className, ...props }: React.ComponentProps<"th">) {
@@ -586,6 +626,7 @@ export {
   TableHeaderRow,
   TableRow,
   TableRowLink,
+  RowSheetIcon,
   TableWrapper,
   rowLinkRowClasses,
 };

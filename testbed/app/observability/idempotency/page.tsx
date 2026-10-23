@@ -31,6 +31,7 @@ import {
   PageHeaderGroup,
   PageSubtitle,
   PageTitle,
+  RowSheetIcon,
   SegmentControl,
   SimpleBadge,
   Skeleton,
@@ -306,6 +307,7 @@ export default function IdempotencyOverviewPage() {
                       return (
                         <CardListItem key={`${claim.scope}/${claim.key}`} className="cursor-pointer" onClick={() => setSelected(claim)}>
                           <div>
+                            <RowSheetIcon />
                             <IdText value={claim.key} size="lg" copyable={false} showTooltip={false} />
                             <div className="mt-1.5 flex flex-wrap items-center gap-1">
                               <SimpleBadge>{routeLabel(claim.route)}</SimpleBadge>

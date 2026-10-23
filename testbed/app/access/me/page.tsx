@@ -206,7 +206,7 @@ function LendForm({ actions }: { actions: string[] }) {
   const lendable = actions.filter((x) => x !== 'authz.manage_delegations');
 
   return (
-    <Card>
+    <Card collapseable="expanded">
       <CardHeader>
         <CardHeaderTitle>Lend some of my access</CardHeaderTitle>
         <CardHeaderSubtitle>To a colleague here, until a date (at most {MAX_LEND_DAYS} days). It stops granting anything you stop holding.</CardHeaderSubtitle>

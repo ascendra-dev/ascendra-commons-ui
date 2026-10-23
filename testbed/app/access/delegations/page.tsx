@@ -37,8 +37,8 @@ import {
   PageWrapper,
   QueryBar,
   QueryParamPanel,
+  RowSheetIcon,
   SimpleBadge,
-  WithSheetIcon,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -120,9 +120,9 @@ export default function AccessDelegationsPage() {
                         return (
                           <DataTableRow key={row.id} active={row.id === selected?.id} className="cursor-pointer" onClick={() => setSelected(row)}>
                             <DataTableCell column="granterName" className="whitespace-nowrap">
-                              <WithSheetIcon>
-                                <DataTableHighlight text={`${row.granterName} → ${row.granteeName}`} item={row} itemKey="granterName" />
-                              </WithSheetIcon>
+                              {/* The whole row opens the sheet — its end says so; no icon on this one cell. */}
+                              <DataTableHighlight text={`${row.granterName} → ${row.granteeName}`} item={row} itemKey="granterName" />
+                              <RowSheetIcon />
                               {platform && !tenantId && <div className="text-muted-foreground text-xs">{tenantName(row.tenantId)}</div>}
                             </DataTableCell>
                             <DataTableCell column="actions">
@@ -140,8 +140,10 @@ export default function AccessDelegationsPage() {
                             <DataTableCell column="status">
                               <SimpleBadge variant={state.variant}>{state.label}</SimpleBadge>
                             </DataTableCell>
-                            <DataTableCell column="reason" className="text-muted-foreground max-w-xs truncate">
-                              {row.reason ?? '—'}
+                            {/* The rest of the row's width, truncated — a table cell's own truncate can't cap its width, so a long
+                                reason pushed the table wider than its card. */}
+                            <DataTableCell column="reason" className="text-muted-foreground w-full max-w-0">
+                              <div className="truncate" title={row.reason ?? undefined}>{row.reason ?? '—'}</div>
                             </DataTableCell>
                             <DataTableRowAction>
                               <DropdownMenuLabel>Row actions</DropdownMenuLabel>
