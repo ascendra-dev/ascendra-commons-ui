@@ -354,10 +354,11 @@ function TableRow({
       className={cn(
         "group/row transition-colors hover:bg-gray-700/4",
         // A row holding a TableRowLink: the link's overlay is placed against the row, and the row's own controls
-        // (buttons, other links, tooltip triggers) sit above it so they still take their clicks and hovers.
+        // (buttons, other links, tooltip triggers) sit above it (z-2 over its z-1) so they still take their clicks
+        // and hovers.
         "has-data-[slot=table-row-link]:relative",
         "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip])]:relative",
-        "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip])]:z-1",
+        "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip])]:z-2",
         className,
       )}
       {...props}
@@ -378,7 +379,8 @@ function TableRowLink({ className, ...props }: React.ComponentProps<typeof Link>
     <Link
       data-slot="table-row-link"
       className={cn(
-        "outline-none after:absolute after:inset-0 after:content-['']",
+        // z-1: above the row's positioned content (a SimpleBadge is `relative`), which would otherwise paint over it.
+        "outline-none after:absolute after:inset-0 after:z-1 after:content-['']",
         "focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-ring",
         className,
       )}
