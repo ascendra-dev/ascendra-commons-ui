@@ -21,9 +21,6 @@ export function CardFooter({ className, children, ...props }: CardFooterProps) {
         "text-muted-foreground flex items-start px-5 pt-4 pb-3 text-xs transition-colors duration-300",
         "border-border border-t",
         "group-[:has(>[data-section-body][data-collapsed='false'])]:border-t-0",
-        "group-[:has(>[data-table-container])]:border-t-0",
-        // A note under a table: the body card already divides it from the rows, and it lines up with the header's title.
-        "in-data-[slot=table-wrapper]:border-t-0 in-data-[slot=table-wrapper]:px-6",
         className,
       )}
       {...props}

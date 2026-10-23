@@ -6,10 +6,16 @@ import { LuHandshake, LuShieldAlert, LuUsers } from 'react-icons/lu';
 import Link from 'next/link';
 import {
   Button,
+  Card,
   CardFooter,
   CardFooterIcon,
+  CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardList,
+  CardListItem,
+  CardListLink,
+  CardPanel,
   DashboardContent,
   DataTableEmptyBody,
   DataTableErrorBody,
@@ -21,15 +27,6 @@ import {
   PageTitle,
   SegmentControl,
   SimpleBadge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableHeaderRow,
-  TableRow,
-  TableRowLink,
-  TableWrapper,
   useBackTo,
 } from '@/ascendra-ui';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
@@ -229,83 +226,75 @@ export default function AccessOverviewPage() {
 
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <TableWrapper>
-              <Table visibleRows={ROLES_VISIBLE}>
-                <TableHeader>
-                  <TableHeaderRow size="lg">
-                    <TableHead colSpan={3}>
-                      <CardHeaderTitle>Who holds what</CardHeaderTitle>
-                      <CardHeaderSubtitle>Active holders per role · most first</CardHeaderSubtitle>
-                    </TableHead>
-                  </TableHeaderRow>
-                </TableHeader>
+            <Card collapseable="expanded">
+              <CardHeader>
+                <CardHeaderTitle>Who holds what</CardHeaderTitle>
+                <CardHeaderSubtitle>Active holders per role · most first</CardHeaderSubtitle>
+              </CardHeader>
+              <CardPanel>
                 {roleRows.length > 0 && (
-                  <TableBody>
+                  <CardList columns="3fr auto 2fr" visibleRows={ROLES_VISIBLE}>
                     {roleRows.map((r) => (
-                      <TableRow key={r.roleId}>
-                        <TableCell>
-                          <TableRowLink href={backTo(authorizationLinks.role(r.roleId))}>
+                      <CardListItem key={r.roleId}>
+                        <div>
+                          <CardListLink href={backTo(authorizationLinks.role(r.roleId))}>
                             <SimpleBadge>{r.roleId}</SimpleBadge>
-                          </TableRowLink>
-                        </TableCell>
-                        <TableCell className="text-right font-mono tabular-nums">{formatCount(r.holders)}</TableCell>
-                        <TableCell className="w-2/5">
+                          </CardListLink>
+                        </div>
+                        <div className="text-right font-mono tabular-nums">{formatCount(r.holders)}</div>
+                        <div>
                           <div className="bg-muted h-2 overflow-hidden rounded-full">
                             <div className="h-full rounded-full bg-sky-500/70" style={{ width: `${most ? (r.holders / most) * 100 : 0}%` }} />
                           </div>
-                        </TableCell>
-                      </TableRow>
+                        </div>
+                      </CardListItem>
                     ))}
-                  </TableBody>
+                  </CardList>
                 )}
-              </Table>
-              <DataTableLoadingBody isLoading={stats.isLoading} className="h-65" />
-              <DataTableErrorBody isError={stats.isError} error={stats.error} onRetry={() => stats.refetch()} className="h-65" />
-              <DataTableEmptyBody isLoading={stats.isLoading} isEmpty={!!s && roleRows.length === 0} title="Nobody holds a role" description="Give people roles from People." className="h-65" />
+                <DataTableLoadingBody isLoading={stats.isLoading} className="h-65" />
+                <DataTableErrorBody isError={stats.isError} error={stats.error} onRetry={() => stats.refetch()} className="h-65" />
+                <DataTableEmptyBody isLoading={stats.isLoading} isEmpty={!!s && roleRows.length === 0} title="Nobody holds a role" description="Give people roles from People." className="h-65" />
+              </CardPanel>
               {platform && !tenantId ? null : (
                 <CardFooter>
                   <CardFooterIcon />
                   <span>{s ? `${formatCount(s.platformHolders)} platform staff hold a global role here too — they act in every tenant.` : ''}</span>
                 </CardFooter>
               )}
-            </TableWrapper>
+            </Card>
           </div>
 
           <div className="col-span-12 lg:col-span-6">
-            <TableWrapper>
-              <Table visibleRows={ROLES_VISIBLE}>
-                <TableHeader>
-                  <TableHeaderRow size="lg">
-                    <TableHead>
-                      <CardHeaderTitle>Needs a look</CardHeaderTitle>
-                      <CardHeaderSubtitle>Lapsed and ending access, the most refused people</CardHeaderSubtitle>
-                    </TableHead>
-                  </TableHeaderRow>
-                </TableHeader>
+            <Card collapseable="expanded">
+              <CardHeader>
+                <CardHeaderTitle>Needs a look</CardHeaderTitle>
+                <CardHeaderSubtitle>Lapsed and ending access, the most refused people</CardHeaderSubtitle>
+              </CardHeader>
+              <CardPanel>
                 {look.length > 0 && (
-                  <TableBody>
+                  <CardList columns="minmax(0,1fr)" visibleRows={ROLES_VISIBLE}>
                     {look.map((item) => (
-                      <TableRow key={item.key}>
-                        <TableCell className="max-w-0">
+                      <CardListItem key={item.key}>
+                        <div className="min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <TableRowLink href={item.href} className="truncate text-sm font-medium">
+                            <CardListLink href={item.href} className="truncate text-sm font-medium">
                               {item.title}
-                            </TableRowLink>
+                            </CardListLink>
                             <SimpleBadge variant={item.badge.variant}>{item.badge.label}</SimpleBadge>
                           </div>
                           <div className="text-muted-foreground mt-1 truncate text-xs" title={item.meta}>
                             {item.meta}
                           </div>
-                        </TableCell>
-                      </TableRow>
+                        </div>
+                      </CardListItem>
                     ))}
-                  </TableBody>
+                  </CardList>
                 )}
-              </Table>
-              <DataTableLoadingBody isLoading={lookLoading} className="h-65" />
-              <DataTableErrorBody isError={!!lookError} error={lookError?.error} onRetry={() => lookError?.refetch()} className="h-65" />
-              <DataTableEmptyBody isLoading={lookLoading} isEmpty={!lookLoading && look.length === 0} title="Nothing needs a look" description="No lapsed or ending access, and nobody was refused." className="h-65" />
-            </TableWrapper>
+                <DataTableLoadingBody isLoading={lookLoading} className="h-65" />
+                <DataTableErrorBody isError={!!lookError} error={lookError?.error} onRetry={() => lookError?.refetch()} className="h-65" />
+                <DataTableEmptyBody isLoading={lookLoading} isEmpty={!lookLoading && look.length === 0} title="Nothing needs a look" description="No lapsed or ending access, and nobody was refused." className="h-65" />
+              </CardPanel>
+            </Card>
           </div>
         </div>
       </DashboardContent>

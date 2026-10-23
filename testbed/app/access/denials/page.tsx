@@ -4,8 +4,14 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { LuShieldAlert } from 'react-icons/lu';
 import {
+  Card,
+  CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardList,
+  CardListItem,
+  CardListLink,
+  CardPanel,
   DataTable,
   DataTableBar,
   DataTableBarContent,
@@ -43,15 +49,7 @@ import {
   QueryParamPanel,
   SegmentControl,
   SimpleBadge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableHeaderRow,
-  TableRow,
   TableRowLink,
-  TableWrapper,
   useBackTo,
 } from '@/ascendra-ui';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
@@ -133,75 +131,67 @@ export default function AccessDenialsPage() {
               </div>
               <div className="mb-6 grid grid-cols-12 gap-4">
                 <div className="col-span-12 lg:col-span-6">
-                  <TableWrapper>
-                    <Table visibleRows={TOP_VISIBLE}>
-                      <TableHeader>
-                        <TableHeaderRow size="lg">
-                          <TableHead colSpan={3}>
-                            <CardHeaderTitle>Most refused</CardHeaderTitle>
-                            <CardHeaderSubtitle>{period.label} · the action they lacked</CardHeaderSubtitle>
-                          </TableHead>
-                        </TableHeaderRow>
-                      </TableHeader>
+                  <Card collapseable="expanded">
+                    <CardHeader>
+                      <CardHeaderTitle>Most refused</CardHeaderTitle>
+                      <CardHeaderSubtitle>{period.label} · the action they lacked</CardHeaderSubtitle>
+                    </CardHeader>
+                    <CardPanel>
                       {summary.data && summary.data.topActions.length > 0 && (
-                        <TableBody>
+                        <CardList columns="3fr auto 2fr" visibleRows={TOP_VISIBLE}>
                           {summary.data.topActions.map((a) => (
-                            <TableRow key={a.action}>
-                              <TableCell>
-                                <TableRowLink href={authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { action: a.action, deniedRange: range } })}>
+                            <CardListItem key={a.action}>
+                              <div>
+                                <CardListLink href={authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { action: a.action, deniedRange: range } })}>
                                   <SimpleBadge>{a.action}</SimpleBadge>
-                                </TableRowLink>
+                                </CardListLink>
                                 <div className="text-muted-foreground mt-1 text-xs">{formatCount(a.actors)} {a.actors === 1 ? 'person' : 'people'}</div>
-                              </TableCell>
-                              <TableCell className="text-right align-top font-mono tabular-nums">{formatCount(a.count)}</TableCell>
-                              <TableCell className="w-2/5 align-top">
+                              </div>
+                              <div className="text-right self-start font-mono tabular-nums">{formatCount(a.count)}</div>
+                              <div className="self-start">
                                 <div className="bg-muted mt-1.5 h-2 overflow-hidden rounded-full">
                                   <div className="bg-negative/60 h-full rounded-full" style={{ width: `${topAction ? (a.count / topAction) * 100 : 0}%` }} />
                                 </div>
-                              </TableCell>
-                            </TableRow>
+                              </div>
+                            </CardListItem>
                           ))}
-                        </TableBody>
+                        </CardList>
                       )}
-                    </Table>
-                    <DataTableLoadingBody isLoading={summary.isLoading} className="h-56" />
-                    <DataTableErrorBody isError={summary.isError} error={summary.error} onRetry={() => summary.refetch()} className="h-56" />
-                    <DataTableEmptyBody isLoading={summary.isLoading} isEmpty={!!summary.data && summary.data.total === 0} title="Nothing refused" description="Try a longer period." className="h-56" />
-                  </TableWrapper>
+                      <DataTableLoadingBody isLoading={summary.isLoading} className="h-56" />
+                      <DataTableErrorBody isError={summary.isError} error={summary.error} onRetry={() => summary.refetch()} className="h-56" />
+                      <DataTableEmptyBody isLoading={summary.isLoading} isEmpty={!!summary.data && summary.data.total === 0} title="Nothing refused" description="Try a longer period." className="h-56" />
+                    </CardPanel>
+                  </Card>
                 </div>
                 <div className="col-span-12 lg:col-span-6">
-                  <TableWrapper>
-                    <Table visibleRows={TOP_VISIBLE}>
-                      <TableHeader>
-                        <TableHeaderRow size="lg">
-                          <TableHead colSpan={2}>
-                            <CardHeaderTitle>Most refused people</CardHeaderTitle>
-                            <CardHeaderSubtitle>{period.label} · refusals and how many actions</CardHeaderSubtitle>
-                          </TableHead>
-                        </TableHeaderRow>
-                      </TableHeader>
+                  <Card collapseable="expanded">
+                    <CardHeader>
+                      <CardHeaderTitle>Most refused people</CardHeaderTitle>
+                      <CardHeaderSubtitle>{period.label} · refusals and how many actions</CardHeaderSubtitle>
+                    </CardHeader>
+                    <CardPanel>
                       {summary.data && summary.data.topActors.length > 0 && (
-                        <TableBody>
+                        <CardList columns="minmax(0,1fr) auto" visibleRows={TOP_VISIBLE}>
                           {summary.data.topActors.map((a) => (
-                            <TableRow key={a.actorId}>
-                              <TableCell>
-                                <TableRowLink href={authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { actorId: a.actorId, deniedRange: range } })}>
+                            <CardListItem key={a.actorId}>
+                              <div>
+                                <CardListLink href={authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { actorId: a.actorId, deniedRange: range } })}>
                                   {personLabel(a.actorId, names)}
-                                </TableRowLink>
+                                </CardListLink>
                                 <div className="text-muted-foreground mt-1 text-xs">
                                   {a.actions} {a.actions === 1 ? 'action' : 'actions'}
                                   {platform && !tenantId ? ` · ${a.tenantId ? tenantName(a.tenantId) : 'platform'}` : ''}
                                 </div>
-                              </TableCell>
-                              <TableCell className="text-right align-top font-mono tabular-nums">{formatCount(a.count)}</TableCell>
-                            </TableRow>
+                              </div>
+                              <div className="text-right self-start font-mono tabular-nums">{formatCount(a.count)}</div>
+                            </CardListItem>
                           ))}
-                        </TableBody>
+                        </CardList>
                       )}
-                    </Table>
-                    <DataTableLoadingBody isLoading={summary.isLoading} className="h-56" />
-                    <DataTableEmptyBody isLoading={summary.isLoading} isEmpty={!!summary.data && summary.data.total === 0} title="Nobody refused" description="Try a longer period." className="h-56" />
-                  </TableWrapper>
+                      <DataTableLoadingBody isLoading={summary.isLoading} className="h-56" />
+                      <DataTableEmptyBody isLoading={summary.isLoading} isEmpty={!!summary.data && summary.data.total === 0} title="Nobody refused" description="Try a longer period." className="h-56" />
+                    </CardPanel>
+                  </Card>
                 </div>
               </div>
 

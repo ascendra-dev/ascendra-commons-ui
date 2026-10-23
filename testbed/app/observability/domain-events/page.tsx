@@ -7,8 +7,12 @@ import { LuArrowUpRight, LuDatabase, LuHistory, LuNetwork } from 'react-icons/lu
 import {
   Button,
   Card,
+  CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardList,
+  CardListItem,
+  CardListLink,
   CardPanel,
   DashboardContent,
   DataTableEmptyBody,
@@ -30,15 +34,6 @@ import {
   SimpleBadge,
   Skeleton,
   SkeletonState,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableHeaderRow,
-  TableRow,
-  TableRowLink,
-  TableWrapper,
   WithError,
   WithSkeleton,
   WithTooltip,
@@ -247,78 +242,69 @@ export default function DomainEventsOverviewPage() {
 
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <TableWrapper>
-              <Table visibleRows={EVENTS_VISIBLE}>
-                {/* The header row carries the list's title, not column labels — each row says what it is. */}
-                <TableHeader>
-                  <TableHeaderRow size="lg">
-                    <TableHead colSpan={3}>
-                      <CardHeaderTitle>Busiest events</CardHeaderTitle>
-                      <CardHeaderSubtitle>{period.label} · most deliveries first</CardHeaderSubtitle>
-                    </TableHead>
-                  </TableHeaderRow>
-                </TableHeader>
+            <Card collapseable="expanded">
+              <CardHeader>
+                <CardHeaderTitle>Busiest events</CardHeaderTitle>
+                <CardHeaderSubtitle>{period.label} · most deliveries first</CardHeaderSubtitle>
+              </CardHeader>
+              <CardPanel>
                 {eventRows.length > 0 && (
-                  <TableBody>
+                  <CardList columns="auto auto 1fr" visibleRows={EVENTS_VISIBLE}>
                     {eventRows.map((row) => (
-                      <TableRow key={row.eventName}>
-                        <TableCell className="whitespace-nowrap">
+                      <CardListItem key={row.eventName}>
+                        <div className="whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
-                            <TableRowLink href={row.href}>
+                            <CardListLink href={row.href}>
                               <SimpleBadge>{row.eventName}</SimpleBadge>
-                            </TableRowLink>
+                            </CardListLink>
                             {row.critical && <SimpleBadge variant="blue">critical</SimpleBadge>}
                             {row.noListenerCount > 0 && <SimpleBadge variant="orange">no listeners</SimpleBadge>}
                           </div>
                           <div className="text-muted-foreground mt-1 text-xs">
                             {listenersLabel(row.lastListenerCount)} · last {formatDateTime(row.lastOccurredAt, { style: 'relative' })}
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right align-top font-mono tabular-nums">{formatCount(row.total)}</TableCell>
+                        </div>
+                        <div className="text-right self-start font-mono tabular-nums">{formatCount(row.total)}</div>
                         {/* A fixed share of the row, so the bar never squeezes the event name and its caption. */}
-                        <TableCell className="w-2/5">
+                        <div>
                           <div className="bg-muted h-2 overflow-hidden rounded-full">
                             <div className="h-full rounded-full bg-sky-500/70 transition-all" style={{ width: `${row.share}%` }} />
                           </div>
-                        </TableCell>
-                      </TableRow>
+                        </div>
+                      </CardListItem>
                     ))}
-                  </TableBody>
+                  </CardList>
                 )}
-              </Table>
-              <DataTableLoadingBody isLoading={catalog.isLoading} className="h-65" />
-              <DataTableErrorBody isError={catalog.isError} error={catalog.error} onRetry={() => catalog.refetch()} className="h-65" />
-              <DataTableEmptyBody
-                isLoading={catalog.isLoading}
-                isEmpty={!!catalog.data && eventRows.length === 0}
-                title={`No events in the ${periodLower}`}
-                description="Nothing was emitted — try a longer period."
-                className="h-65"
-              />
-            </TableWrapper>
+                <DataTableLoadingBody isLoading={catalog.isLoading} className="h-65" />
+                <DataTableErrorBody isError={catalog.isError} error={catalog.error} onRetry={() => catalog.refetch()} className="h-65" />
+                <DataTableEmptyBody
+                  isLoading={catalog.isLoading}
+                  isEmpty={!!catalog.data && eventRows.length === 0}
+                  title={`No events in the ${periodLower}`}
+                  description="Nothing was emitted — try a longer period."
+                  className="h-65"
+                />
+              </CardPanel>
+            </Card>
           </div>
 
           <div className="col-span-12 lg:col-span-6">
-            <TableWrapper>
-              <Table>
-                <TableHeader>
-                  <TableHeaderRow size="lg">
-                    <TableHead colSpan={2}>
-                      <CardHeaderTitle>Wiring problems</CardHeaderTitle>
-                      <CardHeaderSubtitle>{period.label} · never-fires over everything retained</CardHeaderSubtitle>
-                    </TableHead>
-                  </TableHeaderRow>
-                </TableHeader>
+            <Card collapseable="expanded">
+              <CardHeader>
+                <CardHeaderTitle>Wiring problems</CardHeaderTitle>
+                <CardHeaderSubtitle>{period.label} · never-fires over everything retained</CardHeaderSubtitle>
+              </CardHeader>
+              <CardPanel>
                 {problems && problems.some((p) => p.rows.length > 0) && (
-                  <TableBody>
+                  <CardList columns="minmax(0,1fr) auto">
                     {problems
                       .filter((p) => p.rows.length > 0)
                       .map((p) => (
-                        <TableRow key={p.key}>
-                          <TableCell>
-                            <TableRowLink href={domainEventsLinks.wiring()} className="block text-sm">
+                        <CardListItem key={p.key}>
+                          <div>
+                            <CardListLink href={domainEventsLinks.wiring()} className="block text-sm">
                               {p.title}
-                            </TableRowLink>
+                            </CardListLink>
                             <div className="text-muted-foreground mt-1 flex flex-col gap-0.5 text-xs">
                               {p.rows.map((row) => (
                                 <span key={row.eventName}>
@@ -327,30 +313,30 @@ export default function DomainEventsOverviewPage() {
                                 </span>
                               ))}
                             </div>
-                          </TableCell>
-                          <TableCell className="text-right align-top">
+                          </div>
+                          <div className="text-right self-start">
                             <SimpleBadge variant={p.variant}>{p.count(p.rows.length)}</SimpleBadge>
-                          </TableCell>
-                        </TableRow>
+                          </div>
+                        </CardListItem>
                       ))}
-                  </TableBody>
+                  </CardList>
                 )}
-              </Table>
-              <DataTableLoadingBody isLoading={!problems && !problemsError} className="h-65" />
-              <DataTableErrorBody
-                isError={!!problemsError}
-                error={problemsError?.error}
-                onRetry={() => problemsError?.refetch()}
-                className="h-65"
-              />
-              <DataTableEmptyBody
-                isLoading={!problems}
-                isEmpty={!!problems && problems.every((p) => p.rows.length === 0)}
-                title="The wiring is sound"
-                description="Every event that fired had a listener, critical listeners are raised with emitCritical(), and every listener's event fires."
-                className="h-65"
-              />
-            </TableWrapper>
+                <DataTableLoadingBody isLoading={!problems && !problemsError} className="h-65" />
+                <DataTableErrorBody
+                  isError={!!problemsError}
+                  error={problemsError?.error}
+                  onRetry={() => problemsError?.refetch()}
+                  className="h-65"
+                />
+                <DataTableEmptyBody
+                  isLoading={!problems}
+                  isEmpty={!!problems && problems.every((p) => p.rows.length === 0)}
+                  title="The wiring is sound"
+                  description="Every event that fired had a listener, critical listeners are raised with emitCritical(), and every listener's event fires."
+                  className="h-65"
+                />
+              </CardPanel>
+            </Card>
           </div>
         </div>
       </DashboardContent>

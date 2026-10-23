@@ -8,6 +8,8 @@ import {
   CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardList,
+  CardListItem,
   CardPanel,
   Checkbox,
   DashboardContent,
@@ -23,14 +25,6 @@ import {
   PageSubtitle,
   PageTitle,
   SimpleBadge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableHeaderRow,
-  TableRow,
-  TableWrapper,
   toast,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
@@ -78,7 +72,7 @@ export default function MyAccessPage() {
       <DashboardContent>
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <Card>
+            <Card collapseable="expanded">
               <CardHeader>
                 <CardHeaderTitle>What I can do</CardHeaderTitle>
                 <CardHeaderSubtitle>
@@ -145,24 +139,20 @@ function LentCard({ title, rows, loading, lent = false }: { title: string; rows?
   });
   const list = (rows ?? []).filter((d) => d.status === 'active');
   return (
-    <TableWrapper>
-      <Table>
-        <TableHeader>
-          <TableHeaderRow size="lg">
-            <TableHead colSpan={2}>
-              <CardHeaderTitle>{title}</CardHeaderTitle>
-              <CardHeaderSubtitle>Running now</CardHeaderSubtitle>
-            </TableHead>
-          </TableHeaderRow>
-        </TableHeader>
+    <Card collapseable="expanded">
+      <CardHeader>
+        <CardHeaderTitle>{title}</CardHeaderTitle>
+        <CardHeaderSubtitle>Running now</CardHeaderSubtitle>
+      </CardHeader>
+      <CardPanel>
         {list.length > 0 && (
-          <TableBody>
+          <CardList columns="minmax(0,1fr) auto">
             {list.map((d) => {
               const state = DELEGATION_STATE[delegationState(d)];
               return (
-                <TableRow key={d.id}>
+                <CardListItem key={d.id}>
                   {/* Two columns — the card is narrow: who and what (wrapping), then the state with its action. */}
-                  <TableCell className="w-full max-w-0">
+                  <div className="min-w-0">
                     <div className="truncate text-sm">{lent ? `→ ${d.granteeId}` : `← ${d.granterId}`}</div>
                     <div className="mt-1 flex flex-wrap gap-1">
                       {d.actions.map((x) => (
@@ -171,23 +161,23 @@ function LentCard({ title, rows, loading, lent = false }: { title: string; rows?
                         </SimpleBadge>
                       ))}
                     </div>
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
+                  </div>
+                  <div className="text-right text-xs whitespace-nowrap">
                     <SimpleBadge variant={state.variant}>{state.label}</SimpleBadge>
                     <div className="text-muted-foreground mt-1">until {formatDateTime(d.expiresAt, { style: 'medium' })}</div>
                     <Button variant="ghost" size="sm" className="mt-1" disabled={takeBack.isPending} onClick={() => takeBack.mutate(d.id)}>
                       {lent ? 'Take back' : 'Give back'}
                     </Button>
-                  </TableCell>
-                </TableRow>
+                  </div>
+                </CardListItem>
               );
             })}
-          </TableBody>
+          </CardList>
         )}
-      </Table>
-      <DataTableLoadingBody isLoading={loading} className="h-40" />
-      <DataTableEmptyBody isLoading={loading} isEmpty={!loading && list.length === 0} title="Nothing running" description={lent ? "You haven't lent anything." : 'Nobody lent you anything.'} className="h-40" />
-    </TableWrapper>
+        <DataTableLoadingBody isLoading={loading} className="h-40" />
+        <DataTableEmptyBody isLoading={loading} isEmpty={!loading && list.length === 0} title="Nothing running" description={lent ? "You haven't lent anything." : 'Nobody lent you anything.'} className="h-40" />
+      </CardPanel>
+    </Card>
   );
 }
 

@@ -4,10 +4,13 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   BackLink,
+  Card,
   CardFooter,
   CardFooterIcon,
+  CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardTable,
   DashboardContent,
   DataTableEmptyBody,
   DataTableErrorBody,
@@ -26,9 +29,7 @@ import {
   TableHeaderRow,
   TableRow,
   TableRowLink,
-  TableWrapper,
 } from '@/ascendra-ui';
-import { Separator } from '@/ascendra-ui/shadcn';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { domainEventsApi } from '@/ascendra-commons-ui/domain-events.ui/api';
 import { domainEventsLinks } from '@/ascendra-commons-ui/domain-events.ui/links';
@@ -145,97 +146,91 @@ export default function DomainEventWiringPage() {
           />
         </div>
 
-        <TableWrapper>
-          <Table horizontal>
-            <TableHeader>
-              <TableHeaderRow size="lg">
-                <TableHead colSpan={5}>
-                  <CardHeaderTitle>Events</CardHeaderTitle>
-                  <CardHeaderSubtitle>
-                    {period.label} ·{' '}
-                    {all
-                      ? `${formatCount(problemCount)} with a problem, first`
-                      : 'problems first'}
-                  </CardHeaderSubtitle>
-                </TableHead>
-              </TableHeaderRow>
-              {/* Divides the card's title from the column labels below it. */}
-              <TableHeaderRow aria-hidden className="h-auto">
-                <TableHead colSpan={5} className="p-0 first:pl-0">
-                  <Separator />
-                </TableHead>
-              </TableHeaderRow>
-              <TableHeaderRow>
-                <TableHead>Event</TableHead>
-                <TableHead className="text-right">Fired</TableHead>
-                <TableHead>Raised with</TableHead>
-                <TableHead>Listeners</TableHead>
-                <TableHead>Check</TableHead>
-              </TableHeaderRow>
-            </TableHeader>
-            {rows.length > 0 && (
-              <TableBody>
-                {rows.map((row) => {
-                  const href = row.fired
-                    ? eventLink(catalog.dataUpdatedAt, period, row.eventName)
-                    : undefined;
-                  return (
-                    <TableRow key={row.eventName}>
-                      <TableCell className="align-top whitespace-nowrap">
-                        {href ? (
-                          <TableRowLink href={href}>
+        <Card collapseable="expanded">
+          <CardHeader>
+            <CardHeaderTitle>Events</CardHeaderTitle>
+            <CardHeaderSubtitle>
+              {period.label} ·{' '}
+              {all
+                ? `${formatCount(problemCount)} with a problem, first`
+                : 'problems first'}
+            </CardHeaderSubtitle>
+          </CardHeader>
+          <CardTable>
+            <Table horizontal>
+              <TableHeader>
+                <TableHeaderRow>
+                  <TableHead>Event</TableHead>
+                  <TableHead className="text-right">Fired</TableHead>
+                  <TableHead>Raised with</TableHead>
+                  <TableHead>Listeners</TableHead>
+                  <TableHead>Check</TableHead>
+                </TableHeaderRow>
+              </TableHeader>
+              {rows.length > 0 && (
+                <TableBody>
+                  {rows.map((row) => {
+                    const href = row.fired
+                      ? eventLink(catalog.dataUpdatedAt, period, row.eventName)
+                      : undefined;
+                    return (
+                      <TableRow key={row.eventName}>
+                        <TableCell className="align-top whitespace-nowrap">
+                          {href ? (
+                            <TableRowLink href={href}>
+                              <SimpleBadge>{row.eventName}</SimpleBadge>
+                            </TableRowLink>
+                          ) : (
                             <SimpleBadge>{row.eventName}</SimpleBadge>
-                          </TableRowLink>
-                        ) : (
-                          <SimpleBadge>{row.eventName}</SimpleBadge>
-                        )}
-                        {row.fired && (
-                          <div className="text-muted-foreground mt-1 text-xs">
-                            last{' '}
-                            {formatDateTime(row.fired.lastOccurredAt, {
-                              style: 'relative',
-                            })}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell
-                        className={`text-right align-top font-mono tabular-nums ${row.fired ? '' : 'text-muted-foreground'}`}
-                      >
-                        {formatCount(row.fired?.total ?? 0)}
-                      </TableCell>
-                      <TableCell className="align-top whitespace-nowrap">
-                        <RaisedWith row={row} />
-                      </TableCell>
-                      <TableCell className="align-top">
-                        <Listeners row={row} />
-                      </TableCell>
-                      <TableCell className="align-top">
-                        <Checks row={row} />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            )}
-          </Table>
-          <DataTableLoadingBody isLoading={!all && !failed} className="h-65" />
-          <DataTableErrorBody
-            isError={!!failed}
-            error={failed?.error}
-            onRetry={() => failed?.refetch()}
-            className="h-65"
-          />
-          <DataTableEmptyBody
-            isLoading={!all}
-            isEmpty={!!all && rows.length === 0}
-            title={show === 'problems' ? 'No wiring problems' : 'No events'}
-            description={
-              show === 'problems'
-                ? 'Every event that fired had a listener, critical listeners are raised with emitCritical(), and every listener’s event fires.'
-                : 'Nothing has fired and no listener is wired.'
-            }
-            className="h-65"
-          />
+                          )}
+                          {row.fired && (
+                            <div className="text-muted-foreground mt-1 text-xs">
+                              last{' '}
+                              {formatDateTime(row.fired.lastOccurredAt, {
+                                style: 'relative',
+                              })}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell
+                          className={`text-right align-top font-mono tabular-nums ${row.fired ? '' : 'text-muted-foreground'}`}
+                        >
+                          {formatCount(row.fired?.total ?? 0)}
+                        </TableCell>
+                        <TableCell className="align-top whitespace-nowrap">
+                          <RaisedWith row={row} />
+                        </TableCell>
+                        <TableCell className="align-top">
+                          <Listeners row={row} />
+                        </TableCell>
+                        <TableCell className="align-top">
+                          <Checks row={row} />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              )}
+            </Table>
+            <DataTableLoadingBody isLoading={!all && !failed} className="h-65" />
+            <DataTableErrorBody
+              isError={!!failed}
+              error={failed?.error}
+              onRetry={() => failed?.refetch()}
+              className="h-65"
+            />
+            <DataTableEmptyBody
+              isLoading={!all}
+              isEmpty={!!all && rows.length === 0}
+              title={show === 'problems' ? 'No wiring problems' : 'No events'}
+              description={
+                show === 'problems'
+                  ? 'Every event that fired had a listener, critical listeners are raised with emitCritical(), and every listener’s event fires.'
+                  : 'Nothing has fired and no listener is wired.'
+              }
+              className="h-65"
+            />
+          </CardTable>
           <CardFooter>
             <CardFooterIcon />
             <span>
@@ -244,7 +239,7 @@ export default function DomainEventWiringPage() {
               decorators — listeners in another service don&apos;t appear.
             </span>
           </CardFooter>
-        </TableWrapper>
+        </Card>
       </DashboardContent>
     </>
   );

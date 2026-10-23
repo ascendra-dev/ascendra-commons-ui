@@ -10,6 +10,9 @@ import {
   CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardList,
+  CardListItem,
+  CardListLink,
   CardPanel,
   ChartBarLink,
   DashboardContent,
@@ -32,15 +35,6 @@ import {
   Skeleton,
   SkeletonState,
   SimpleBadge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableHeaderRow,
-  TableRow,
-  TableRowLink,
-  TableWrapper,
   WithError,
   WithSkeleton,
   type TriggerParams,
@@ -105,6 +99,8 @@ const viewerTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 /** Top actions' window — the same "7d" the query fetches with. */
 const TOP_ACTIONS_DAYS = 7;
+/** Top actions shows this many rows, then scrolls. */
+const TOP_ACTIONS_VISIBLE = 5;
 
 /** Static per-tile copy — never depends on fetched data, so it renders immediately regardless of loading state. Only `value`/`deltaPct` (looked up by `key`) come from the query. */
 const KPI_DEFS = [
@@ -186,6 +182,18 @@ export default function AuditOverviewPage() {
         : undefined;
     return { ...def, kpi, up: (kpi?.deltaPct ?? 0) >= 0, href };
   });
+
+  // Top actions — each with its share of the busiest, and a link to its records over the window counted.
+  const actions = topActions.data?.topActions ?? [];
+  const busiest = Math.max(1, ...actions.map((a) => a.count));
+  const actionRows = actions.map((a) => ({
+    key: `${a.entityType}/${a.action}`,
+    label: auditActionLabel(a),
+    count: a.count,
+    actors: a.actors,
+    share: Math.round((a.count / busiest) * 100),
+    href: recentEventsLink(topActions.dataUpdatedAt, TOP_ACTIONS_DAYS, { entityType: a.entityType, action: a.action }),
+  }));
 
   const volumeSubtitle = overview.data
     ? `Past 30 days · ${formatDateTime(overview.data.perDay[0].day)} – ${formatDateTime(
@@ -315,193 +323,171 @@ export default function AuditOverviewPage() {
               })}
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardHeaderTitle>Volume by day</CardHeaderTitle>
-                <CardHeaderSubtitle>{volumeSubtitle}</CardHeaderSubtitle>
-              </CardHeader>
-              <CardPanel>
-                <div className="p-5">
-                  <WithSkeleton>
-                    <SkeletonState if={!overview.data}>
-                      <ChartContainer
-                        config={chartConfig}
-                        className="h-56 w-full animate-pulse"
-                      >
-                        <BarChart
-                          data={placeholderPerDay}
-                          margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
-                        >
-                          <CartesianGrid
-                            vertical={false}
-                            stroke="var(--border)"
-                            strokeOpacity={0.6}
-                            strokeWidth={0.5}
-                          />
-                          <XAxis
-                            dataKey="day"
-                            tickLine={false}
-                            axisLine={false}
-                            tick={{ fontSize: 11 }}
-                            interval={4}
-                            tickFormatter={formatDayTick}
-                          />
-                          <YAxis
-                            tickLine={false}
-                            axisLine={false}
-                            tick={false}
-                            width={40}
-                          />
-                          <Bar
-                            dataKey="count"
-                            fill="var(--muted)"
-                            radius={[3, 3, 0, 0]}
-                          />
-                        </BarChart>
-                      </ChartContainer>
-                    </SkeletonState>
-                    <NormalState if={!!overview.data}>
-                      <ChartContainer
-                        config={chartConfig}
-                        className="h-56 w-full"
-                      >
-                        {/* Each day's column is a link (ChartBarLink on the top bar) — anywhere in it, not just its bar — to that UTC day's records. */}
-                        <BarChart
-                          data={overview.data?.perDay ?? []}
-                          margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
-                        >
-                          <CartesianGrid
-                            vertical={false}
-                            stroke="var(--border)"
-                            strokeOpacity={0.6}
-                            strokeWidth={0.5}
-                          />
-                          <XAxis
-                            dataKey="day"
-                            tickLine={false}
-                            axisLine={false}
-                            tick={{ fontSize: 11 }}
-                            interval={4}
-                            tickFormatter={formatDayTick}
-                          />
-                          <YAxis
-                            tickLine={false}
-                            axisLine={false}
-                            tick={{ fontSize: 11 }}
-                            width={40}
-                            allowDecimals={false}
-                            tickFormatter={(v: number) => formatCount(v)}
-                          />
-                          <ChartTooltip
-                            content={
-                              <ChartTooltipContent
-                                formatter={(v) => [
-                                  formatCount(Number(v)),
-                                  " Records",
-                                ]}
-                              />
-                            }
-                          />
-                          <Bar
-                            dataKey="count"
-                            fill="var(--color-count)"
-                            radius={[3, 3, 0, 0]}
-                            shape={
-                              <ChartBarLink
-                                href={(row: { day: string }) =>
-                                  dayEventsLink(row.day)
-                                }
-                              />
-                            }
-                          />
-                        </BarChart>
-                      </ChartContainer>
-                    </NormalState>
-                  </WithSkeleton>
-                </div>
-              </CardPanel>
-            </Card>
           </NormalState>
         </WithError>
 
         {/*
-          Top actions — audit-top-actions, independent of the section above.
-          Real CardHeader + real TableHeader (static "Action/Count/Actors"
-          labels) stay mounted throughout; only the body area swaps between
-          real rows and one of DataTableLoadingBody/DataTableErrorBody/
-          DataTableEmptyBody — the real ascendra-ui components, used
-          standalone via their prop overrides (isLoading/isError/error/
-          onRetry/isEmpty) rather than DataTableProvider context, since this
-          is deliberately a simple useQuery-driven table, not the full
-          DataTable system. className="h-65" nets out to the same ~300px
-          as the loaded state once the real TableHeader's own ~40px sitting
-          above it is accounted for — EmptyBody isn't inside the Table's
-          own height={300} scroll wrapper, so its height has to be set
-          independently; same arithmetic as the hand-rolled version this
-          replaced.
+          Volume by day and Top actions side by side on a large screen, as every overview lays out its sections. The
+          chart shares the KPI row's query, so on its error the message above stands for both — the chart just isn't
+          drawn. Top actions is its own query: a card list like the other overviews' (a row per action opening its
+          records, the count and its share, five rows then scrolling).
         */}
         <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-12">
-            <CardHeader>
-              <CardHeaderTitle>Top actions</CardHeaderTitle>
-              <CardHeaderSubtitle>
-                Past 7 days · ranked by record count
-              </CardHeaderSubtitle>
-            </CardHeader>
-            <TableWrapper>
-              <Table scrollable horizontal vertical height={300}>
-                <TableHeader>
-                  <TableHeaderRow>
-                    <TableHead>Action</TableHead>
-                    <TableHead>Count</TableHead>
-                    <TableHead>Actors</TableHead>
-                  </TableHeaderRow>
-                </TableHeader>
-                {topActions.data && topActions.data.topActions.length > 0 && (
-                  <TableBody>
-                    {topActions.data.topActions.map((row) => (
-                      <TableRow key={`${row.entityType}/${row.action}`}>
-                        <TableCell>
-                          <TableRowLink
-                            href={recentEventsLink(topActions.dataUpdatedAt, TOP_ACTIONS_DAYS, {
-                              entityType: row.entityType,
-                              action: row.action,
-                            })}
+          <div className="col-span-12 lg:col-span-6">
+            {!overview.isError && (
+                <Card collapseable="expanded">
+                  <CardHeader>
+                    <CardHeaderTitle>Volume by day</CardHeaderTitle>
+                    <CardHeaderSubtitle>{volumeSubtitle}</CardHeaderSubtitle>
+                  </CardHeader>
+                  <CardPanel>
+                    <div className="p-5">
+                      <WithSkeleton>
+                        <SkeletonState if={!overview.data}>
+                          <ChartContainer
+                            config={chartConfig}
+                            className="h-56 w-full animate-pulse"
                           >
-                            <SimpleBadge>{auditActionLabel(row)}</SimpleBadge>
-                          </TableRowLink>
-                        </TableCell>
-                        <TableCell className="font-mono tabular-nums">
-                          {formatCount(row.count)}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground tabular-nums">
-                          {formatCount(row.actors)}
-                        </TableCell>
-                      </TableRow>
+                            <BarChart
+                              data={placeholderPerDay}
+                              margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
+                            >
+                              <CartesianGrid
+                                vertical={false}
+                                stroke="var(--border)"
+                                strokeOpacity={0.6}
+                                strokeWidth={0.5}
+                              />
+                              <XAxis
+                                dataKey="day"
+                                tickLine={false}
+                                axisLine={false}
+                                tick={{ fontSize: 11 }}
+                                interval={4}
+                                tickFormatter={formatDayTick}
+                              />
+                              <YAxis
+                                tickLine={false}
+                                axisLine={false}
+                                tick={false}
+                                width={40}
+                              />
+                              <Bar
+                                dataKey="count"
+                                fill="var(--muted)"
+                                radius={[3, 3, 0, 0]}
+                              />
+                            </BarChart>
+                          </ChartContainer>
+                        </SkeletonState>
+                        <NormalState if={!!overview.data}>
+                          <ChartContainer
+                            config={chartConfig}
+                            className="h-56 w-full"
+                          >
+                            {/* Each day's column is a link (ChartBarLink on the top bar) — anywhere in it, not just its bar — to that UTC day's records. */}
+                            <BarChart
+                              data={overview.data?.perDay ?? []}
+                              margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
+                            >
+                              <CartesianGrid
+                                vertical={false}
+                                stroke="var(--border)"
+                                strokeOpacity={0.6}
+                                strokeWidth={0.5}
+                              />
+                              <XAxis
+                                dataKey="day"
+                                tickLine={false}
+                                axisLine={false}
+                                tick={{ fontSize: 11 }}
+                                interval={4}
+                                tickFormatter={formatDayTick}
+                              />
+                              <YAxis
+                                tickLine={false}
+                                axisLine={false}
+                                tick={{ fontSize: 11 }}
+                                width={40}
+                                allowDecimals={false}
+                                tickFormatter={(v: number) => formatCount(v)}
+                              />
+                              <ChartTooltip
+                                content={
+                                  <ChartTooltipContent
+                                    formatter={(v) => [
+                                      formatCount(Number(v)),
+                                      " Records",
+                                    ]}
+                                  />
+                                }
+                              />
+                              <Bar
+                                dataKey="count"
+                                fill="var(--color-count)"
+                                radius={[3, 3, 0, 0]}
+                                shape={
+                                  <ChartBarLink
+                                    href={(row: { day: string }) =>
+                                      dayEventsLink(row.day)
+                                    }
+                                  />
+                                }
+                              />
+                            </BarChart>
+                          </ChartContainer>
+                        </NormalState>
+                      </WithSkeleton>
+                    </div>
+                  </CardPanel>
+                </Card>
+            )}
+          </div>
+          <div className="col-span-12 lg:col-span-6">
+            <Card collapseable="expanded">
+              <CardHeader>
+                <CardHeaderTitle>Top actions</CardHeaderTitle>
+                <CardHeaderSubtitle>Past {TOP_ACTIONS_DAYS} days · most records first</CardHeaderSubtitle>
+              </CardHeader>
+              <CardPanel>
+                {actionRows.length > 0 && (
+                  <CardList columns="auto auto 1fr" visibleRows={TOP_ACTIONS_VISIBLE}>
+                    {actionRows.map((row) => (
+                      <CardListItem key={row.key}>
+                        <div className="whitespace-nowrap">
+                          <CardListLink href={row.href}>
+                            <SimpleBadge>{row.label}</SimpleBadge>
+                          </CardListLink>
+                          <div className="text-muted-foreground mt-1 text-xs">
+                            {formatCount(row.actors)} {row.actors === 1 ? 'actor' : 'actors'}
+                          </div>
+                        </div>
+                        <div className="self-start text-right font-mono tabular-nums">{formatCount(row.count)}</div>
+                        <div>
+                          <div className="bg-muted h-2 overflow-hidden rounded-full">
+                            <div className="h-full rounded-full bg-sky-500/70 transition-all" style={{ width: `${row.share}%` }} />
+                          </div>
+                        </div>
+                      </CardListItem>
                     ))}
-                  </TableBody>
+                  </CardList>
                 )}
-              </Table>
-              <DataTableLoadingBody
-                isLoading={topActions.isLoading}
-                className="h-65"
-              />
-              <DataTableErrorBody
-                isError={topActions.isError}
-                error={topActions.error}
-                onRetry={() => topActions.refetch()}
-                className="h-65"
-              />
-              <DataTableEmptyBody
-                isLoading={topActions.isLoading}
-                isEmpty={
-                  !!topActions.data && topActions.data.topActions.length === 0
-                }
-                title="No actions recorded"
-                description="No audit activity in the past 7 days."
-                className="h-65"
-              />
-            </TableWrapper>
+                <DataTableLoadingBody isLoading={topActions.isLoading} className="h-65" />
+                <DataTableErrorBody
+                  isError={topActions.isError}
+                  error={topActions.error}
+                  onRetry={() => topActions.refetch()}
+                  className="h-65"
+                />
+                <DataTableEmptyBody
+                  isLoading={topActions.isLoading}
+                  isEmpty={!!topActions.data && actionRows.length === 0}
+                  title="No actions recorded"
+                  description={`No audit activity in the past ${TOP_ACTIONS_DAYS} days.`}
+                  className="h-65"
+                />
+              </CardPanel>
+            </Card>
           </div>
         </div>
       </DashboardContent>

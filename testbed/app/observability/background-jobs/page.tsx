@@ -9,8 +9,12 @@ import {
   Card,
   CardFooter,
   CardFooterIcon,
+  CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardList,
+  CardListItem,
+  CardListLink,
   CardPanel,
   DashboardContent,
   DataTableEmptyBody,
@@ -32,15 +36,6 @@ import {
   SimpleBadge,
   Skeleton,
   SkeletonState,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableHeaderRow,
-  TableRow,
-  TableRowLink,
-  TableWrapper,
   WithError,
   WithSkeleton,
   WithTooltip,
@@ -310,7 +305,7 @@ function Tile({
   );
 }
 
-/** A jobs list card — its title in the lg header row, a row per job opening the Job screen. */
+/** A jobs list card — a row per job opening the Job screen. */
 function JobsCard({
   title,
   subtitle,
@@ -335,57 +330,52 @@ function JobsCard({
   note?: string;
 }) {
   return (
-    <TableWrapper>
-      <Table visibleRows={JOBS_VISIBLE}>
-        {/* The header row carries the list's title, not column labels — each row says what it is. */}
-        <TableHeader>
-          <TableHeaderRow size="lg">
-            <TableHead>
-              <CardHeaderTitle>{title}</CardHeaderTitle>
-              <CardHeaderSubtitle>{subtitle}</CardHeaderSubtitle>
-            </TableHead>
-          </TableHeaderRow>
-        </TableHeader>
+    <Card collapseable="expanded">
+      <CardHeader>
+        <CardHeaderTitle>{title}</CardHeaderTitle>
+        <CardHeaderSubtitle>{subtitle}</CardHeaderSubtitle>
+      </CardHeader>
+      <CardPanel>
         {jobs.length > 0 && (
-          <TableBody>
+          <CardList columns="minmax(0,1fr)" visibleRows={JOBS_VISIBLE}>
             {jobs.map((job) => {
               const health = jobHealth(job);
               return (
-                <TableRow key={job.name}>
+                <CardListItem key={job.name}>
                   {/* One cell: the name and its health on a line, the detail below at the row's full width. */}
-                  <TableCell className="max-w-0">
+                  <div className="min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <TableRowLink href={href(job.name)}>
+                      <CardListLink href={href(job.name)}>
                         <SimpleBadge>{job.name}</SimpleBadge>
-                      </TableRowLink>
+                      </CardListLink>
                       <SimpleBadge variant={health.variant}>{health.label}</SimpleBadge>
                     </div>
                     <div className="text-muted-foreground mt-1 truncate text-xs" title={renderMeta(job)}>
                       {renderMeta(job)}
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </div>
+                </CardListItem>
               );
             })}
-          </TableBody>
+          </CardList>
         )}
-      </Table>
-      <DataTableLoadingBody isLoading={query.isLoading} className="h-65" />
-      <DataTableErrorBody isError={query.isError} error={query.error} onRetry={() => query.refetch()} className="h-65" />
-      <DataTableEmptyBody
-        isLoading={query.isLoading}
-        isEmpty={!!query.data && jobs.length === 0}
-        title={emptyTitle}
-        description={emptyDescription}
-        className="h-65"
-      />
+        <DataTableLoadingBody isLoading={query.isLoading} className="h-65" />
+        <DataTableErrorBody isError={query.isError} error={query.error} onRetry={() => query.refetch()} className="h-65" />
+        <DataTableEmptyBody
+          isLoading={query.isLoading}
+          isEmpty={!!query.data && jobs.length === 0}
+          title={emptyTitle}
+          description={emptyDescription}
+          className="h-65"
+        />
+      </CardPanel>
       {note && (
         <CardFooter>
           <CardFooterIcon />
           <span>{note}</span>
         </CardFooter>
       )}
-    </TableWrapper>
+    </Card>
   );
 }
 

@@ -105,7 +105,6 @@ function TableWrapper({
   return (
     <div
       data-slot="table-wrapper"
-      data-table-container
       className={cn(
         "bg-muted flex flex-col rounded-xl py-1",
         border && buildBorderClasses(border),
@@ -197,8 +196,8 @@ function TableHeader({
   const headerRef = React.useRef<HTMLTableSectionElement>(null);
   React.useImperativeHandle(ref, () => headerRef.current!);
 
-  // The card frame starts under the header — hand it the header's real height, so a taller row (size="lg", or
-  // content that outgrows the default row) doesn't sit under the body card's ring.
+  // The card frame starts under the header — hand it the header's real height, so a row whose content outgrows
+  // the default 40px doesn't sit under the body card's ring.
   React.useLayoutEffect(() => {
     const el = headerRef.current;
     const frame = el?.closest<HTMLElement>('[data-slot="table-frame"]');
@@ -229,17 +228,14 @@ function TableHeader({
   );
 }
 
+/** A fixed 40px row of column labels. A table's title goes in its card's header (Card + CardTable), not here. */
 function TableHeaderRow({
   columns,
-  size = "default",
   className,
   children,
   ...props
 }: React.ComponentProps<"tr"> & {
   columns?: ColVisibility[];
-  /** default: a fixed 40px row of column labels. lg: 16px above and below, height from the content — for a
-   *  header that carries a title and subtitle. */
-  size?: "default" | "lg";
 }) {
   const content = columns
     ? filterChildrenByColumns(columns, children)
@@ -247,10 +243,8 @@ function TableHeaderRow({
   return (
     <tr
       data-slot="table-header-row"
-      data-size={size}
       className={cn(
-        "text-secondary-foreground text-left text-xs",
-        size === "default" ? "h-10 [&>th]:py-0" : "[&>th]:py-4",
+        "text-secondary-foreground text-left text-xs h-10 [&>th]:py-0",
         className,
       )}
       {...props}

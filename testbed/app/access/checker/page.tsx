@@ -5,8 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { LuArrowUp, LuCircleCheck, LuCircleX } from 'react-icons/lu';
 import {
+  Card,
+  CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardList,
+  CardListItem,
+  CardListLink,
+  CardPanel,
   Combobox,
   ComboboxCollection,
   ComboboxContent,
@@ -27,15 +33,6 @@ import {
   PageTitle,
   SegmentControl,
   SimpleBadge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableHeaderRow,
-  TableRow,
-  TableRowLink,
-  TableWrapper,
   useBackTo,
   SimpleAlert,
 } from '@/ascendra-ui';
@@ -260,38 +257,34 @@ function WhoCan({
         <ActionPicker value={action} onChange={(next) => onChange({ action: next })} />
       </div>
       {action && (
-        <TableWrapper>
-          <Table>
-            <TableHeader>
-              <TableHeaderRow size="lg">
-                <TableHead colSpan={3}>
-                  <CardHeaderTitle>Who can {action}</CardHeaderTitle>
-                  <CardHeaderSubtitle>
-                    {tenantId ? `In ${tenantName(tenantId)}` : platform ? 'In every tenant' : 'Here'} · through a role or something lent · platform staff with a global role act here too
-                  </CardHeaderSubtitle>
-                </TableHead>
-              </TableHeaderRow>
-            </TableHeader>
+        <Card collapseable="expanded">
+          <CardHeader>
+            <CardHeaderTitle>Who can {action}</CardHeaderTitle>
+            <CardHeaderSubtitle>
+              {tenantId ? `In ${tenantName(tenantId)}` : platform ? 'In every tenant' : 'Here'} · through a role or something lent · platform staff with a global role act here too
+            </CardHeaderSubtitle>
+          </CardHeader>
+          <CardPanel>
             {rows.length > 0 && (
-              <TableBody>
+              <CardList columns="minmax(0,1fr) auto auto">
                 {rows.map((r) => (
-                  <TableRow key={r.key}>
-                    <TableCell>
-                      <TableRowLink href={backTo(authorizationLinks.person(r.userId))}>{personLabel(r.userId, names)}</TableRowLink>
-                    </TableCell>
-                    <TableCell>
+                  <CardListItem key={r.key}>
+                    <div>
+                      <CardListLink href={backTo(authorizationLinks.person(r.userId))}>{personLabel(r.userId, names)}</CardListLink>
+                    </div>
+                    <div>
                       <SimpleBadge variant={r.lent ? 'blue' : 'default'}>{r.via}</SimpleBadge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-xs">{r.note}</TableCell>
-                  </TableRow>
+                    </div>
+                    <div className="text-muted-foreground text-xs">{r.note}</div>
+                  </CardListItem>
                 ))}
-              </TableBody>
+              </CardList>
             )}
-          </Table>
-          <DataTableLoadingBody isLoading={answer.isLoading} className="h-40" />
-          <DataTableErrorBody isError={answer.isError} error={answer.error} onRetry={() => answer.refetch()} className="h-40" />
-          <DataTableEmptyBody isLoading={answer.isLoading} isEmpty={!!answer.data && rows.length === 0} title="Nobody" description="No role held here grants it, and nobody lent it." className="h-40" />
-        </TableWrapper>
+            <DataTableLoadingBody isLoading={answer.isLoading} className="h-40" />
+            <DataTableErrorBody isError={answer.isError} error={answer.error} onRetry={() => answer.refetch()} className="h-40" />
+            <DataTableEmptyBody isLoading={answer.isLoading} isEmpty={!!answer.data && rows.length === 0} title="Nobody" description="No role held here grants it, and nobody lent it." className="h-40" />
+          </CardPanel>
+        </Card>
       )}
       {!action && <PickPrompt>Pick an action.</PickPrompt>}
     </div>

@@ -4,10 +4,13 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Button,
+  Card,
   CardFooter,
   CardFooterIcon,
+  CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardTable,
   DashboardContent,
   DataTableEmptyBody,
   DataTableErrorBody,
@@ -36,7 +39,6 @@ import {
   TableHeader,
   TableHeaderRow,
   TableRow,
-  TableWrapper,
   toast,
   WithTooltip,
 } from '@/ascendra-ui';
@@ -92,76 +94,76 @@ export default function AccessCatalogPage() {
           />
         </div>
 
-        <TableWrapper>
-          <Table>
-            <TableHeader>
-              <TableHeaderRow size="lg">
-                <TableHead colSpan={4}>
-                  <CardHeaderTitle>Actions</CardHeaderTitle>
-                  <CardHeaderSubtitle>By module · a platform action reads or changes every tenant&apos;s data</CardHeaderSubtitle>
-                </TableHead>
-              </TableHeaderRow>
-              <TableHeaderRow>
-                <TableHead>Action</TableHead>
-                <TableHead>Scope</TableHead>
-                <TableHead>Granted by</TableHead>
-                <TableHead>What it means</TableHead>
-              </TableHeaderRow>
-            </TableHeader>
-            {groups.length > 0 && (
-              <TableBody>
-                {groups.flatMap((g) => [
-                  <TableRow key={`group-${g.module}`}>
-                    <TableCell colSpan={4} className="text-muted-foreground bg-muted/40 py-2 text-[0.6875rem] tracking-wide uppercase">
-                      {g.label}
-                    </TableCell>
-                  </TableRow>,
-                  ...g.items.map((a) => (
-                    <TableRow key={a.name}>
-                      <TableCell className="font-mono text-xs whitespace-nowrap">
-                        {a.name}
-                        {drifted.has(a.name) && (
-                          <WithTooltip tooltip="Not in the app's code any more — renamed or removed. Verify, then a migration deletes it.">
-                            <SimpleBadge variant="orange" className="ml-2">
-                              not in code
-                            </SimpleBadge>
-                          </WithTooltip>
-                        )}
+        <Card collapseable="expanded">
+          <CardHeader>
+            <CardHeaderTitle>Actions</CardHeaderTitle>
+            <CardHeaderSubtitle>By module · a platform action reads or changes every tenant&apos;s data</CardHeaderSubtitle>
+          </CardHeader>
+          <CardTable>
+            <Table>
+              <TableHeader>
+                <TableHeaderRow>
+                  <TableHead>Action</TableHead>
+                  <TableHead>Scope</TableHead>
+                  <TableHead>Granted by</TableHead>
+                  <TableHead>What it means</TableHead>
+                </TableHeaderRow>
+              </TableHeader>
+              {groups.length > 0 && (
+                <TableBody>
+                  {groups.flatMap((g) => [
+                    <TableRow key={`group-${g.module}`}>
+                      <TableCell colSpan={4} className="text-muted-foreground bg-muted/40 py-2 text-[0.6875rem] tracking-wide uppercase">
+                        {g.label}
                       </TableCell>
-                      <TableCell>
-                        <SimpleBadge variant={a.scope === 'platform' ? 'amber' : 'secondary'}>{a.scope}</SimpleBadge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {a.roleIds.length === 0 ? <span className="text-muted-foreground text-xs">no role</span> : a.roleIds.map((r) => <SimpleBadge key={r}>{r}</SimpleBadge>)}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-between gap-2">
-                          {a.description ? <span className="text-sm">{a.description}</span> : <SimpleBadge variant="orange">no description</SimpleBadge>}
-                          {canDescribe && (
-                            <Button variant="ghost" size="sm" onClick={() => setEditing(a)}>
-                              {a.description ? 'Edit' : 'Add'}
-                            </Button>
+                    </TableRow>,
+                    ...g.items.map((a) => (
+                      <TableRow key={a.name}>
+                        <TableCell className="font-mono text-xs whitespace-nowrap">
+                          {a.name}
+                          {drifted.has(a.name) && (
+                            <WithTooltip tooltip="Not in the app's code any more — renamed or removed. Verify, then a migration deletes it.">
+                              <SimpleBadge variant="orange" className="ml-2">
+                                not in code
+                              </SimpleBadge>
+                            </WithTooltip>
                           )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )),
-                ])}
-              </TableBody>
-            )}
-          </Table>
-          <DataTableLoadingBody isLoading={catalog.isLoading} className="h-65" />
-          <DataTableErrorBody isError={catalog.isError} error={catalog.error} onRetry={() => catalog.refetch()} className="h-65" />
-          <DataTableEmptyBody isLoading={catalog.isLoading} isEmpty={!!catalog.data && groups.length === 0} title="No actions" description="The deploy syncs the app's catalog — none has run." className="h-65" />
+                        </TableCell>
+                        <TableCell>
+                          <SimpleBadge variant={a.scope === 'platform' ? 'amber' : 'secondary'}>{a.scope}</SimpleBadge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {a.roleIds.length === 0 ? <span className="text-muted-foreground text-xs">no role</span> : a.roleIds.map((r) => <SimpleBadge key={r}>{r}</SimpleBadge>)}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-between gap-2">
+                            {a.description ? <span className="text-sm">{a.description}</span> : <SimpleBadge variant="orange">no description</SimpleBadge>}
+                            {canDescribe && (
+                              <Button variant="ghost" size="sm" onClick={() => setEditing(a)}>
+                                {a.description ? 'Edit' : 'Add'}
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )),
+                  ])}
+                </TableBody>
+              )}
+            </Table>
+            <DataTableLoadingBody isLoading={catalog.isLoading} className="h-65" />
+            <DataTableErrorBody isError={catalog.isError} error={catalog.error} onRetry={() => catalog.refetch()} className="h-65" />
+            <DataTableEmptyBody isLoading={catalog.isLoading} isEmpty={!!catalog.data && groups.length === 0} title="No actions" description="The deploy syncs the app's catalog — none has run." className="h-65" />
+          </CardTable>
           <CardFooter>
             <CardFooterIcon />
             <span>
               A role grants actions as the app ships it; &ldquo;all&rdquo;-granting roles aren&apos;t listed per action. Descriptions are the only thing changed here.
             </span>
           </CardFooter>
-        </TableWrapper>
+        </Card>
       </DashboardContent>
       {editing && <DescribeDialog action={editing} onClose={() => setEditing(null)} />}
     </>

@@ -5,6 +5,9 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { LuShieldPlus } from 'react-icons/lu';
 import {
+  CardList,
+  CardListItem,
+  CardListLink,
   Dialog,
   DialogContent,
   BackLink,
@@ -26,15 +29,6 @@ import {
   PageTitle,
   SimpleBadge,
   SimpleAlert,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableHeaderRow,
-  TableRow,
-  TableRowLink,
-  TableWrapper,
   useBackTo,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
@@ -106,7 +100,7 @@ export default function AccessRolePage() {
         )}
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <Card>
+            <Card collapseable="expanded">
               <CardHeader>
                 <CardHeaderTitle>Grants</CardHeaderTitle>
                 <CardHeaderSubtitle>{r ? (r.grantsAll ? 'every action' : `${r.actions.length} actions · ${r.scope} scope`) : ' '}</CardHeaderSubtitle>
@@ -141,38 +135,34 @@ export default function AccessRolePage() {
             </Card>
           </div>
           <div className="col-span-12 lg:col-span-6">
-            <TableWrapper>
-              <Table>
-                <TableHeader>
-                  <TableHeaderRow size="lg">
-                    <TableHead colSpan={3}>
-                      <CardHeaderTitle>Holders {tenantId ? `in ${tenantName(tenantId)}` : platform ? 'in every tenant' : ''}</CardHeaderTitle>
-                      <CardHeaderSubtitle>{holders.data ? `${rows.length} ${rows.length === 1 ? 'assignment' : 'assignments'} · by name` : ' '}</CardHeaderSubtitle>
-                    </TableHead>
-                  </TableHeaderRow>
-                </TableHeader>
+            <Card collapseable="expanded">
+              <CardHeader>
+                <CardHeaderTitle>Holders {tenantId ? `in ${tenantName(tenantId)}` : platform ? 'in every tenant' : ''}</CardHeaderTitle>
+                <CardHeaderSubtitle>{holders.data ? `${rows.length} ${rows.length === 1 ? 'assignment' : 'assignments'} · by name` : ' '}</CardHeaderSubtitle>
+              </CardHeader>
+              <CardPanel>
                 {rows.length > 0 && (
-                  <TableBody>
+                  <CardList columns="minmax(0,1fr) auto auto">
                     {rows.map((a) => {
                       const soon = expiresSoon(a.expiresAt);
                       return (
-                        <TableRow key={`${a.userId}-${a.tenantId}`}>
-                          <TableCell>
-                            <TableRowLink href={backTo(authorizationLinks.person(a.userId))}>{personLabel(a.userId, names)}</TableRowLink>
+                        <CardListItem key={`${a.userId}-${a.tenantId}`}>
+                          <div>
+                            <CardListLink href={backTo(authorizationLinks.person(a.userId))}>{personLabel(a.userId, names)}</CardListLink>
                             {platform && !tenantId && <div className="text-muted-foreground text-xs">{a.tenantId ? tenantName(a.tenantId) : 'all tenants'}</div>}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-xs whitespace-nowrap">since {formatDateTime(a.grantedAt, { style: 'medium' })}</TableCell>
-                          <TableCell className="text-right">{soon && <SimpleBadge variant="orange">{soon}</SimpleBadge>}</TableCell>
-                        </TableRow>
+                          </div>
+                          <div className="text-muted-foreground text-xs whitespace-nowrap">since {formatDateTime(a.grantedAt, { style: 'medium' })}</div>
+                          <div className="text-right">{soon && <SimpleBadge variant="orange">{soon}</SimpleBadge>}</div>
+                        </CardListItem>
                       );
                     })}
-                  </TableBody>
+                  </CardList>
                 )}
-              </Table>
-              <DataTableLoadingBody isLoading={holders.isLoading} className="h-40" />
-              <DataTableErrorBody isError={holders.isError} error={holders.error} onRetry={() => holders.refetch()} className="h-40" />
-              <DataTableEmptyBody isLoading={holders.isLoading} isEmpty={!!holders.data && rows.length === 0} title="Nobody holds it" description="Give it to people from here or from People." className="h-40" />
-            </TableWrapper>
+                <DataTableLoadingBody isLoading={holders.isLoading} className="h-40" />
+                <DataTableErrorBody isError={holders.isError} error={holders.error} onRetry={() => holders.refetch()} className="h-40" />
+                <DataTableEmptyBody isLoading={holders.isLoading} isEmpty={!!holders.data && rows.length === 0} title="Nobody holds it" description="Give it to people from here or from People." className="h-40" />
+              </CardPanel>
+            </Card>
           </div>
         </div>
       </DashboardContent>

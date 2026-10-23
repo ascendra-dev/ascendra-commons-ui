@@ -14,6 +14,8 @@ import {
   CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardList,
+  CardListItem,
   CardPanel,
   DashboardContent,
   DataTableEmptyBody,
@@ -26,14 +28,6 @@ import {
   PageSubtitle,
   PageTitle,
   SimpleBadge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableHeaderRow,
-  TableRow,
-  TableWrapper,
   toast,
   WithTooltip,
   useBackTo,
@@ -132,35 +126,31 @@ export default function AccessPersonPage() {
             <AccessCard access={p?.access} loading={person.isLoading} names={names} />
           </div>
           <div className="col-span-12 lg:col-span-6">
-            <TableWrapper>
-              <Table>
-                <TableHeader>
-                  <TableHeaderRow size="lg">
-                    <TableHead colSpan={2}>
-                      <CardHeaderTitle>Refused</CardHeaderTitle>
-                      <CardHeaderSubtitle>Denied requests · past 7 days</CardHeaderSubtitle>
-                    </TableHead>
-                  </TableHeaderRow>
-                </TableHeader>
+            <Card collapseable="expanded">
+              <CardHeader>
+                <CardHeaderTitle>Refused</CardHeaderTitle>
+                <CardHeaderSubtitle>Denied requests · past 7 days</CardHeaderSubtitle>
+              </CardHeader>
+              <CardPanel>
                 {refused.data && refused.data.data.length > 0 && (
-                  <TableBody>
+                  <CardList columns="minmax(0,1fr) auto">
                     {refused.data.data.map((d) => (
-                      <TableRow key={d.id}>
-                        <TableCell className="w-full max-w-0">
+                      <CardListItem key={d.id}>
+                        <div className="min-w-0">
                           <SimpleBadge>{d.action}</SimpleBadge>
                           <div className="text-muted-foreground mt-1 truncate text-xs">
                             {formatDateTime(d.windowStart, { time: true })} · <span className="font-mono">{d.method} {d.route}</span>
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right align-top font-mono tabular-nums">{formatCount(d.count)}</TableCell>
-                      </TableRow>
+                        </div>
+                        <div className="text-right self-start font-mono tabular-nums">{formatCount(d.count)}</div>
+                      </CardListItem>
                     ))}
-                  </TableBody>
+                  </CardList>
                 )}
-              </Table>
-              <DataTableLoadingBody isLoading={refused.isLoading} className="h-40" />
-              <DataTableErrorBody isError={refused.isError} error={refused.error} onRetry={() => refused.refetch()} className="h-40" />
-              <DataTableEmptyBody isLoading={refused.isLoading} isEmpty={!!refused.data && refused.data.data.length === 0} title="Nothing refused" description="Nothing they tried this week was denied." className="h-40" />
+                <DataTableLoadingBody isLoading={refused.isLoading} className="h-40" />
+                <DataTableErrorBody isError={refused.isError} error={refused.error} onRetry={() => refused.refetch()} className="h-40" />
+                <DataTableEmptyBody isLoading={refused.isLoading} isEmpty={!!refused.data && refused.data.data.length === 0} title="Nothing refused" description="Nothing they tried this week was denied." className="h-40" />
+              </CardPanel>
               {refused.data && refused.data.data.length > 0 && (
                 <CardFooter>
                   <CardFooterIcon />
@@ -177,7 +167,7 @@ export default function AccessPersonPage() {
                   </span>
                 </CardFooter>
               )}
-            </TableWrapper>
+            </Card>
           </div>
         </div>
       </DashboardContent>
@@ -218,26 +208,22 @@ function RolesCard({
   const rows = [...(assignments ?? [])].sort((a, b) => (a.status === b.status ? b.grantedAt.localeCompare(a.grantedAt) : a.status === 'active' ? -1 : 1));
 
   return (
-    <TableWrapper>
-      <Table>
-        <TableHeader>
-          <TableHeaderRow size="lg">
-            <TableHead colSpan={2}>
-              <CardHeaderTitle>Roles</CardHeaderTitle>
-              <CardHeaderSubtitle>Given by · until · active first</CardHeaderSubtitle>
-            </TableHead>
-          </TableHeaderRow>
-        </TableHeader>
+    <Card collapseable="expanded">
+      <CardHeader>
+        <CardHeaderTitle>Roles</CardHeaderTitle>
+        <CardHeaderSubtitle>Given by · until · active first</CardHeaderSubtitle>
+      </CardHeader>
+      <CardPanel>
         {rows.length > 0 && (
-          <TableBody>
+          <CardList columns="minmax(0,1fr) auto">
             {rows.map((a) => {
               const soon = expiresSoon(a.expiresAt);
               // A global role is the platform's — a tenant admin can't take it away.
               const revocable = canRevoke && a.status === 'active' && (platform || a.tenantId !== null);
               return (
-                <TableRow key={`${a.roleId}-${a.tenantId}`}>
+                <CardListItem key={`${a.roleId}-${a.tenantId}`}>
                   {/* Two columns — the card is narrow: the role and who gave it, then its end with the action. */}
-                  <TableCell className="w-full max-w-0">
+                  <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-1">
                       <SimpleBadge variant={a.status === 'expired' ? 'secondary' : a.tenantId === null ? 'amber' : 'default'}>{a.roleId}</SimpleBadge>
                       {a.tenantId === null && <SimpleBadge variant="amber">all tenants</SimpleBadge>}
@@ -246,8 +232,8 @@ function RolesCard({
                     <div className="text-muted-foreground mt-1 truncate text-xs">
                       {formatDateTime(a.grantedAt, { style: 'medium' })} · by {a.grantedBy ? personLabel(a.grantedBy, names) : '—'}
                     </div>
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
+                  </div>
+                  <div className="text-right text-xs whitespace-nowrap">
                     {a.expiresAt ? (
                       soon ? <SimpleBadge variant="orange">{soon}</SimpleBadge> : <span className="text-muted-foreground">until {formatDateTime(a.expiresAt, { style: 'medium' })}</span>
                     ) : (
@@ -260,31 +246,31 @@ function RolesCard({
                         </Button>
                       </div>
                     )}
-                  </TableCell>
-                </TableRow>
+                  </div>
+                </CardListItem>
               );
             })}
-          </TableBody>
+          </CardList>
         )}
-      </Table>
-      <DataTableLoadingBody isLoading={loading} className="h-40" />
-      <DataTableEmptyBody isLoading={loading} isEmpty={!loading && rows.length === 0} title="No role" description="They can do nothing yet — give them a role." className="h-40" />
-      {revoking && (
-        <ConfirmDialog
-          open
-          onOpenChange={(o) => !o && setRevoking(null)}
-          title={`Take away ${revoking.roleId}?`}
-          description={
-            self
-              ? 'This is your own role — if it lets you manage roles, the console refuses (ask another admin).'
-              : `They lose everything ${revoking.roleId} grants${revoking.tenantId ? ` in ${tenantName(revoking.tenantId)}` : ' in every tenant'} — and anything they lent from it stops working.`
-          }
-          confirmLabel="Take it away"
-          pending={revoke.isPending}
-          onConfirm={() => revoke.mutate(revoking)}
-        />
-      )}
-    </TableWrapper>
+        <DataTableLoadingBody isLoading={loading} className="h-40" />
+        <DataTableEmptyBody isLoading={loading} isEmpty={!loading && rows.length === 0} title="No role" description="They can do nothing yet — give them a role." className="h-40" />
+        {revoking && (
+          <ConfirmDialog
+            open
+            onOpenChange={(o) => !o && setRevoking(null)}
+            title={`Take away ${revoking.roleId}?`}
+            description={
+              self
+                ? 'This is your own role — if it lets you manage roles, the console refuses (ask another admin).'
+                : `They lose everything ${revoking.roleId} grants${revoking.tenantId ? ` in ${tenantName(revoking.tenantId)}` : ' in every tenant'} — and anything they lent from it stops working.`
+            }
+            confirmLabel="Take it away"
+            pending={revoke.isPending}
+            onConfirm={() => revoke.mutate(revoking)}
+          />
+        )}
+      </CardPanel>
+    </Card>
   );
 }
 
@@ -300,7 +286,7 @@ function AccessCard({ access, loading, names }: { access?: AccessExplanation; lo
   const groups = groupByModule(actions, (a) => a);
 
   return (
-    <Card>
+    <Card collapseable="expanded">
       <CardHeader>
         <CardHeaderTitle>What they can do</CardHeaderTitle>
         <CardHeaderSubtitle>
@@ -348,28 +334,24 @@ function AccessCard({ access, loading, names }: { access?: AccessExplanation; lo
 function DelegationsCard({ userId, delegations, loading, names }: { userId: string; delegations?: Delegation[]; loading: boolean; names: ReadonlyMap<string, string> }) {
   const rows = delegations ?? [];
   return (
-    <TableWrapper>
-      <Table>
-        <TableHeader>
-          <TableHeaderRow size="lg">
-            <TableHead colSpan={3}>
-              <CardHeaderTitle>Delegations</CardHeaderTitle>
-              <CardHeaderSubtitle>Lent and received · newest first</CardHeaderSubtitle>
-            </TableHead>
-          </TableHeaderRow>
-        </TableHeader>
+    <Card collapseable="expanded">
+      <CardHeader>
+        <CardHeaderTitle>Delegations</CardHeaderTitle>
+        <CardHeaderSubtitle>Lent and received · newest first</CardHeaderSubtitle>
+      </CardHeader>
+      <CardPanel>
         {rows.length > 0 && (
-          <TableBody>
+          <CardList columns="auto minmax(0,1fr) auto">
             {rows.map((d) => {
               const state = DELEGATION_STATE[delegationState(d)];
               const lent = d.granterId === userId;
               return (
-                <TableRow key={d.id}>
-                  <TableCell className="text-sm">
+                <CardListItem key={d.id}>
+                  <div className="text-sm">
                     <div className="text-muted-foreground text-xs">{lent ? 'Lent to' : 'Lent by'}</div>
                     {lent ? personLabel(d.granteeId, names) : personLabel(d.granterId, names)}
-                  </TableCell>
-                  <TableCell>
+                  </div>
+                  <div>
                     <div className="flex flex-wrap gap-1">
                       {d.actions.map((a) => (
                         <SimpleBadge key={a} variant={d.lapsedActions.includes(a) ? 'secondary' : 'default'} className={d.lapsedActions.includes(a) ? 'line-through' : undefined}>
@@ -377,21 +359,21 @@ function DelegationsCard({ userId, delegations, loading, names }: { userId: stri
                         </SimpleBadge>
                       ))}
                     </div>
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
+                  </div>
+                  <div className="text-right text-xs whitespace-nowrap">
                     <WithTooltip tooltip={`Until ${formatDateTime(d.expiresAt, { style: 'medium' })}`}>
                       <SimpleBadge variant={state.variant}>{state.label}</SimpleBadge>
                     </WithTooltip>
-                  </TableCell>
-                </TableRow>
+                  </div>
+                </CardListItem>
               );
             })}
-          </TableBody>
+          </CardList>
         )}
-      </Table>
-      <DataTableLoadingBody isLoading={loading} className="h-40" />
-      <DataTableEmptyBody isLoading={loading} isEmpty={!loading && rows.length === 0} title="Nothing lent" description="They haven't lent or been lent anything." className="h-40" />
-    </TableWrapper>
+        <DataTableLoadingBody isLoading={loading} className="h-40" />
+        <DataTableEmptyBody isLoading={loading} isEmpty={!loading && rows.length === 0} title="Nothing lent" description="They haven't lent or been lent anything." className="h-40" />
+      </CardPanel>
+    </Card>
   );
 }
 

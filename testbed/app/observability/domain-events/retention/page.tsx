@@ -170,7 +170,7 @@ export default function DomainEventRetentionPage() {
               </Card>
             </div>
 
-            <Card>
+            <Card collapseable="expanded">
               <CardHeader>
                 <CardHeaderTitle>Deliveries per day</CardHeaderTitle>
                 <CardHeaderSubtitle>{subtitle}</CardHeaderSubtitle>

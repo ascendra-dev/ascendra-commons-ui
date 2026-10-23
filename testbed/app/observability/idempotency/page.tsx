@@ -7,8 +7,12 @@ import { LuArrowUpRight, LuHistory } from 'react-icons/lu';
 import {
   Button,
   Card,
+  CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardList,
+  CardListItem,
+  CardListLink,
   CardPanel,
   DashboardContent,
   DataTableEmptyBody,
@@ -31,15 +35,6 @@ import {
   SimpleBadge,
   Skeleton,
   SkeletonState,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableHeaderRow,
-  TableRow,
-  TableRowLink,
-  TableWrapper,
   WithError,
   WithSkeleton,
   WithTooltip,
@@ -251,75 +246,66 @@ export default function IdempotencyOverviewPage() {
 
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <TableWrapper>
-              <Table visibleRows={ENDPOINTS_VISIBLE}>
-                {/* The header row carries the list's title, not column labels — each row says what it is. */}
-                <TableHeader>
-                  <TableHeaderRow size="lg">
-                    <TableHead colSpan={3}>
-                      <CardHeaderTitle>Duplicates by endpoint</CardHeaderTitle>
-                      <CardHeaderSubtitle>{period.label} · replays and 409s, most first</CardHeaderSubtitle>
-                    </TableHead>
-                  </TableHeaderRow>
-                </TableHeader>
+            <Card collapseable="expanded">
+              <CardHeader>
+                <CardHeaderTitle>Duplicates by endpoint</CardHeaderTitle>
+                <CardHeaderSubtitle>{period.label} · replays and 409s, most first</CardHeaderSubtitle>
+              </CardHeader>
+              <CardPanel>
                 {endpointRows.length > 0 && (
-                  <TableBody>
+                  <CardList columns="auto auto 1fr" visibleRows={ENDPOINTS_VISIBLE}>
                     {endpointRows.map((row) => (
-                      <TableRow key={row.route ?? '(none)'}>
-                        <TableCell>
+                      <CardListItem key={row.route ?? '(none)'}>
+                        <div>
                           <div className="flex flex-wrap items-center gap-1.5">
                             {row.href ? (
-                              <TableRowLink href={row.href}>
+                              <CardListLink href={row.href}>
                                 <SimpleBadge>{routeLabel(row.route)}</SimpleBadge>
-                              </TableRowLink>
+                              </CardListLink>
                             ) : (
                               <SimpleBadge>{routeLabel(row.route)}</SimpleBadge>
                             )}
                             {row.lateCompleteNoOps > 0 && <SimpleBadge variant="red">{formatCount(row.lateCompleteNoOps)} ran twice</SimpleBadge>}
                           </div>
                           <div className="text-muted-foreground mt-1 text-xs">{formatCount(row.claims)} claims</div>
-                        </TableCell>
-                        <TableCell className="text-right align-top font-mono tabular-nums">{formatCount(row.duplicates)}</TableCell>
-                        <TableCell className="w-full">
+                        </div>
+                        <div className="text-right self-start font-mono tabular-nums">{formatCount(row.duplicates)}</div>
+                        <div>
                           <div className="bg-muted h-2 overflow-hidden rounded-full">
                             <div className="h-full rounded-full bg-sky-500/70 transition-all" style={{ width: `${row.share}%` }} />
                           </div>
-                        </TableCell>
-                      </TableRow>
+                        </div>
+                      </CardListItem>
                     ))}
-                  </TableBody>
+                  </CardList>
                 )}
-              </Table>
-              <DataTableLoadingBody isLoading={routes.isLoading} className="h-65" />
-              <DataTableErrorBody isError={routes.isError} error={routes.error} onRetry={() => routes.refetch()} className="h-65" />
-              <DataTableEmptyBody
-                isLoading={routes.isLoading}
-                isEmpty={!!routes.data && endpointRows.length === 0}
-                title={`No claims in the ${periodLower}`}
-                description="No request carried an Idempotency-Key — try a longer period."
-                className="h-65"
-              />
-            </TableWrapper>
+                <DataTableLoadingBody isLoading={routes.isLoading} className="h-65" />
+                <DataTableErrorBody isError={routes.isError} error={routes.error} onRetry={() => routes.refetch()} className="h-65" />
+                <DataTableEmptyBody
+                  isLoading={routes.isLoading}
+                  isEmpty={!!routes.data && endpointRows.length === 0}
+                  title={`No claims in the ${periodLower}`}
+                  description="No request carried an Idempotency-Key — try a longer period."
+                  className="h-65"
+                />
+              </CardPanel>
+            </Card>
           </div>
 
           <div className="col-span-12 lg:col-span-6">
-            <TableWrapper>
-              <Table visibleRows={IN_PROGRESS_VISIBLE}>
-                <TableHeader>
-                  <TableHeaderRow size="lg">
-                    <TableHead colSpan={2}>
-                      <CardHeaderTitle>In progress</CardHeaderTitle>
-                      <CardHeaderSubtitle>Requests that haven&apos;t finished · newest first</CardHeaderSubtitle>
-                    </TableHead>
-                  </TableHeaderRow>
-                </TableHeader>
+            <Card collapseable="expanded">
+              <CardHeader>
+                <CardHeaderTitle>In progress</CardHeaderTitle>
+                <CardHeaderSubtitle>Requests that haven&apos;t finished · newest first</CardHeaderSubtitle>
+              </CardHeader>
+              <CardPanel>
                 {pending.length > 0 && (
-                  <TableBody>
+                  <CardList columns="minmax(0,1fr) auto" visibleRows={IN_PROGRESS_VISIBLE}>
                     {pending.map((claim) => {
                       const long = inProgress.dataUpdatedAt - Date.parse(claim.createdAt) > LONG_RUNNING_MS;
                       return (
-                        <TableRow key={`${claim.scope}/${claim.key}`} className="cursor-pointer" onClick={() => setSelected(claim)}>
-                          <TableCell>
+                        <CardListItem key={`${claim.scope}/${claim.key}`} className="cursor-pointer" onClick={() => setSelected(claim)}>
+                          <div>
                             <IdText value={claim.key} size="lg" copyable={false} showTooltip={false} />
                             <div className="mt-1.5 flex flex-wrap items-center gap-1">
                               <SimpleBadge>{routeLabel(claim.route)}</SimpleBadge>
@@ -328,30 +314,30 @@ export default function IdempotencyOverviewPage() {
                                 {claim.conflictCount > 0 && ` · ${formatCount(claim.conflictCount)} turned away (409)`}
                               </span>
                             </div>
-                          </TableCell>
-                          <TableCell className="text-right align-top whitespace-nowrap">
+                          </div>
+                          <div className="text-right self-start whitespace-nowrap">
                             {long ? (
                               <SimpleBadge variant="orange">{ageLabel(claim.createdAt, inProgress.dataUpdatedAt)}</SimpleBadge>
                             ) : (
                               <span className="text-muted-foreground text-xs">{ageLabel(claim.createdAt, inProgress.dataUpdatedAt)}</span>
                             )}
-                          </TableCell>
-                        </TableRow>
+                          </div>
+                        </CardListItem>
                       );
                     })}
-                  </TableBody>
+                  </CardList>
                 )}
-              </Table>
-              <DataTableLoadingBody isLoading={inProgress.isLoading} className="h-65" />
-              <DataTableErrorBody isError={inProgress.isError} error={inProgress.error} onRetry={() => inProgress.refetch()} className="h-65" />
-              <DataTableEmptyBody
-                isLoading={inProgress.isLoading}
-                isEmpty={!!inProgress.data && pending.length === 0}
-                title="Nothing in progress"
-                description="Every claimed request has finished."
-                className="h-65"
-              />
-            </TableWrapper>
+                <DataTableLoadingBody isLoading={inProgress.isLoading} className="h-65" />
+                <DataTableErrorBody isError={inProgress.isError} error={inProgress.error} onRetry={() => inProgress.refetch()} className="h-65" />
+                <DataTableEmptyBody
+                  isLoading={inProgress.isLoading}
+                  isEmpty={!!inProgress.data && pending.length === 0}
+                  title="Nothing in progress"
+                  description="Every claimed request has finished."
+                  className="h-65"
+                />
+              </CardPanel>
+            </Card>
           </div>
         </div>
       </DashboardContent>

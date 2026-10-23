@@ -9,9 +9,13 @@ import {
   BackLink,
   Button,
   Card,
+  CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardList,
+  CardListItem,
   CardPanel,
+  CardTable,
   DashboardContent,
   DataTableEmptyBody,
   DataTableErrorBody,
@@ -38,13 +42,12 @@ import {
   TableHeader,
   TableHeaderRow,
   TableRow,
-  TableWrapper,
   WithSkeleton,
   WithTooltip,
   toast,
   useBackTo,
 } from '@/ascendra-ui';
-import { Separator, cn } from '@/ascendra-ui/shadcn';
+import { cn } from '@/ascendra-ui/shadcn';
 import { isApiError } from '@/ascendra-ui/lib/api';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { backgroundJobsApi, type JobRun, type JobStatus } from '@/ascendra-commons-ui/background-jobs.ui/api';
@@ -313,53 +316,47 @@ type ListQuery<T> = { data?: T; isLoading: boolean; isError: boolean; error: Err
 function FailedItemsCard({ query }: { query: ListQuery<Awaited<ReturnType<typeof backgroundJobsApi.failedItems>>> }) {
   const items = query.data ?? [];
   return (
-    <TableWrapper>
-      <Table visibleRows={ROWS_VISIBLE}>
-        <TableHeader>
-          <TableHeaderRow size="lg">
-            <TableHead colSpan={3}>
-              <CardHeaderTitle>Failed items</CardHeaderTitle>
-              <CardHeaderSubtitle>Failing in 2+ of its last {STREAK_WINDOW} runs · matched by label, best-effort</CardHeaderSubtitle>
-            </TableHead>
-          </TableHeaderRow>
+    <Card collapseable="expanded">
+      <CardHeader>
+        <CardHeaderTitle>Failed items</CardHeaderTitle>
+        <CardHeaderSubtitle>Failing in 2+ of its last {STREAK_WINDOW} runs · matched by label, best-effort</CardHeaderSubtitle>
+      </CardHeader>
+      <CardTable>
+        <Table visibleRows={ROWS_VISIBLE}>
+          <TableHeader>
+            {items.length > 0 && (
+              <>
+                <TableHeaderRow>
+                  <TableHead>Item</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Runs failed in</TableHead>
+                  <TableHead>Last failed</TableHead>
+                </TableHeaderRow>
+              </>
+            )}
+          </TableHeader>
           {items.length > 0 && (
-            <>
-              {/* Divides the card's title from the column labels below it. */}
-              <TableHeaderRow aria-hidden className="h-auto">
-                <TableHead colSpan={3} className="p-0 first:pl-0">
-                  <Separator />
-                </TableHead>
-              </TableHeaderRow>
-              <TableHeaderRow>
-                <TableHead>Item</TableHead>
-                <TableHead className="text-right whitespace-nowrap">Runs failed in</TableHead>
-                <TableHead>Last failed</TableHead>
-              </TableHeaderRow>
-            </>
+            <TableBody>
+              {items.map((item) => (
+                <TableRow key={item.itemRef}>
+                  <TableCell className="w-full font-mono text-xs break-words whitespace-normal">{item.itemRef}</TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">{formatCount(item.failureCount)}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatDateTime(item.lastFailedAt, { style: 'short', time: true })}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
           )}
-        </TableHeader>
-        {items.length > 0 && (
-          <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.itemRef}>
-                <TableCell className="w-full font-mono text-xs break-words whitespace-normal">{item.itemRef}</TableCell>
-                <TableCell className="text-right font-mono tabular-nums">{formatCount(item.failureCount)}</TableCell>
-                <TableCell className="whitespace-nowrap">{formatDateTime(item.lastFailedAt, { style: 'short', time: true })}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        )}
-      </Table>
-      <DataTableLoadingBody isLoading={query.isLoading} className="h-65" />
-      <DataTableErrorBody isError={query.isError} error={query.error} onRetry={() => query.refetch()} className="h-65" />
-      <DataTableEmptyBody
-        isLoading={query.isLoading}
-        isEmpty={!!query.data && items.length === 0}
-        title="No item keeps failing"
-        description="No item failed in more than one of its recent runs."
-        className="h-65"
-      />
-    </TableWrapper>
+        </Table>
+        <DataTableLoadingBody isLoading={query.isLoading} className="h-65" />
+        <DataTableErrorBody isError={query.isError} error={query.error} onRetry={() => query.refetch()} className="h-65" />
+        <DataTableEmptyBody
+          isLoading={query.isLoading}
+          isEmpty={!!query.data && items.length === 0}
+          title="No item keeps failing"
+          description="No item failed in more than one of its recent runs."
+          className="h-65"
+        />
+      </CardTable>
+    </Card>
   );
 }
 
@@ -373,49 +370,45 @@ function RecentRunsCard({
 }) {
   const runs = query.data?.data ?? [];
   return (
-    <TableWrapper>
-      <Table visibleRows={ROWS_VISIBLE}>
-        <TableHeader>
-          <TableHeaderRow size="lg">
-            <TableHead colSpan={2}>
-              <CardHeaderTitle>Recent runs</CardHeaderTitle>
-              <CardHeaderSubtitle>Its latest {RECENT_RUNS}, newest first</CardHeaderSubtitle>
-            </TableHead>
-          </TableHeaderRow>
-        </TableHeader>
+    <Card collapseable="expanded">
+      <CardHeader>
+        <CardHeaderTitle>Recent runs</CardHeaderTitle>
+        <CardHeaderSubtitle>Its latest {RECENT_RUNS}, newest first</CardHeaderSubtitle>
+      </CardHeader>
+      <CardPanel>
         {runs.length > 0 && (
-          <TableBody>
+          <CardList columns="minmax(0,1fr) auto" visibleRows={ROWS_VISIBLE}>
             {runs.map((run) => {
               const result = runResult(run);
               return (
-                <TableRow key={run.id} className="cursor-pointer" onClick={() => onOpen(run)}>
-                  <TableCell className="whitespace-nowrap">
+                <CardListItem key={run.id} className="cursor-pointer" onClick={() => onOpen(run)}>
+                  <div className="whitespace-nowrap">
                     {formatDateTime(run.startedAt, { style: 'short', time: true })}{' '}
                     <span className="text-muted-foreground">· {run.trigger}</span>
                     <div className="text-muted-foreground mt-1 text-xs">
                       {run.outcome === 'job_failed' ? 'nothing processed' : `${formatCount(run.itemsDue)} due`} · {runDuration(run)}
                     </div>
-                  </TableCell>
-                  <TableCell className="w-px text-right align-top whitespace-nowrap">
+                  </div>
+                  <div className="text-right self-start whitespace-nowrap">
                     <SimpleBadge variant={runResultVariant(result)}>
                       {result === 'items_failed' ? `${formatCount(run.itemsFailed)} failed` : runResultLabel(result)}
                     </SimpleBadge>
-                  </TableCell>
-                </TableRow>
+                  </div>
+                </CardListItem>
               );
             })}
-          </TableBody>
+          </CardList>
         )}
-      </Table>
-      <DataTableLoadingBody isLoading={query.isLoading} className="h-65" />
-      <DataTableErrorBody isError={query.isError} error={query.error} onRetry={() => query.refetch()} className="h-65" />
-      <DataTableEmptyBody
-        isLoading={query.isLoading}
-        isEmpty={!!query.data && runs.length === 0}
-        title="Never run"
-        description="No run of this job is in the history kept."
-        className="h-65"
-      />
-    </TableWrapper>
+        <DataTableLoadingBody isLoading={query.isLoading} className="h-65" />
+        <DataTableErrorBody isError={query.isError} error={query.error} onRetry={() => query.refetch()} className="h-65" />
+        <DataTableEmptyBody
+          isLoading={query.isLoading}
+          isEmpty={!!query.data && runs.length === 0}
+          title="Never run"
+          description="No run of this job is in the history kept."
+          className="h-65"
+        />
+      </CardPanel>
+    </Card>
   );
 }

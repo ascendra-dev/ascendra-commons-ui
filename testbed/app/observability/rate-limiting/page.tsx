@@ -7,8 +7,12 @@ import { LuArrowUpRight, LuDatabase } from 'react-icons/lu';
 import {
   Button,
   Card,
+  CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardList,
+  CardListItem,
+  CardListLink,
   CardPanel,
   DashboardContent,
   DataTableEmptyBody,
@@ -30,15 +34,6 @@ import {
   SimpleBadge,
   Skeleton,
   SkeletonState,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableHeaderRow,
-  TableRow,
-  TableRowLink,
-  TableWrapper,
   WithError,
   WithSkeleton,
   type TriggerParams,
@@ -262,83 +257,74 @@ export default function RateLimitOverviewPage() {
 
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <TableWrapper>
-              <Table horizontal>
-                {/* The header row carries the list's title, not column labels — each row says what it is. */}
-                <TableHeader>
-                  <TableHeaderRow size="lg">
-                    <TableHead colSpan={3}>
-                      <CardHeaderTitle>Rejections by route</CardHeaderTitle>
-                      <CardHeaderSubtitle>
-                        {period.label} · most first
-                      </CardHeaderSubtitle>
-                    </TableHead>
-                  </TableHeaderRow>
-                </TableHeader>
+            <Card collapseable="expanded">
+              <CardHeader>
+                <CardHeaderTitle>Rejections by route</CardHeaderTitle>
+                <CardHeaderSubtitle>
+                  {period.label} · most first
+                </CardHeaderSubtitle>
+              </CardHeader>
+              <CardPanel>
                 {routeRows.length > 0 && (
-                  <TableBody>
+                  <CardList columns="auto auto 1fr">
                     {routeRows.map((row) => (
-                      <TableRow key={row.route}>
-                        <TableCell>
-                          <TableRowLink href={row.href}>
+                      <CardListItem key={row.route}>
+                        <div>
+                          <CardListLink href={row.href}>
                             <SimpleBadge>{row.route}</SimpleBadge>
-                          </TableRowLink>
-                        </TableCell>
-                        <TableCell className="text-right font-mono tabular-nums">
+                          </CardListLink>
+                        </div>
+                        <div className="text-right font-mono tabular-nums">
                           {formatCount(row.count)}
-                        </TableCell>
-                        <TableCell className="w-full">
+                        </div>
+                        <div className="w-full">
                           <ShareBar share={row.share} />
-                        </TableCell>
-                      </TableRow>
+                        </div>
+                      </CardListItem>
                     ))}
-                  </TableBody>
+                  </CardList>
                 )}
-              </Table>
-              <DataTableLoadingBody
-                isLoading={catalog.isLoading}
-                className="h-65"
-              />
-              <DataTableErrorBody
-                isError={catalog.isError}
-                error={catalog.error}
-                onRetry={() => catalog.refetch()}
-                className="h-65"
-              />
-              <DataTableEmptyBody
-                isLoading={catalog.isLoading}
-                isEmpty={routesEmpty}
-                title={`No rejections in the ${periodLower}`}
-                description="Nothing has hit a rate limit — try a longer period."
-                className="h-65"
-              />
-            </TableWrapper>
+                <DataTableLoadingBody
+                  isLoading={catalog.isLoading}
+                  className="h-65"
+                />
+                <DataTableErrorBody
+                  isError={catalog.isError}
+                  error={catalog.error}
+                  onRetry={() => catalog.refetch()}
+                  className="h-65"
+                />
+                <DataTableEmptyBody
+                  isLoading={catalog.isLoading}
+                  isEmpty={routesEmpty}
+                  title={`No rejections in the ${periodLower}`}
+                  description="Nothing has hit a rate limit — try a longer period."
+                  className="h-65"
+                />
+              </CardPanel>
+            </Card>
           </div>
 
           <div className="col-span-12 lg:col-span-6">
-            <TableWrapper>
-              <Table visibleRows={TOP_SOURCES_VISIBLE}>
-                <TableHeader>
-                  <TableHeaderRow size="lg">
-                    <TableHead colSpan={2}>
-                      <CardHeaderTitle>Top sources</CardHeaderTitle>
-                      <CardHeaderSubtitle>
-                        {period.label} · the {TOP_SOURCES} turned away most
-                      </CardHeaderSubtitle>
-                    </TableHead>
-                  </TableHeaderRow>
-                </TableHeader>
+            <Card collapseable="expanded">
+              <CardHeader>
+                <CardHeaderTitle>Top sources</CardHeaderTitle>
+                <CardHeaderSubtitle>
+                  {period.label} · the {TOP_SOURCES} turned away most
+                </CardHeaderSubtitle>
+              </CardHeader>
+              <CardPanel>
                 {sourceRows.length > 0 && (
-                  <TableBody>
+                  <CardList columns="1fr auto" visibleRows={TOP_SOURCES_VISIBLE}>
                     {sourceRows.map((row) => (
-                      <TableRow key={row.identifier}>
-                        <TableCell>
-                          <TableRowLink
+                      <CardListItem key={row.identifier}>
+                        <div>
+                          <CardListLink
                             href={row.href}
                             className={`block ${row.labelClass}`}
                           >
                             {row.label}
-                          </TableRowLink>
+                          </CardListLink>
                           <div className="mt-1.5 flex flex-wrap items-center gap-1">
                             {row.routes.map((route) => (
                               <SimpleBadge key={route}>{route}</SimpleBadge>
@@ -347,33 +333,33 @@ export default function RateLimitOverviewPage() {
                               · seen {row.seen}
                             </span>
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right align-top font-mono tabular-nums">
+                        </div>
+                        <div className="text-right self-start font-mono tabular-nums">
                           {formatCount(row.count)}
-                        </TableCell>
-                      </TableRow>
+                        </div>
+                      </CardListItem>
                     ))}
-                  </TableBody>
+                  </CardList>
                 )}
-              </Table>
-              <DataTableLoadingBody
-                isLoading={topSources.isLoading}
-                className="h-65"
-              />
-              <DataTableErrorBody
-                isError={topSources.isError}
-                error={topSources.error}
-                onRetry={() => topSources.refetch()}
-                className="h-65"
-              />
-              <DataTableEmptyBody
-                isLoading={topSources.isLoading}
-                isEmpty={sourcesEmpty}
-                title={`No rejections in the ${periodLower}`}
-                description="No source has hit a rate limit — try a longer period."
-                className="h-65"
-              />
-            </TableWrapper>
+                <DataTableLoadingBody
+                  isLoading={topSources.isLoading}
+                  className="h-65"
+                />
+                <DataTableErrorBody
+                  isError={topSources.isError}
+                  error={topSources.error}
+                  onRetry={() => topSources.refetch()}
+                  className="h-65"
+                />
+                <DataTableEmptyBody
+                  isLoading={topSources.isLoading}
+                  isEmpty={sourcesEmpty}
+                  title={`No rejections in the ${periodLower}`}
+                  description="No source has hit a rate limit — try a longer period."
+                  className="h-65"
+                />
+              </CardPanel>
+            </Card>
           </div>
         </div>
       </DashboardContent>

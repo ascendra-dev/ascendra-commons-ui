@@ -23,7 +23,6 @@ export function DataTableWrapper({
       <div className="min-h-0 overflow-hidden">
         <div
           data-slot="table-container"
-          data-table-container
           className={cn(
             'bg-muted flex flex-col rounded-xl py-1',
             border && buildBorderClasses(border),

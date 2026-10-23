@@ -165,7 +165,7 @@ export default function RateLimitRetentionPage() {
               </Card>
             </div>
 
-            <Card>
+            <Card collapseable="expanded">
               <CardHeader>
                 <CardHeaderTitle>Rejections per day</CardHeaderTitle>
                 <CardHeaderSubtitle>{subtitle}</CardHeaderSubtitle>

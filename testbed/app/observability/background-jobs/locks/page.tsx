@@ -3,8 +3,11 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   BackLink,
+  Card,
+  CardHeader,
   CardHeaderSubtitle,
   CardHeaderTitle,
+  CardTable,
   DashboardContent,
   DataTableEmptyBody,
   DataTableErrorBody,
@@ -23,10 +26,8 @@ import {
   TableHeaderRow,
   TableRow,
   TableRowLink,
-  TableWrapper,
   useBackTo,
 } from '@/ascendra-ui';
-import { Separator } from '@/ascendra-ui/shadcn';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import { backgroundJobsApi } from '@/ascendra-commons-ui/background-jobs.ui/api';
 import { backgroundJobsLinks } from '@/ascendra-commons-ui/background-jobs.ui/links';
@@ -56,75 +57,69 @@ export default function BackgroundJobLocksPage() {
         </PageHeaderGroup>
       </PageHeader>
       <DashboardContent>
-        <TableWrapper>
-          <Table>
-            <TableHeader>
-              <TableHeaderRow size="lg">
-                <TableHead colSpan={5} className="whitespace-normal">
-                  <CardHeaderTitle>Lease locks</CardHeaderTitle>
-                  <CardHeaderSubtitle>
-                    Expired: its holder died mid-run — the next run takes it over, but that run was never recorded
-                  </CardHeaderSubtitle>
-                </TableHead>
-              </TableHeaderRow>
+        <Card collapseable="expanded">
+          <CardHeader>
+            <CardHeaderTitle>Lease locks</CardHeaderTitle>
+            <CardHeaderSubtitle>
+              Expired: its holder died mid-run — the next run takes it over, but that run was never recorded
+            </CardHeaderSubtitle>
+          </CardHeader>
+          <CardTable>
+            <Table>
+              <TableHeader>
+                {rows.length > 0 && (
+                  <>
+                    <TableHeaderRow>
+                      <TableHead>Job</TableHead>
+                      <TableHead>Holder</TableHead>
+                      <TableHead>Taken</TableHead>
+                      <TableHead>Lease until</TableHead>
+                      <TableHead>State</TableHead>
+                    </TableHeaderRow>
+                  </>
+                )}
+              </TableHeader>
               {rows.length > 0 && (
-                <>
-                  {/* Divides the card's title from the column labels below it. */}
-                  <TableHeaderRow aria-hidden className="h-auto">
-                    <TableHead colSpan={5} className="p-0 first:pl-0">
-                      <Separator />
-                    </TableHead>
-                  </TableHeaderRow>
-                  <TableHeaderRow>
-                    <TableHead>Job</TableHead>
-                    <TableHead>Holder</TableHead>
-                    <TableHead>Taken</TableHead>
-                    <TableHead>Lease until</TableHead>
-                    <TableHead>State</TableHead>
-                  </TableHeaderRow>
-                </>
+                <TableBody>
+                  {rows.map((lock) => (
+                    <TableRow key={lock.lockKey}>
+                      <TableCell>
+                        {lock.jobName ? (
+                          <TableRowLink href={backTo(backgroundJobsLinks.job(lock.jobName))}>
+                            <SimpleBadge>{lock.jobName}</SimpleBadge>
+                          </TableRowLink>
+                        ) : (
+                          <SimpleBadge>{lock.lockKey}</SimpleBadge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <IdText value={lock.holder} className="text-muted-foreground" showTooltip={false} />
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">{formatDateTime(lock.acquiredAt, { style: 'short', time: true })}</TableCell>
+                      <TableCell className="whitespace-nowrap">{formatDateTime(lock.lockedUntil, { style: 'short', time: true })}</TableCell>
+                      <TableCell>
+                        <SimpleBadge variant={STATE[lock.state].variant}>{STATE[lock.state].label}</SimpleBadge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
               )}
-            </TableHeader>
-            {rows.length > 0 && (
-              <TableBody>
-                {rows.map((lock) => (
-                  <TableRow key={lock.lockKey}>
-                    <TableCell>
-                      {lock.jobName ? (
-                        <TableRowLink href={backTo(backgroundJobsLinks.job(lock.jobName))}>
-                          <SimpleBadge>{lock.jobName}</SimpleBadge>
-                        </TableRowLink>
-                      ) : (
-                        <SimpleBadge>{lock.lockKey}</SimpleBadge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <IdText value={lock.holder} className="text-muted-foreground" showTooltip={false} />
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">{formatDateTime(lock.acquiredAt, { style: 'short', time: true })}</TableCell>
-                    <TableCell className="whitespace-nowrap">{formatDateTime(lock.lockedUntil, { style: 'short', time: true })}</TableCell>
-                    <TableCell>
-                      <SimpleBadge variant={STATE[lock.state].variant}>{STATE[lock.state].label}</SimpleBadge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            )}
-          </Table>
-          <DataTableLoadingBody isLoading={locks.isLoading} className="h-65" />
-          <DataTableErrorBody isError={locks.isError} error={locks.error} onRetry={() => locks.refetch()} className="h-65" />
-          <DataTableEmptyBody
-            isLoading={locks.isLoading}
-            isEmpty={!!locks.data && rows.length === 0}
-            title={unsupported ? "This app's lock can't be listed" : 'No locks taken'}
-            description={
-              unsupported
-                ? 'It uses Postgres advisory locks, which leave nothing to read. Switch to the lease lock to see locks here.'
-                : 'No job is running right now, and none was left behind.'
-            }
-            className="h-65"
-          />
-        </TableWrapper>
+            </Table>
+            <DataTableLoadingBody isLoading={locks.isLoading} className="h-65" />
+            <DataTableErrorBody isError={locks.isError} error={locks.error} onRetry={() => locks.refetch()} className="h-65" />
+            <DataTableEmptyBody
+              isLoading={locks.isLoading}
+              isEmpty={!!locks.data && rows.length === 0}
+              title={unsupported ? "This app's lock can't be listed" : 'No locks taken'}
+              description={
+                unsupported
+                  ? 'It uses Postgres advisory locks, which leave nothing to read. Switch to the lease lock to see locks here.'
+                  : 'No job is running right now, and none was left behind.'
+              }
+              className="h-65"
+            />
+          </CardTable>
+        </Card>
       </DashboardContent>
     </>
   );
