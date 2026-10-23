@@ -7,10 +7,11 @@ export function PageTitle({
   ...props
 }: React.ComponentProps<'div'>) {
   return (
-    <div data-slot="page-title" className={cn('truncate text-2xl font-medium', className)} {...props}>
-      {/* Opened from another section (useBackTo): a way back there, beside the title. */}
+    <div data-slot="page-title" className={cn('flex min-w-0 items-center text-2xl font-medium', className)} {...props}>
+      {/* Opened from another section (useBackTo): a way back there, beside the title — outside the truncation, so
+          the button's ring isn't clipped. */}
       <PageBackButton />
-      {children}
+      <span className="truncate">{children}</span>
     </div>
   );
 }

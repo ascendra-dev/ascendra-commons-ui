@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useCallback } from "react";
+import { Button } from "@/ascendra-ui/components/ui/button";
 import { WithTooltip } from "@/ascendra-ui/components/util/with-tooltip";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -56,15 +57,13 @@ function PageBackButtonFromUrl() {
   if (!back) return null;
   const label = `Back to ${params.get(BACK_LABEL) || "the previous page"}`;
   return (
-    <WithTooltip tooltip={label} className="mr-2 align-middle">
-      <Link
-        href={back}
-        aria-label={label}
-        data-slot="page-back-button"
-        className="text-muted-foreground hover:text-foreground hover:bg-foreground/6 focus-visible:ring-primary flex size-7 items-center justify-center rounded-md transition-colors focus:outline-none focus-visible:ring-2"
-      >
-        <LuArrowLeft className="size-4 stroke-2" />
-      </Link>
+    <WithTooltip tooltip={label} className="mr-3 shrink-0">
+      {/* A real button, look and hover alike — it's an action ("go back there"), not a breadcrumb. */}
+      <Button variant="secondary" size="icon" asChild>
+        <Link href={back} aria-label={label} data-slot="page-back-button">
+          <LuArrowLeft className="size-4" />
+        </Link>
+      </Button>
     </WithTooltip>
   );
 }
