@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useCallback } from "react";
-import { WithTooltip } from "@/ascendra-ui/components/util/with-tooltip";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { LuArrowLeft } from "react-icons/lu";
@@ -63,7 +62,7 @@ function BackLinkView({ href, children, label, className, asLocation = false }: 
 
 /**
  * A back arrow beside the page title — only when the page was opened by a cross-link built with `useBackTo`; it
- * returns there ("Back to denied requests", with that page's filters as they were). Nothing otherwise. PageTitle
+ * returns there (labelled "Back to denied requests" for screen readers), with that page's filters as they were. Nothing otherwise. PageTitle
  * renders it.
  */
 export function PageBackButton() {
@@ -80,16 +79,14 @@ function PageBackButtonFromUrl() {
   if (!back) return null;
   const label = `Back to ${params.get(BACK_LABEL) || "the previous page"}`;
   return (
-    <WithTooltip tooltip={label} className="mr-2 shrink-0">
-      <Link
-        href={back}
-        aria-label={label}
-        data-slot="page-back-button"
-        className="text-muted-foreground hover:text-foreground hover:bg-foreground/6 focus-visible:ring-primary flex size-7 items-center justify-center rounded-md transition-colors focus:outline-none focus-visible:ring-2"
-      >
-        <LuArrowLeft className="size-4 stroke-2" />
-      </Link>
-    </WithTooltip>
+    <Link
+      href={back}
+      aria-label={label}
+      data-slot="page-back-button"
+      className="text-muted-foreground bg-foreground/6 focus-visible:ring-primary mr-2 flex size-7 shrink-0 items-center justify-center rounded-md transition-colors focus:outline-none focus-visible:ring-2"
+    >
+      <LuArrowLeft className="size-4 stroke-2" />
+    </Link>
   );
 }
 
