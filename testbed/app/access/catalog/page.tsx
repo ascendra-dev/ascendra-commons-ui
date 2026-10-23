@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  BackLink,
   Button,
   CardFooter,
   CardFooterIcon,
@@ -41,7 +40,7 @@ import {
   toast,
   WithTooltip,
 } from '@/ascendra-ui';
-import { authorizationApi, authorizationLinks, groupByModule, useActionCatalog, type CatalogAction } from '@/ascendra-commons-ui/authorization.ui';
+import { authorizationApi, groupByModule, useActionCatalog, type CatalogAction } from '@/ascendra-commons-ui/authorization.ui';
 import { Tile } from '../_tile';
 import { useAccessScope } from '../_scope';
 
@@ -63,7 +62,6 @@ export default function AccessCatalogPage() {
     <>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
-          <BackLink href={authorizationLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Action catalog</PageTitle>
           <PageSubtitle>Every action the app checks — what it means, where it may be granted, which roles grant it.</PageSubtitle>
         </PageHeaderGroup>

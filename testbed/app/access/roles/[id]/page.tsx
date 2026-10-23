@@ -35,6 +35,7 @@ import {
   TableRow,
   TableRowLink,
   TableWrapper,
+  useBackTo,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -56,6 +57,7 @@ export default function AccessRolePage() {
   const { id } = useParams<{ id: string }>();
   const roleId = decodeURIComponent(id);
   const { platform, tenantId, ownTenantId, can } = useAccessScope();
+  const backTo = useBackTo(roleId);
   const [giving, setGiving] = useState(false);
   const role = useQuery({ queryKey: ['authz-role', roleId, tenantId], queryFn: () => authorizationApi.role(roleId) });
   const holders = useQuery({ queryKey: ['authz-holders', roleId, tenantId], queryFn: () => authorizationApi.holders(roleId, tenantId) });
@@ -156,7 +158,7 @@ export default function AccessRolePage() {
                       return (
                         <TableRow key={`${a.userId}-${a.tenantId}`}>
                           <TableCell>
-                            <TableRowLink href={authorizationLinks.person(a.userId)}>{personLabel(a.userId, names)}</TableRowLink>
+                            <TableRowLink href={backTo(authorizationLinks.person(a.userId))}>{personLabel(a.userId, names)}</TableRowLink>
                             {platform && !tenantId && <div className="text-muted-foreground text-xs">{a.tenantId ? tenantName(a.tenantId) : 'all tenants'}</div>}
                           </TableCell>
                           <TableCell className="text-muted-foreground text-xs whitespace-nowrap">since {formatDateTime(a.grantedAt, { style: 'medium' })}</TableCell>

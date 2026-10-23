@@ -42,6 +42,7 @@ import {
   WithSkeleton,
   WithTooltip,
   toast,
+  useBackTo,
 } from '@/ascendra-ui';
 import { Separator, cn } from '@/ascendra-ui/shadcn';
 import { isApiError } from '@/ascendra-ui/lib/api';
@@ -72,6 +73,7 @@ const timeOfDay = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { h
 /** One job — is it healthy, what keeps failing, and run it now. Opened from either Overview list. */
 export default function BackgroundJobPage() {
   const name = decodeURIComponent(useParams<{ name: string }>().name);
+  const backTo = useBackTo(name);
   const [selected, setSelected] = useState<JobRun | null>(null);
 
   // Same key as the Overview — one read of GET /jobs serves both; this screen is its one row.
@@ -131,7 +133,7 @@ export default function BackgroundJobPage() {
                 </SimpleAlert>
               )}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {jobTiles(job, leftBehind).map((tile) => (
+                {jobTiles(job, leftBehind, backTo(backgroundJobsLinks.locks())).map((tile) => (
                   <Card key={tile.key} className="h-full">
                     <CardPanel>
                       <KpiTile>
@@ -175,7 +177,7 @@ export default function BackgroundJobPage() {
 }
 
 /** Last run, last clean run, the failing streak and the cadence — the job's health at a glance. */
-function jobTiles(job: JobStatus | undefined, leftBehind: boolean | undefined) {
+function jobTiles(job: JobStatus | undefined, leftBehind: boolean | undefined, locksHref: string) {
   const last = job?.lastRun;
   const streak = job?.consecutiveFailures ?? 0;
   const tiles: { key: string; label: string; value: React.ReactNode; caption: React.ReactNode; tone?: Tone }[] = [
@@ -210,14 +212,14 @@ function jobTiles(job: JobStatus | undefined, leftBehind: boolean | undefined) {
       key: 'cadence',
       label: 'Cadence',
       value: job?.cadence ? job.cadence.label : '—',
-      caption: cadenceCaption(job, leftBehind),
+      caption: cadenceCaption(job, leftBehind, locksHref),
       tone: job?.overdue ? 'warn' : undefined,
     },
   ];
   return tiles;
 }
 
-function cadenceCaption(job: JobStatus | undefined, leftBehind: boolean | undefined): React.ReactNode {
+function cadenceCaption(job: JobStatus | undefined, leftBehind: boolean | undefined, locksHref: string): React.ReactNode {
   if (!job) return '';
   if (!job.cadence) return 'none declared, none inferred — manual only';
   const source = job.cadence.source;
@@ -228,7 +230,7 @@ function cadenceCaption(job: JobStatus | undefined, leftBehind: boolean | undefi
       {leftBehind && (
         <>
           {' · '}
-          <Link href={backgroundJobsLinks.locks()} className="hover:text-foreground underline">
+          <Link href={locksHref} className="hover:text-foreground underline">
             a dead holder&apos;s lock
           </Link>
         </>

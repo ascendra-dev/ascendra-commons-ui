@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import {
-  BackLink,
   DataTable,
   DataTableBar,
   DataTableBarContent,
@@ -44,7 +43,6 @@ import {
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
   authorizationFieldOptions,
-  authorizationLinks,
   authorizationQueryIds,
   DELEGATION_STATE,
   delegationColumns,
@@ -73,7 +71,6 @@ export default function AccessDelegationsPage() {
     <>
       <PageHeader>
         <PageHeaderGroup>
-          <BackLink href={authorizationLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Delegations</PageTitle>
           <PageSubtitle>What people lent each other {tenantId ? `in ${tenantName(tenantId)}` : platform ? 'in every tenant' : 'here'} — and what no longer grants.</PageSubtitle>
         </PageHeaderGroup>

@@ -30,6 +30,7 @@ import {
   TableRow,
   TableRowLink,
   TableWrapper,
+  useBackTo,
 } from '@/ascendra-ui';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -73,6 +74,7 @@ interface LookItem {
 /** The landing screen — what needs a look in who-can-do-what. Posture is "now"; the period applies to denied requests. */
 export default function AccessOverviewPage() {
   const { platform, tenantId } = useAccessScope();
+  const backTo = useBackTo('overview');
   const [periodValue, setPeriodValue] = useState<Period['value']>('week');
   const period = PERIODS.find((p) => p.value === periodValue)!;
 
@@ -117,7 +119,7 @@ export default function AccessOverviewPage() {
       title: `${who(a.userId)} · ${a.roleId}`,
       meta: `ends ${formatDateTime(a.expiresAt!, { style: 'medium' })} · renew it from their page, or let it lapse`,
       badge: { label: expiresSoon(a.expiresAt) ?? 'expiring', variant: 'orange' as const },
-      href: authorizationLinks.person(a.userId),
+      href: backTo(authorizationLinks.person(a.userId)),
     })),
     ...(ending.data?.data ?? [])
       .filter((d) => d.lapsedActions.length === 0)
@@ -238,7 +240,7 @@ export default function AccessOverviewPage() {
                     {roleRows.map((r) => (
                       <TableRow key={r.roleId}>
                         <TableCell>
-                          <TableRowLink href={authorizationLinks.role(r.roleId)}>
+                          <TableRowLink href={backTo(authorizationLinks.role(r.roleId))}>
                             <SimpleBadge>{r.roleId}</SimpleBadge>
                           </TableRowLink>
                         </TableCell>

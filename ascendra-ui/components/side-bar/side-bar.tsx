@@ -1,12 +1,28 @@
 'use client';
 
-import { createContext, useContext, useRef } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { cn } from '@/ascendra-ui/shadcn';
 import { useOverlayScrollbars } from '@/ascendra-ui/hooks/use-overlay-scrollbars';
 
-type SideBarContextValue = { persistent: boolean };
+type SideBarContextValue = {
+  persistent: boolean;
+  /** Every SideBarMenuItem's path — so an item knows whether a more specific one also matches the page. */
+  paths?: string[];
+  /** A SideBarMenuItem registers its path while mounted; returns the unregister. */
+  registerPath?: (path: string) => () => void;
+};
 
 const SideBarContext = createContext<SideBarContextValue>({ persistent: false });
+
+/**
+ * Whether `pathname` is `path` or a page inside it (`/access/people/ann` is inside `/access/people`). A path with a
+ * `#fragment` is an anchor on a page, never a route of its own — it doesn't match.
+ */
+export function pathMatches(pathname: string, path: string) {
+  if (path.includes('#')) return false;
+  const base = path.length > 1 ? path.replace(/\/+$/, '') : path;
+  return base === '/' ? pathname === '/' : pathname === base || pathname.startsWith(`${base}/`);
+}
 
 export function useSideBar() {
   return useContext(SideBarContext);
@@ -23,8 +39,19 @@ export function SideBar({
   // Only the slide-in menu ever overflows; docked, the viewport grows with its content.
   useOverlayScrollbars(hostRef, viewportRef, { y: 'scroll' });
 
+  const [paths, setPaths] = useState<string[]>([]);
+  const registerPath = useCallback((path: string) => {
+    setPaths((prev) => [...prev, path]);
+    return () =>
+      setPaths((prev) => {
+        const i = prev.indexOf(path);
+        return i < 0 ? prev : [...prev.slice(0, i), ...prev.slice(i + 1)];
+      });
+  }, []);
+  const value = useMemo(() => ({ persistent, paths, registerPath }), [persistent, paths, registerPath]);
+
   return (
-    <SideBarContext.Provider value={{ persistent }}>
+    <SideBarContext.Provider value={value}>
       <aside
         data-slot="side-bar"
         id="sidebar-root"

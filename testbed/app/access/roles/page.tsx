@@ -2,7 +2,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import {
-  BackLink,
   CardFooter,
   CardFooterIcon,
   CardHeaderSubtitle,
@@ -46,7 +45,6 @@ export default function AccessRolesPage() {
     <>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
-          <BackLink href={authorizationLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Roles</PageTitle>
           <PageSubtitle>What each role grants, and how many hold it {tenantId ? `in ${tenantName(tenantId)}` : platform ? 'across tenants' : 'here'}.</PageSubtitle>
         </PageHeaderGroup>

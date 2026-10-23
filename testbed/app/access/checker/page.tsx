@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { LuCircleCheck, LuCircleX } from 'react-icons/lu';
 import {
-  BackLink,
   CardHeaderSubtitle,
   CardHeaderTitle,
   Combobox,
@@ -37,6 +36,7 @@ import {
   TableRow,
   TableRowLink,
   TableWrapper,
+  useBackTo,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -72,7 +72,6 @@ export default function AccessCheckerPage() {
     <>
       <PageHeader variant="dashboard">
         <PageHeaderGroup>
-          <BackLink href={authorizationLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Access checker</PageTitle>
           <PageSubtitle>Ask why someone can or can&apos;t do something — or who can.</PageSubtitle>
         </PageHeaderGroup>
@@ -237,6 +236,7 @@ function WhoCan({
   platform: boolean;
   onChange: (next: { action?: string }) => void;
 }) {
+  const backTo = useBackTo('access checker');
   const answer = useQuery({ queryKey: ['authz-who-can', action, tenantId], queryFn: () => authorizationApi.whoCan(action!, tenantId), enabled: !!action });
   const ids = useMemo(
     () => [...(answer.data?.roles ?? []).flatMap((r) => r.holderUserIds), ...(answer.data?.delegations ?? []).flatMap((d) => [d.granterId, d.granteeId])],
@@ -277,7 +277,7 @@ function WhoCan({
                 {rows.map((r) => (
                   <TableRow key={r.key}>
                     <TableCell>
-                      <TableRowLink href={authorizationLinks.person(r.userId)}>{personLabel(r.userId, names)}</TableRowLink>
+                      <TableRowLink href={backTo(authorizationLinks.person(r.userId))}>{personLabel(r.userId, names)}</TableRowLink>
                     </TableCell>
                     <TableCell>
                       <SimpleBadge variant={r.lent ? 'blue' : 'default'}>{r.via}</SimpleBadge>

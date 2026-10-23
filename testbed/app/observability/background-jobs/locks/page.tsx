@@ -24,6 +24,7 @@ import {
   TableRow,
   TableRowLink,
   TableWrapper,
+  useBackTo,
 } from '@/ascendra-ui';
 import { Separator } from '@/ascendra-ui/shadcn';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
@@ -40,6 +41,7 @@ const STATE = {
  * row is deleted, so every row is one or the other. Read-only: no force-release. Reached via the Overview's header.
  */
 export default function BackgroundJobLocksPage() {
+  const backTo = useBackTo('locks');
   const locks = useQuery({ queryKey: ['background-jobs-locks'], queryFn: () => backgroundJobsApi.locks() });
   const rows = locks.data?.locks ?? [];
   const unsupported = locks.data?.supported === false;
@@ -89,7 +91,7 @@ export default function BackgroundJobLocksPage() {
                   <TableRow key={lock.lockKey}>
                     <TableCell>
                       {lock.jobName ? (
-                        <TableRowLink href={backgroundJobsLinks.job(lock.jobName)}>
+                        <TableRowLink href={backTo(backgroundJobsLinks.job(lock.jobName))}>
                           <SimpleBadge>{lock.jobName}</SimpleBadge>
                         </TableRowLink>
                       ) : (

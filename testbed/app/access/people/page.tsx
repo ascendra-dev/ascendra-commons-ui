@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { LuShieldPlus } from 'react-icons/lu';
 import {
-  BackLink,
   Button,
   DataTable,
   DataTableBar,
@@ -79,7 +78,6 @@ export default function AccessPeoplePage() {
     <>
       <PageHeader>
         <PageHeaderGroup>
-          <BackLink href={authorizationLinks.overview()}>Back to overview</BackLink>
           <PageTitle>People</PageTitle>
           <PageSubtitle>Everyone {tenantId ? `in ${tenantName(tenantId)}` : platform ? 'in every tenant' : 'here'}, and what they hold.</PageSubtitle>
         </PageHeaderGroup>

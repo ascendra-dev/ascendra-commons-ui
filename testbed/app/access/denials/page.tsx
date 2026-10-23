@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
-  BackLink,
   CardHeaderSubtitle,
   CardHeaderTitle,
   DataTable,
@@ -52,6 +51,7 @@ import {
   TableRow,
   TableRowLink,
   TableWrapper,
+  useBackTo,
 } from '@/ascendra-ui';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -88,6 +88,7 @@ const TOP_VISIBLE = 5;
  */
 export default function AccessDenialsPage() {
   const { platform, tenantId } = useAccessScope();
+  const backTo = useBackTo('denied requests');
   const [periodValue, setPeriodValue] = useState<Period['value']>('week');
   const period = PERIODS.find((p) => p.value === periodValue)!;
   const roles = useRoles();
@@ -107,7 +108,6 @@ export default function AccessDenialsPage() {
     <>
       <PageHeader>
         <PageHeaderGroup>
-          <BackLink href={authorizationLinks.overview()}>Back to overview</BackLink>
           <PageTitle>Denied requests</PageTitle>
           <PageSubtitle>Who was refused what {tenantId ? `in ${tenantName(tenantId)}` : platform ? 'in every tenant' : 'here'} — a missing grant, or someone trying doors.</PageSubtitle>
         </PageHeaderGroup>
@@ -237,7 +237,7 @@ export default function AccessDenialsPage() {
                             <DataTableHighlight text={formatDateTime(row.windowStart, { time: true })} item={row} itemKey="windowStart" />
                           </DataTableCell>
                           <DataTableCell column="actorName">
-                            <TableRowLink href={authorizationLinks.person(row.actorId)}>
+                            <TableRowLink href={backTo(authorizationLinks.person(row.actorId))}>
                               <DataTableHighlight text={row.actorName} item={row} itemKey="actorName" />
                             </TableRowLink>
                             {platform && !tenantId && <div className="text-muted-foreground text-xs">{row.tenantId ? tenantName(row.tenantId) : 'platform'}</div>}

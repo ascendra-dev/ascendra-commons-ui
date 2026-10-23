@@ -28,6 +28,7 @@ import {
   SkeletonState,
   WithError,
   WithSkeleton,
+  useBackTo,
 } from '@/ascendra-ui';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/ascendra-ui/shadcn';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
@@ -105,6 +106,7 @@ function volumeTiles(volume: RunVolume | undefined) {
 
 /** Reached via the "Volume & Retention" button on the Background Jobs overview — not nav. Domain events', for runs. */
 export default function BackgroundJobRetentionPage() {
+  const backTo = useBackTo('retention');
   const placeholderPerDay = useMemo(() => buildPlaceholderPerDay(), []);
   // Same key as the Overview's oldest-run footnote — one read serves both.
   const volume = useQuery({ queryKey: ['background-jobs-volume'], queryFn: fetchVolume });
@@ -167,7 +169,7 @@ export default function BackgroundJobRetentionPage() {
                       <KpiValue>{MAX_RANGE_DAYS} days</KpiValue>
                     </div>
                     <KpiCaption className="text-muted-foreground/60 mt-1 text-[0.6875rem]">
-                      <Link href={backgroundJobsLinks.job(PRUNER_JOB)} className="hover:text-foreground underline">
+                      <Link href={backTo(backgroundJobsLinks.job(PRUNER_JOB))} className="hover:text-foreground underline">
                         {PRUNER_JOB}
                       </Link>{' '}
                       — a job like any other

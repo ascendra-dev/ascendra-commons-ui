@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import Link from 'next/link';
 import { cn } from '@/ascendra-ui/shadcn';
 import { usePathname } from 'next/navigation';
 import { useIsSmallScreen } from '@/ascendra-ui/hooks/use-is-small-screen';
+import { pathMatches, useSideBar } from './side-bar';
 
 type IconType = React.ComponentType<{ className?: string }>;
 
@@ -25,7 +26,12 @@ export function SideBarMenuItem({
 }: Props) {
   const isSmallScreen = useIsSmallScreen();
   const pathname = usePathname();
-  const isActive = pathname.endsWith(path);
+  const { paths, registerPath } = useSideBar();
+  useLayoutEffect(() => registerPath?.(path), [registerPath, path]);
+  // Active on its own page and every page inside it — unless a more specific item in the same sidebar matches too
+  // (Overview at /access stays unlit on /access/people/ann; People lights up).
+  const isActive =
+    pathMatches(pathname, path) && !(paths ?? []).some((p) => p.length > path.length && pathMatches(pathname, p));
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (isSmallScreen) {
