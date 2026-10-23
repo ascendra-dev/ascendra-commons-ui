@@ -120,7 +120,8 @@ export default function AccessPeoplePage() {
                         <DataTableHead column="name">Person</DataTableHead>
                         {(platform && !tenantId) ? <DataTableHead column="tenantId">Tenant</DataTableHead> : null}
                         <DataTableHead column="roles">Roles</DataTableHead>
-                        <DataTableHeadAction />
+                        {/* Visible, not on hover — it carries the selection's count, Select all and Clear all. */}
+                        <DataTableHeadAction variant="visible" />
                       </DataTableHeaderRow>
                     </DataTableHeader>
                     <DataTableBody>

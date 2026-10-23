@@ -21,6 +21,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SimpleBadge,
   toast,
 } from '@/ascendra-ui';
 import { authorizationApi } from '@/ascendra-commons-ui/authorization.ui';
@@ -47,21 +48,32 @@ export function useInvalidateAccess() {
 export function AssignRoleDialog({
   open,
   onOpenChange,
-  userIds,
-  label,
-  tenantId,
-  fixedRoleId,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  ...props
+}: Omit<AssignRoleContentProps, 'onDone'> & { open: boolean; onOpenChange: (open: boolean) => void }) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>{open && <AssignRoleContent {...props} onDone={() => onOpenChange(false)} />}</DialogContent>
+    </Dialog>
+  );
+}
+
+interface AssignRoleContentProps {
   userIds: string[];
   /** Who it's for, as the title says it ("Farah Garcia", "3 people"). */
   label: string;
   /** The tenant the people belong to (`null` — platform staff). */
   tenantId: string | null;
-  /** From a role's page: the role is fixed, the dialog picks only the end date. */
+  /** From a role's page: the role is fixed — named in the title, only the end date to pick. */
   fixedRoleId?: string;
-}) {
+  /** The people by name, shown as badges — when they were picked in an earlier step. */
+  people?: Array<{ id: string; name: string }>;
+  /** Back to the previous step, in place of Cancel. */
+  onBack?: () => void;
+  onDone: () => void;
+}
+
+/** The dialog's content — a step of another dialog too (a role's "Give this role", after picking people). */
+export function AssignRoleContent({ userIds, label, tenantId, fixedRoleId, people, onBack, onDone }: AssignRoleContentProps) {
   const { platform } = useAccessScope();
   const [roleId, setRoleId] = useState<string | undefined>(fixedRoleId);
   const [until, setUntil] = useState<Date | undefined>(undefined);
@@ -71,7 +83,6 @@ export function AssignRoleDialog({
   const roles = useQuery({
     queryKey: ['authz-assignable', target],
     queryFn: () => authorizationApi.assignableRoles(target ?? undefined),
-    enabled: open,
   });
   const choice = roles.data?.find((r) => r.id === roleId);
 
@@ -89,24 +100,37 @@ export function AssignRoleDialog({
         description: until ? `Until ${until.toLocaleDateString()}` : undefined,
       });
       await invalidate();
-      onOpenChange(false);
+      onDone();
     },
     onError: (error) => toast.error(`Couldn't give ${roleId}`, { description: error instanceof Error ? error.message : undefined }),
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Give a role to {label}</DialogTitle>
-          <DialogDescription>
-            {target === null ? 'To all tenants — platform staff.' : `In ${tenantName(target)}.`} Roles you can&apos;t give are shown with the reason.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogBody className="flex flex-col gap-4">
+    <>
+      <DialogHeader>
+        <DialogTitle>{fixedRoleId ? `Give ${fixedRoleId} to ${label}` : `Give a role to ${label}`}</DialogTitle>
+        <DialogDescription>
+          {target === null ? 'To all tenants — platform staff.' : `In ${tenantName(target)}.`}
+          {fixedRoleId ? '' : ' Roles you can\u2019t give are shown with the reason.'}
+        </DialogDescription>
+      </DialogHeader>
+      <DialogBody className="flex flex-col gap-4">
+        {people && people.length > 0 && (
+          <Field>
+            <FieldLabel>To</FieldLabel>
+            <div className="flex flex-wrap gap-1">
+              {people.map((p) => (
+                <SimpleBadge key={p.id} variant="secondary">
+                  {p.name}
+                </SimpleBadge>
+              ))}
+            </div>
+          </Field>
+        )}
+        {!fixedRoleId && (
           <Field>
             <FieldLabel htmlFor="assign-role">Role</FieldLabel>
-            <Select value={roleId} onValueChange={setRoleId} disabled={!!fixedRoleId}>
+            <Select value={roleId} onValueChange={setRoleId}>
               <SelectTrigger id="assign-role" className="w-full">
                 <SelectValue placeholder={roles.isLoading ? 'Loading roles…' : 'Choose a role'} />
               </SelectTrigger>
@@ -123,22 +147,29 @@ export function AssignRoleDialog({
             </Select>
             {choice && !choice.assignable && <FieldHint description={choice.reason} />}
           </Field>
-          <Field>
-            <FieldLabel htmlFor="assign-until">Until</FieldLabel>
-            <DatePicker id="assign-until" value={until} onChange={setUntil} minDate={new Date()} placeholder="No end date" showClear />
-            <FieldHint description="Optional — for cover or a contractor. The role stops applying at the start of that day." optional />
-          </Field>
-          {platform && target === null && <p className="text-muted-foreground text-xs">An all-tenant role reaches every tenant — keep these few.</p>}
-        </DialogBody>
-        <DialogFooter>
+        )}
+        {fixedRoleId && choice && !choice.assignable && <p className="text-destructive text-sm">{choice.reason}</p>}
+        <Field>
+          <FieldLabel htmlFor="assign-until">Until</FieldLabel>
+          <DatePicker id="assign-until" value={until} onChange={setUntil} minDate={new Date()} placeholder="No end date" showClear />
+          <FieldHint description="Optional — for cover or a contractor. The role stops applying at the start of that day." optional />
+        </Field>
+        {platform && target === null && <p className="text-muted-foreground text-xs">An all-tenant role reaches every tenant — keep these few.</p>}
+      </DialogBody>
+      <DialogFooter>
+        {onBack ? (
+          <Button variant="secondary" onClick={onBack}>
+            Back
+          </Button>
+        ) : (
           <DialogClose asChild>
             <Button variant="secondary">Cancel</Button>
           </DialogClose>
-          <Button disabled={!choice?.assignable || give.isPending} onClick={() => give.mutate()}>
-            {give.isPending ? 'Giving…' : roleId ? `Give ${roleId}` : 'Give role'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        )}
+        <Button disabled={!choice?.assignable || give.isPending} onClick={() => give.mutate()}>
+          {give.isPending ? 'Giving…' : roleId ? `Give ${roleId}` : 'Give role'}
+        </Button>
+      </DialogFooter>
+    </>
   );
 }

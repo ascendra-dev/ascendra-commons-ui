@@ -5,6 +5,8 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { LuShieldPlus } from 'react-icons/lu';
 import {
+  Dialog,
+  DialogContent,
   BackLink,
   Button,
   Card,
@@ -44,8 +46,8 @@ import {
   useActionCatalog,
   usePeopleNames,
 } from '@/ascendra-commons-ui/authorization.ui';
-import { AssignRoleDialog } from '../../_assign-dialog';
-import { PickDialog } from '../../_pick-dialog';
+import { AssignRoleContent } from '../../_assign-dialog';
+import { PickContent } from '../../_pick-dialog';
 import { TenantPicker, useAccessScope } from '../../_scope';
 import { ACCESS_TENANTS, tenantName } from '../../tenants';
 
@@ -179,7 +181,7 @@ export default function AccessRolePage() {
   );
 }
 
-/** "Give this role" — pick people from the target tenant's directory, then the role's own dialog for the end date. */
+/** "Give this role" — one dialog, two steps: pick people from the target tenant's directory, then the end date. */
 function PeoplePickerAssign({ roleId, target, onClose }: { roleId: string; target: string | null; onClose: () => void }) {
   const [picked, setPicked] = useState<string[]>([]);
   const [step, setStep] = useState<'pick' | 'confirm'>('pick');
@@ -188,29 +190,33 @@ function PeoplePickerAssign({ roleId, target, onClose }: { roleId: string; targe
     queryFn: () => authorizationApi.findUsers(target ? { tenantId: target } : {}, 200),
   });
   const candidates = (people.data?.data ?? []).filter((u) => u.tenantId === target && !u.roles.some((x) => x.roleId === roleId));
-  if (step === 'confirm') {
-    return (
-      <AssignRoleDialog
-        open
-        onOpenChange={(o) => !o && onClose()}
-        userIds={picked}
-        label={picked.length === 1 ? (candidates.find((c) => c.id === picked[0])?.name ?? picked[0]) : `${picked.length} people`}
-        tenantId={target}
-        fixedRoleId={roleId}
-      />
-    );
-  }
+  const chosen = picked.map((id) => ({ id, name: candidates.find((c) => c.id === id)?.name ?? id }));
   return (
-    <PickDialog
-      title={`Give ${roleId} to…`}
-      description={`People ${target ? `in ${ACCESS_TENANTS.find((t) => t.id === target)?.name ?? target}` : 'on the platform'} who don't hold it yet.`}
-      loading={people.isLoading}
-      options={candidates.map((c) => ({ value: c.id, label: c.name, hint: c.email ?? c.id }))}
-      picked={picked}
-      onPick={setPicked}
-      onCancel={onClose}
-      onNext={() => setStep('confirm')}
-    />
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        {step === 'pick' ? (
+          <PickContent
+            title={`Give ${roleId} to…`}
+            description={`People ${target ? `in ${ACCESS_TENANTS.find((t) => t.id === target)?.name ?? target}` : 'on the platform'} who don't hold it yet.`}
+            loading={people.isLoading}
+            options={candidates.map((c) => ({ value: c.id, label: c.name, hint: c.email ?? c.id }))}
+            picked={picked}
+            onPick={setPicked}
+            onNext={() => setStep('confirm')}
+          />
+        ) : (
+          <AssignRoleContent
+            userIds={picked}
+            label={picked.length === 1 ? chosen[0].name : `${picked.length} people`}
+            people={chosen}
+            tenantId={target}
+            fixedRoleId={roleId}
+            onBack={() => setStep('pick')}
+            onDone={onClose}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
