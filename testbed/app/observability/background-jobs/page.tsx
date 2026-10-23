@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { LuArrowUpRight, LuDatabase, LuHistory, LuLock } from 'react-icons/lu';
 import {
@@ -40,6 +39,7 @@ import {
   TableHeader,
   TableHeaderRow,
   TableRow,
+  TableRowLink,
   TableWrapper,
   WithError,
   WithSkeleton,
@@ -93,7 +93,6 @@ const plural = (n: number, one: string, many: string) => `${formatCount(n)} ${n 
 
 /** The Background Jobs module's landing page — backgroundJobsNav's one entry points here. */
 export default function BackgroundJobsOverviewPage() {
-  const router = useRouter();
   const [periodValue, setPeriodValue] = useState<Period['value']>('day');
   const period = PERIODS.find((p) => p.value === periodValue) ?? PERIODS[0];
 
@@ -140,15 +139,21 @@ export default function BackgroundJobsOverviewPage() {
           <PageSubtitle>Is any job broken, stuck or stalled — a scheduled job fails quietly, nobody is waiting on it.</PageSubtitle>
         </PageHeaderGroup>
         <PageHeaderAction className="flex w-fit gap-2">
-          <Button variant="secondary" onClick={() => router.push(backgroundJobsLinks.retention())}>
-            <LuDatabase />
-            Volume &amp; Retention
+          <Button variant="secondary" asChild>
+            <Link href={backgroundJobsLinks.retention()}>
+              <LuDatabase />
+              Volume &amp; Retention
+            </Link>
           </Button>
-          <Button variant="secondary" onClick={() => router.push(backgroundJobsLinks.locks())}>
-            <LuLock />
-            Locks
+          <Button variant="secondary" asChild>
+            <Link href={backgroundJobsLinks.locks()}>
+              <LuLock />
+              Locks
+            </Link>
           </Button>
-          <Button onClick={() => router.push(backgroundJobsLinks.list())}>Go to Runs</Button>
+          <Button asChild>
+            <Link href={backgroundJobsLinks.list()}>Go to Runs</Link>
+          </Button>
         </PageHeaderAction>
       </PageHeader>
       <DashboardContent>
@@ -192,7 +197,7 @@ export default function BackgroundJobsOverviewPage() {
               query={jobs}
               emptyTitle="Nothing needs attention"
               emptyDescription="Every job ran clean on its last run and none is overdue."
-              onOpen={(name) => router.push(backgroundJobsLinks.job(name))}
+              href={backgroundJobsLinks.job}
               renderMeta={attentionMeta}
             />
           </div>
@@ -208,7 +213,7 @@ export default function BackgroundJobsOverviewPage() {
                   ? 'See the list beside this one.'
                   : "No job has run and none declares a cadence — or the run recorder isn't wired (jobRunRecorderToken)."
               }
-              onOpen={(name) => router.push(backgroundJobsLinks.job(name))}
+              href={backgroundJobsLinks.job}
               renderMeta={jobMeta}
               note={
                 jobs.data?.length
@@ -313,7 +318,7 @@ function JobsCard({
   query,
   emptyTitle,
   emptyDescription,
-  onOpen,
+  href,
   renderMeta,
   note,
 }: {
@@ -323,7 +328,8 @@ function JobsCard({
   query: { isLoading: boolean; isError: boolean; error: Error | null; data?: unknown; refetch: () => unknown };
   emptyTitle: string;
   emptyDescription: string;
-  onOpen: (name: string) => void;
+  /** The Job screen a row opens. */
+  href: (name: string) => string;
   renderMeta: (job: JobStatus) => string;
   /** What the rows don't say on their own, under the card. */
   note?: string;
@@ -345,11 +351,13 @@ function JobsCard({
             {jobs.map((job) => {
               const health = jobHealth(job);
               return (
-                <TableRow key={job.name} className="cursor-pointer" onClick={() => onOpen(job.name)}>
+                <TableRow key={job.name}>
                   {/* One cell: the name and its health on a line, the detail below at the row's full width. */}
                   <TableCell className="max-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <SimpleBadge>{job.name}</SimpleBadge>
+                      <TableRowLink href={href(job.name)}>
+                        <SimpleBadge>{job.name}</SimpleBadge>
+                      </TableRowLink>
                       <SimpleBadge variant={health.variant}>{health.label}</SimpleBadge>
                     </div>
                     <div className="text-muted-foreground mt-1 truncate text-xs" title={renderMeta(job)}>

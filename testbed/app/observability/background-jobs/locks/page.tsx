@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
   BackLink,
@@ -23,6 +22,7 @@ import {
   TableHeader,
   TableHeaderRow,
   TableRow,
+  TableRowLink,
   TableWrapper,
 } from '@/ascendra-ui';
 import { Separator } from '@/ascendra-ui/shadcn';
@@ -40,7 +40,6 @@ const STATE = {
  * row is deleted, so every row is one or the other. Read-only: no force-release. Reached via the Overview's header.
  */
 export default function BackgroundJobLocksPage() {
-  const router = useRouter();
   const locks = useQuery({ queryKey: ['background-jobs-locks'], queryFn: () => backgroundJobsApi.locks() });
   const rows = locks.data?.locks ?? [];
   const unsupported = locks.data?.supported === false;
@@ -87,13 +86,15 @@ export default function BackgroundJobLocksPage() {
             {rows.length > 0 && (
               <TableBody>
                 {rows.map((lock) => (
-                  <TableRow
-                    key={lock.lockKey}
-                    className={lock.jobName ? 'cursor-pointer' : undefined}
-                    onClick={lock.jobName ? () => router.push(backgroundJobsLinks.job(lock.jobName!)) : undefined}
-                  >
+                  <TableRow key={lock.lockKey}>
                     <TableCell>
-                      <SimpleBadge>{lock.jobName ?? lock.lockKey}</SimpleBadge>
+                      {lock.jobName ? (
+                        <TableRowLink href={backgroundJobsLinks.job(lock.jobName)}>
+                          <SimpleBadge>{lock.jobName}</SimpleBadge>
+                        </TableRowLink>
+                      ) : (
+                        <SimpleBadge>{lock.lockKey}</SimpleBadge>
+                      )}
                     </TableCell>
                     <TableCell>
                       <IdText value={lock.holder} className="text-muted-foreground" showTooltip={false} />

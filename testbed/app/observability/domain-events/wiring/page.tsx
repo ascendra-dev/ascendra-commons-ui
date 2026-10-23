@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
   BackLink,
@@ -26,6 +25,7 @@ import {
   TableHeader,
   TableHeaderRow,
   TableRow,
+  TableRowLink,
   TableWrapper,
 } from '@/ascendra-ui';
 import { Separator } from '@/ascendra-ui/shadcn';
@@ -84,7 +84,6 @@ const eventLink = (asOf: number, period: Period, eventName: string) =>
  * the Overview's header and its Wiring problems card — not nav.
  */
 export default function DomainEventWiringPage() {
-  const router = useRouter();
   const [periodValue, setPeriodValue] = useState<Period['value']>('retained');
   const [show, setShow] = useState<(typeof SHOW)[number]['value']>('all');
   const period = PERIODS.find((p) => p.value === periodValue) ?? PERIODS[2];
@@ -181,13 +180,15 @@ export default function DomainEventWiringPage() {
                     ? eventLink(catalog.dataUpdatedAt, period, row.eventName)
                     : undefined;
                   return (
-                    <TableRow
-                      key={row.eventName}
-                      className={href ? 'cursor-pointer' : undefined}
-                      onClick={href ? () => router.push(href) : undefined}
-                    >
+                    <TableRow key={row.eventName}>
                       <TableCell className="align-top whitespace-nowrap">
-                        <SimpleBadge>{row.eventName}</SimpleBadge>
+                        {href ? (
+                          <TableRowLink href={href}>
+                            <SimpleBadge>{row.eventName}</SimpleBadge>
+                          </TableRowLink>
+                        ) : (
+                          <SimpleBadge>{row.eventName}</SimpleBadge>
+                        )}
                         {row.fired && (
                           <div className="text-muted-foreground mt-1 text-xs">
                             last{' '}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { LuList, LuLoaderCircle, LuPlay } from 'react-icons/lu';
 import {
@@ -72,7 +72,6 @@ const timeOfDay = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { h
 /** One job — is it healthy, what keeps failing, and run it now. Opened from either Overview list. */
 export default function BackgroundJobPage() {
   const name = decodeURIComponent(useParams<{ name: string }>().name);
-  const router = useRouter();
   const [selected, setSelected] = useState<JobRun | null>(null);
 
   // Same key as the Overview — one read of GET /jobs serves both; this screen is its one row.
@@ -94,14 +93,11 @@ export default function BackgroundJobPage() {
           <PageSubtitle>Is it healthy, what keeps failing — and run it now.</PageSubtitle>
         </PageHeaderGroup>
         <PageHeaderAction className="flex w-fit gap-2">
-          <Button
-            variant="secondary"
-            onClick={() =>
-              router.push(backgroundJobsLinks.list({ queryId: backgroundJobsQueryIds.advancedFilter, params: { jobName: name } }))
-            }
-          >
-            <LuList />
-            All runs of this job
+          <Button variant="secondary" asChild>
+            <Link href={backgroundJobsLinks.list({ queryId: backgroundJobsQueryIds.advancedFilter, params: { jobName: name } })}>
+              <LuList />
+              All runs of this job
+            </Link>
           </Button>
           {job && <RunNowButton job={job} />}
         </PageHeaderAction>

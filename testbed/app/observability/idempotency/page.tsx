@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { LuArrowUpRight, LuHistory } from 'react-icons/lu';
 import {
@@ -39,6 +38,7 @@ import {
   TableHeader,
   TableHeaderRow,
   TableRow,
+  TableRowLink,
   TableWrapper,
   WithError,
   WithSkeleton,
@@ -92,7 +92,6 @@ type Tone = 'warn' | 'alert' | undefined;
 
 /** The Idempotency module's landing page — idempotencyNav's one entry points here. */
 export default function IdempotencyOverviewPage() {
-  const router = useRouter();
   const [periodValue, setPeriodValue] = useState<Period['value']>('day');
   const [selected, setSelected] = useState<IdempotencyClaim | null>(null);
   const period = PERIODS.find((p) => p.value === periodValue) ?? PERIODS[1];
@@ -167,7 +166,9 @@ export default function IdempotencyOverviewPage() {
           <PageSubtitle>The repeats it absorbed, and whether anything ran twice.</PageSubtitle>
         </PageHeaderGroup>
         <PageHeaderAction className="flex w-fit gap-2">
-          <Button onClick={() => router.push(idempotencyLinks.list())}>Go to Claims</Button>
+          <Button asChild>
+            <Link href={idempotencyLinks.list()}>Go to Claims</Link>
+          </Button>
         </PageHeaderAction>
       </PageHeader>
       <DashboardContent>
@@ -264,14 +265,16 @@ export default function IdempotencyOverviewPage() {
                 {endpointRows.length > 0 && (
                   <TableBody>
                     {endpointRows.map((row) => (
-                      <TableRow
-                        key={row.route ?? '(none)'}
-                        className={row.href ? 'cursor-pointer' : undefined}
-                        onClick={row.href ? () => router.push(row.href as string) : undefined}
-                      >
+                      <TableRow key={row.route ?? '(none)'}>
                         <TableCell>
                           <div className="flex flex-wrap items-center gap-1.5">
-                            <SimpleBadge>{routeLabel(row.route)}</SimpleBadge>
+                            {row.href ? (
+                              <TableRowLink href={row.href}>
+                                <SimpleBadge>{routeLabel(row.route)}</SimpleBadge>
+                              </TableRowLink>
+                            ) : (
+                              <SimpleBadge>{routeLabel(row.route)}</SimpleBadge>
+                            )}
                             {row.lateCompleteNoOps > 0 && <SimpleBadge variant="red">{formatCount(row.lateCompleteNoOps)} ran twice</SimpleBadge>}
                           </div>
                           <div className="text-muted-foreground mt-1 text-xs">{formatCount(row.claims)} claims</div>

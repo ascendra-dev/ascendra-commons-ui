@@ -2,7 +2,6 @@
 
 import { useMemo } from 'react';
 import { format } from 'date-fns';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
   BackLink,
@@ -11,6 +10,7 @@ import {
   CardHeaderSubtitle,
   CardHeaderTitle,
   CardPanel,
+  ChartBarLink,
   DashboardContent,
   ErrorMessage,
   ErrorState,
@@ -99,7 +99,6 @@ function volumeTiles(volume: RejectionVolume | undefined) {
 /** Reached via the "Volume & Retention" button on the Rate Limiting overview — not nav. Audit's Retention & Volume, for
  *  rate limits. */
 export default function RateLimitRetentionPage() {
-  const router = useRouter();
   const placeholderPerDay = useMemo(() => buildPlaceholderPerDay(), []);
   const volume = useQuery({ queryKey: ['rate-limit-volume'], queryFn: fetchVolume });
   const stats = volume.data;
@@ -185,14 +184,11 @@ export default function RateLimitRetentionPage() {
                       </ChartContainer>
                     </SkeletonState>
                     <NormalState if={!!stats}>
-                      <ChartContainer config={chartConfig} className="h-56 w-full cursor-pointer">
-                        {/* A click anywhere in a day's column (not just its bar) opens that day's rejections. */}
+                      <ChartContainer config={chartConfig} className="h-56 w-full">
+                        {/* Each day's column is a link (ChartBarLink on the top bar) — anywhere in it, not just its bar — to that day's rejections. */}
                         <BarChart
                           data={perDay}
                           margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
-                          onClick={(state) => {
-                            if (state.activeLabel != null) router.push(dayLink(String(state.activeLabel)));
-                          }}
                         >
                           <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.6} strokeWidth={0.5} />
                           <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} interval={4} tickFormatter={formatDayTick} />
@@ -212,7 +208,10 @@ export default function RateLimitRetentionPage() {
                               />
                             }
                           />
-                          <Bar dataKey="count" fill="var(--color-count)" radius={[3, 3, 0, 0]} />
+                          <Bar
+                            dataKey="count" fill="var(--color-count)" radius={[3, 3, 0, 0]}
+                            shape={<ChartBarLink href={(row: { day: string }) => dayLink(row.day)} />}
+                          />
                         </BarChart>
                       </ChartContainer>
                     </NormalState>

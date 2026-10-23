@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 import { format } from 'date-fns';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
   BackLink,
@@ -12,6 +11,7 @@ import {
   CardHeaderSubtitle,
   CardHeaderTitle,
   CardPanel,
+  ChartBarLink,
   DashboardContent,
   ErrorMessage,
   ErrorState,
@@ -105,7 +105,6 @@ function volumeTiles(volume: RunVolume | undefined) {
 
 /** Reached via the "Volume & Retention" button on the Background Jobs overview — not nav. Domain events', for runs. */
 export default function BackgroundJobRetentionPage() {
-  const router = useRouter();
   const placeholderPerDay = useMemo(() => buildPlaceholderPerDay(), []);
   // Same key as the Overview's oldest-run footnote — one read serves both.
   const volume = useQuery({ queryKey: ['background-jobs-volume'], queryFn: fetchVolume });
@@ -197,14 +196,11 @@ export default function BackgroundJobRetentionPage() {
                       </ChartContainer>
                     </SkeletonState>
                     <NormalState if={!!stats}>
-                      <ChartContainer config={chartConfig} className="h-56 w-full cursor-pointer">
-                        {/* A click anywhere in a day's column (not just its bar) opens that day's runs. */}
+                      <ChartContainer config={chartConfig} className="h-56 w-full">
+                        {/* Each day's column is a link (ChartBarLink on the top bar) — anywhere in it, not just its bar — to that day's runs. */}
                         <BarChart
                           data={rows}
                           margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
-                          onClick={(state) => {
-                            if (state.activeLabel != null) router.push(dayLink(String(state.activeLabel)));
-                          }}
                         >
                           <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.6} strokeWidth={0.5} />
                           <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} interval={4} tickFormatter={formatDayTick} />
@@ -226,7 +222,10 @@ export default function BackgroundJobRetentionPage() {
                           />
                           <Bar dataKey="clean" stackId="day" fill="var(--color-clean)" />
                           <Bar dataKey="withFailedItems" stackId="day" fill="var(--color-withFailedItems)" />
-                          <Bar dataKey="jobFailed" stackId="day" fill="var(--color-jobFailed)" radius={[3, 3, 0, 0]} />
+                          <Bar
+                            dataKey="jobFailed" stackId="day" fill="var(--color-jobFailed)" radius={[3, 3, 0, 0]}
+                            shape={<ChartBarLink href={(row: { day: string }) => dayLink(row.day)} />}
+                          />
                         </BarChart>
                       </ChartContainer>
                     </NormalState>

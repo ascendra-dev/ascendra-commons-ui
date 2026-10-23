@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import { format } from "date-fns";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   Button,
@@ -12,6 +11,7 @@ import {
   CardHeaderSubtitle,
   CardHeaderTitle,
   CardPanel,
+  ChartBarLink,
   DashboardContent,
   DataTableEmptyBody,
   DataTableErrorBody,
@@ -39,6 +39,7 @@ import {
   TableHeader,
   TableHeaderRow,
   TableRow,
+  TableRowLink,
   TableWrapper,
   WithError,
   WithSkeleton,
@@ -164,7 +165,6 @@ const fetchTopActions = auditApi.topActions;
 
 /** The Audit Log module's landing page — auditLoggingNav's one entry points here. */
 export default function AuditOverviewPage() {
-  const router = useRouter();
   const placeholderPerDay = useMemo(() => buildPlaceholderPerDay(), []);
 
   const overview = useQuery({
@@ -204,15 +204,14 @@ export default function AuditOverviewPage() {
           </PageSubtitle>
         </PageHeaderGroup>
         <PageHeaderAction className="flex w-fit gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => router.push(auditLogLinks.retention())}
-          >
-            <LuDatabase />
-            Retention &amp; Volume
+          <Button variant="secondary" asChild>
+            <Link href={auditLogLinks.retention()}>
+              <LuDatabase />
+              Retention &amp; Volume
+            </Link>
           </Button>
-          <Button onClick={() => router.push(auditLogLinks.list())}>
-            Go to Audit Log
+          <Button asChild>
+            <Link href={auditLogLinks.list()}>Go to Audit Log</Link>
           </Button>
         </PageHeaderAction>
       </PageHeader>
@@ -364,15 +363,12 @@ export default function AuditOverviewPage() {
                     <NormalState if={!!overview.data}>
                       <ChartContainer
                         config={chartConfig}
-                        className="h-56 w-full cursor-pointer"
+                        className="h-56 w-full"
                       >
-                        {/* A click anywhere in a day's column (not just its bar) opens that UTC day's records. */}
+                        {/* Each day's column is a link (ChartBarLink on the top bar) — anywhere in it, not just its bar — to that UTC day's records. */}
                         <BarChart
                           data={overview.data?.perDay ?? []}
                           margin={{ top: 4, right: 12, left: 0, bottom: 0 }}
-                          onClick={(state) => {
-                            if (state.activeLabel != null) router.push(dayEventsLink(String(state.activeLabel)));
-                          }}
                         >
                           <CartesianGrid
                             vertical={false}
@@ -410,6 +406,13 @@ export default function AuditOverviewPage() {
                             dataKey="count"
                             fill="var(--color-count)"
                             radius={[3, 3, 0, 0]}
+                            shape={
+                              <ChartBarLink
+                                href={(row: { day: string }) =>
+                                  dayEventsLink(row.day)
+                                }
+                              />
+                            }
                           />
                         </BarChart>
                       </ChartContainer>
@@ -457,20 +460,16 @@ export default function AuditOverviewPage() {
                 {topActions.data && topActions.data.topActions.length > 0 && (
                   <TableBody>
                     {topActions.data.topActions.map((row) => (
-                      <TableRow
-                        key={`${row.entityType}/${row.action}`}
-                        className="cursor-pointer"
-                        onClick={() =>
-                          router.push(
-                            recentEventsLink(topActions.dataUpdatedAt, TOP_ACTIONS_DAYS, {
+                      <TableRow key={`${row.entityType}/${row.action}`}>
+                        <TableCell>
+                          <TableRowLink
+                            href={recentEventsLink(topActions.dataUpdatedAt, TOP_ACTIONS_DAYS, {
                               entityType: row.entityType,
                               action: row.action,
-                            }),
-                          )
-                        }
-                      >
-                        <TableCell>
-                          <SimpleBadge>{auditActionLabel(row)}</SimpleBadge>
+                            })}
+                          >
+                            <SimpleBadge>{auditActionLabel(row)}</SimpleBadge>
+                          </TableRowLink>
                         </TableCell>
                         <TableCell className="font-mono tabular-nums">
                           {formatCount(row.count)}

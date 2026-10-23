@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { LuArrowUpRight, LuDatabase, LuHistory, LuNetwork } from 'react-icons/lu';
 import {
@@ -38,6 +37,7 @@ import {
   TableHeader,
   TableHeaderRow,
   TableRow,
+  TableRowLink,
   TableWrapper,
   WithError,
   WithSkeleton,
@@ -84,7 +84,6 @@ type Tone = 'warn' | 'alert' | undefined;
 
 /** The Domain Events module's landing page — domainEventsNav's one entry points here. */
 export default function DomainEventsOverviewPage() {
-  const router = useRouter();
   const [periodValue, setPeriodValue] = useState<Period['value']>('week');
   const period = PERIODS.find((p) => p.value === periodValue) ?? PERIODS[1];
 
@@ -158,15 +157,21 @@ export default function DomainEventsOverviewPage() {
           <PageSubtitle>What fired, who was listening — and whether the wiring is sound.</PageSubtitle>
         </PageHeaderGroup>
         <PageHeaderAction className="flex w-fit gap-2">
-          <Button variant="secondary" onClick={() => router.push(domainEventsLinks.retention())}>
-            <LuDatabase />
-            Volume &amp; Retention
+          <Button variant="secondary" asChild>
+            <Link href={domainEventsLinks.retention()}>
+              <LuDatabase />
+              Volume &amp; Retention
+            </Link>
           </Button>
-          <Button variant="secondary" onClick={() => router.push(domainEventsLinks.wiring())}>
-            <LuNetwork />
-            Wiring
+          <Button variant="secondary" asChild>
+            <Link href={domainEventsLinks.wiring()}>
+              <LuNetwork />
+              Wiring
+            </Link>
           </Button>
-          <Button onClick={() => router.push(domainEventsLinks.list())}>Go to Deliveries</Button>
+          <Button asChild>
+            <Link href={domainEventsLinks.list()}>Go to Deliveries</Link>
+          </Button>
         </PageHeaderAction>
       </PageHeader>
       <DashboardContent>
@@ -256,10 +261,12 @@ export default function DomainEventsOverviewPage() {
                 {eventRows.length > 0 && (
                   <TableBody>
                     {eventRows.map((row) => (
-                      <TableRow key={row.eventName} className="cursor-pointer" onClick={() => router.push(row.href)}>
+                      <TableRow key={row.eventName}>
                         <TableCell className="whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
-                            <SimpleBadge>{row.eventName}</SimpleBadge>
+                            <TableRowLink href={row.href}>
+                              <SimpleBadge>{row.eventName}</SimpleBadge>
+                            </TableRowLink>
                             {row.critical && <SimpleBadge variant="blue">critical</SimpleBadge>}
                             {row.noListenerCount > 0 && <SimpleBadge variant="orange">no listeners</SimpleBadge>}
                           </div>
@@ -307,9 +314,11 @@ export default function DomainEventsOverviewPage() {
                     {problems
                       .filter((p) => p.rows.length > 0)
                       .map((p) => (
-                        <TableRow key={p.key} className="cursor-pointer" onClick={() => router.push(domainEventsLinks.wiring())}>
+                        <TableRow key={p.key}>
                           <TableCell>
-                            <div className="text-sm">{p.title}</div>
+                            <TableRowLink href={domainEventsLinks.wiring()} className="block text-sm">
+                              {p.title}
+                            </TableRowLink>
                             <div className="text-muted-foreground mt-1 flex flex-col gap-0.5 text-xs">
                               {p.rows.map((row) => (
                                 <span key={row.eventName}>
