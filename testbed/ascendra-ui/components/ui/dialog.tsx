@@ -108,8 +108,8 @@ function DialogContent({
           </DialogFooterSlotContext.Provider>
         </div>
 
-        {/* DialogFooter renders outside the raised card, flat in the gray shell */}
-        <div ref={setFooterSlot} data-slot="dialog-footer-wrapper" className="p-4 empty:hidden" />
+        {/* DialogFooter renders outside the raised card, flat in the gray shell — its buttons run to the dialog's edge */}
+        <div ref={setFooterSlot} data-slot="dialog-footer-wrapper" className="pt-4 empty:hidden" />
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   );
@@ -178,6 +178,8 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
       className={cn(
         "grid auto-cols-fr grid-flow-col gap-3",
         "[&_button]:justify-center",
+        // The buttons touch the dialog's clipped edge — draw the focus ring inside them, in their own text color.
+        "[&_button]:focus-visible:-outline-offset-4 [&_button]:focus-visible:outline-current",
         className,
       )}
       {...props}
