@@ -60,8 +60,9 @@ export function Card({
         className={cn(
           "group bg-muted flex flex-col rounded-xl pb-1 has-data-[slot=card-header]:pt-1",
           danger && "bg-red-50 dark:bg-(--color-red-1500)",
-          // Folded, it hugs its header and footer — not stretched to a taller neighbour in a grid or flex row.
-          collapseable && collapsed && "self-start",
+          // Folded, it hugs its header and footer — not stretched to a taller neighbour in a grid or flex row. Height
+          // only: self-start would also shrink its width in a flex column.
+          collapseable && collapsed && "h-fit",
           hasError &&
             collapsed &&
             "outline-2 -outline-offset-2 outline-destructive",
