@@ -330,7 +330,7 @@ function JobsCard({
   note?: string;
 }) {
   return (
-    <Card collapseable="expanded">
+    <Card collapseable="expanded" maximizable>
       <CardHeader>
         <CardHeaderTitle>{title}</CardHeaderTitle>
         <CardHeaderSubtitle>{subtitle}</CardHeaderSubtitle>

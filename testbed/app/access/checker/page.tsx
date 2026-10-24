@@ -257,7 +257,7 @@ function WhoCan({
         <ActionPicker value={action} onChange={(next) => onChange({ action: next })} />
       </div>
       {action && (
-        <Card collapseable="expanded">
+        <Card collapseable="expanded" maximizable>
           <CardHeader>
             <CardHeaderTitle>Who can {action}</CardHeaderTitle>
             <CardHeaderSubtitle>

@@ -179,7 +179,7 @@ export default function BackgroundJobRetentionPage() {
               </Card>
             </div>
 
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Runs per day</CardHeaderTitle>
                 <CardHeaderSubtitle>{subtitle}</CardHeaderSubtitle>

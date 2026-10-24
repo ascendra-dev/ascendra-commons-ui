@@ -335,7 +335,7 @@ export default function AuditOverviewPage() {
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
             {!overview.isError && (
-                <Card collapseable="expanded">
+                <Card collapseable="expanded" maximizable>
                   <CardHeader>
                     <CardHeaderTitle>Volume by day</CardHeaderTitle>
                     <CardHeaderSubtitle>{volumeSubtitle}</CardHeaderSubtitle>
@@ -444,7 +444,7 @@ export default function AuditOverviewPage() {
             )}
           </div>
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Top actions</CardHeaderTitle>
                 <CardHeaderSubtitle>Past {TOP_ACTIONS_DAYS} days · most records first</CardHeaderSubtitle>

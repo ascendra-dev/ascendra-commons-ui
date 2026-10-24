@@ -94,7 +94,7 @@ export default function AccessCatalogPage() {
           />
         </div>
 
-        <Card collapseable="expanded">
+        <Card collapseable="expanded" maximizable>
           <CardHeader>
             <CardHeaderTitle>Actions</CardHeaderTitle>
             <CardHeaderSubtitle>By module · a platform action reads or changes every tenant&apos;s data</CardHeaderSubtitle>

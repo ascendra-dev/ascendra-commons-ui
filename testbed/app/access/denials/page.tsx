@@ -90,7 +90,7 @@ export default function AccessDenialsPage() {
         </div>
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Most refused</CardHeaderTitle>
                 <CardHeaderSubtitle>{period.label} · the action they lacked</CardHeaderSubtitle>
@@ -123,7 +123,7 @@ export default function AccessDenialsPage() {
             </Card>
           </div>
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Most refused people</CardHeaderTitle>
                 <CardHeaderSubtitle>{period.label} · refusals and how many actions</CardHeaderSubtitle>

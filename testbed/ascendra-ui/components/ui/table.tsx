@@ -15,7 +15,7 @@ import { PaginationButton } from "@/ascendra-ui/components/common-ui/pagination-
 import { cn, Separator } from "@/ascendra-ui/shadcn";
 import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars";
 import { useVisibleRowsHeight } from "@/ascendra-ui/hooks/use-visible-rows-height";
-import { useCardContext } from "@/ascendra-ui/components/card/card";
+import { flashElement, useCardContext } from "@/ascendra-ui/components/card/card";
 import { type PaginationState } from "@/ascendra-ui/providers/data-table/use-pagination.hook";
 import {
   buildBorderClasses,
@@ -30,6 +30,7 @@ import {
   LuChevronLast,
   LuChevronLeft,
   LuChevronRight,
+  LuMinimize2,
   LuLoaderCircle,
 } from "react-icons/lu";
 
@@ -350,8 +351,8 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
 const rowLinkRowClasses = [
   "has-data-[slot=table-row-link]:relative",
   "has-data-[slot=row-end-icon]:relative",
-  "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],[role=checkbox],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip],[data-slot=table-checkbox-cell])]:relative",
-  "has-data-[slot=table-row-link]:[&_:is(button,input,select,textarea,[role=button],[role=checkbox],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip],[data-slot=table-checkbox-cell])]:z-2",
+  "has-data-[slot=table-row-link]:[&_:is(button:not([data-slot=table-row-link]),input,select,textarea,[role=button],[role=checkbox],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip],[data-slot=table-checkbox-cell])]:relative",
+  "has-data-[slot=table-row-link]:[&_:is(button:not([data-slot=table-row-link]),input,select,textarea,[role=button],[role=checkbox],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip],[data-slot=table-checkbox-cell])]:z-2",
 ];
 
 /** Lucide's panel-right, as a mask — the same icon RowEndIcon draws for a sheet, drawn by the row itself. */
@@ -406,13 +407,13 @@ function TableRow({
 }
 
 /**
- * Where a row goes, at its right end — a chevron for a page, an arrow out for another site (a sheet's panel: see
- * rowSheetIcon) — so
+ * Where a row goes, at its right end — a chevron for a page, an arrow out for another site, inward arrows in a
+ * maximized card (the click restores it; a sheet's panel: see rowSheetIcon) — so
  * it can be told before the click. In the row's right padding (it pushes no column), shown on hover or keyboard focus,
  * and always on a touch screen. Positioned against the row (which every row component makes `relative` for it).
  */
-function RowEndIcon({ kind }: { kind: "page" | "external" }) {
-  const Icon = kind === "external" ? LuArrowUpRight : LuChevronRight;
+function RowEndIcon({ kind }: { kind: "page" | "external" | "restore" }) {
+  const Icon = { page: LuChevronRight, external: LuArrowUpRight, restore: LuMinimize2 }[kind];
   return (
     <span
       data-slot="row-end-icon"
@@ -433,6 +434,10 @@ function RowEndIcon({ kind }: { kind: "page" | "external" }) {
  * stretches over every cell of the row. One per row: a cell that goes somewhere else uses an ordinary link, which
  * sits above the overlay. A row that opens a sheet keeps its `onClick` and takes `opensSheet` instead.
  * The row ends in a chevron (an arrow out with `external`).
+ *
+ * In a maximized card (which is for reading) a page link doesn't leave: the row becomes a button that brings the card
+ * back, then scrolls to the row, tints it and focuses its link — the next click goes there, in context. An `external`
+ * link still opens its new tab.
  */
 function TableRowLink({
   className,
@@ -440,15 +445,41 @@ function TableRowLink({
   external = false,
   ...props
 }: React.ComponentProps<typeof Link> & { external?: boolean }) {
+  const { maximized, restore } = useCardContext();
+  const linkClasses = cn(
+    // z-1: above the row's positioned content (a SimpleBadge is `relative`), which would otherwise paint over it.
+    "outline-none after:absolute after:inset-0 after:z-1 after:content-['']",
+    "focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-ring",
+    className,
+  );
+
+  if (maximized && !external) {
+    return (
+      <button
+        type="button"
+        data-slot="table-row-link"
+        className={cn("cursor-pointer text-left", linkClasses)}
+        onClick={(event) => {
+          const row = event.currentTarget.closest("tr, [role=listitem]");
+          restore(() => {
+            if (!row) return;
+            row.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            flashElement(row);
+            row.querySelector<HTMLElement>("[data-slot=table-row-link]")?.focus({ preventScroll: true });
+          });
+        }}
+      >
+        {children}
+        <span className="sr-only"> — restores the section; then open it</span>
+        <RowEndIcon kind="restore" />
+      </button>
+    );
+  }
+
   return (
     <Link
       data-slot="table-row-link"
-      className={cn(
-        // z-1: above the row's positioned content (a SimpleBadge is `relative`), which would otherwise paint over it.
-        "outline-none after:absolute after:inset-0 after:z-1 after:content-['']",
-        "focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-ring",
-        className,
-      )}
+      className={linkClasses}
       {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       {...props}
     >

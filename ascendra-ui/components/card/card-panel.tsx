@@ -53,6 +53,7 @@ export function CardPanel({
         )}
       >
         <div
+          data-slot="card-panel-body"
           className={cn(
             "bg-background mx-1 flex flex-1 flex-col rounded-lg ring-1 ring-(--color-umbra)/4 dark:ring-black/20",
             maximized && "min-h-0 overflow-y-auto",

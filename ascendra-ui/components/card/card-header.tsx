@@ -12,9 +12,24 @@ const headerClasses = cn(
   "border-border group-has-[>[data-slot=card-table][data-collapsed=false]]:border-b",
 );
 
+/** A ring for keyboard focus only — a mouse click (and the card moving once maximized) never draws one. */
+const toggleClasses = cn(
+  "text-muted-foreground hover:text-foreground cursor-pointer rounded-sm transition-[color,opacity]",
+  "outline-none focus-visible:ring-2 focus-visible:ring-ring",
+);
+
+/** What a click on the header leaves alone — the header's own controls take their clicks. */
+const INTERACTIVE = "button, a, input, select, textarea, [role=button], [role=checkbox], [role=switch], [role=menuitem]";
+
+/**
+ * A collapseable card folds on a click anywhere on its header (not on a control inside it, nor when text was being
+ * selected); the chevron is the keyboard's way in. With `maximizable` too, only the maximize toggle shows at rest — the
+ * chevron fades in beside it on hover or keyboard focus, and stays on a touch screen.
+ */
 export function CardHeader({
   className,
   children,
+  onClick,
   ...props
 }: React.ComponentProps<"header">) {
   const { collapseable, collapsed, onToggle, maximizable, maximized, onToggleMaximize } = useCardContext();
@@ -24,6 +39,7 @@ export function CardHeader({
       <header
         data-slot="card-header"
         className={cn(headerClasses, className)}
+        onClick={onClick}
         {...props}
       >
         {children}
@@ -31,35 +47,51 @@ export function CardHeader({
     );
   }
 
+  // Folding a card that fills the screen means nothing — the chevron and the header click wait until it's back.
+  const foldable = collapseable && !maximized;
+
   return (
     <header
       data-slot="card-header"
-      className={cn(headerClasses, className)}
+      className={cn(headerClasses, foldable && "group/header cursor-pointer", className)}
+      onClick={(event) => {
+        onClick?.(event);
+        if (!foldable || event.defaultPrevented) return;
+        if ((event.target as Element).closest(INTERACTIVE)) return;
+        if (window.getSelection()?.toString()) return;
+        onToggle();
+      }}
       {...props}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">{children}</div>
         <div className="flex shrink-0 items-center gap-2">
-          {maximizable && (
+          {foldable && (
             <button
               type="button"
-              aria-label={maximized ? "Restore section" : "Maximize section"}
-              onClick={onToggleMaximize}
-              className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
-            >
-              {maximized ? <LuMinimize2 className="size-3.5" /> : <LuMaximize2 className="size-3.5" />}
-            </button>
-          )}
-          {/* Folding a card that fills the screen means nothing — the chevron waits until it's back. */}
-          {collapseable && !maximized && (
-            <button
-              type="button"
+              data-slot="card-collapse"
               aria-label={collapsed ? "Expand section" : "Collapse section"}
+              aria-expanded={!collapsed}
               onClick={onToggle}
-              className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+              className={cn(
+                toggleClasses,
+                maximizable &&
+                  "opacity-0 group-hover/header:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100",
+              )}
             >
               {/* A chevron — maximize/minimize icons are for a card that fills the screen, not one that folds. */}
               <LuChevronDown className={cn("size-4 transition-transform duration-300", !collapsed && "rotate-180")} />
+            </button>
+          )}
+          {maximizable && (
+            <button
+              type="button"
+              data-slot="card-maximize"
+              aria-label={maximized ? "Restore section" : "Maximize section"}
+              onClick={onToggleMaximize}
+              className={toggleClasses}
+            >
+              {maximized ? <LuMinimize2 className="size-3.5" /> : <LuMaximize2 className="size-3.5" />}
             </button>
           )}
         </div>

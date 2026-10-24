@@ -145,7 +145,7 @@ export default function AuditRetentionPage() {
               </Card>
             </div>
 
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Volume by month</CardHeaderTitle>
                 <CardHeaderSubtitle>Records per month since the oldest, UTC</CardHeaderSubtitle>

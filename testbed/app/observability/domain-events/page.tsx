@@ -242,7 +242,7 @@ export default function DomainEventsOverviewPage() {
 
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Busiest events</CardHeaderTitle>
                 <CardHeaderSubtitle>{period.label} · most deliveries first</CardHeaderSubtitle>
@@ -289,7 +289,7 @@ export default function DomainEventsOverviewPage() {
           </div>
 
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Wiring problems</CardHeaderTitle>
                 <CardHeaderSubtitle>{period.label} · never-fires over everything retained</CardHeaderSubtitle>

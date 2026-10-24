@@ -4,7 +4,6 @@ import * as React from "react";
 import { Dialog as SheetPrimitive } from "radix-ui";
 import { X } from "lucide-react";
 import { cn } from "@/ascendra-ui/shadcn";
-import { overlayClasses } from "./overlay-styles";
 import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars";
 import { OverlayPopupLayer } from "./popup-layer";
 import {
@@ -23,8 +22,8 @@ function SheetOverlay({
       data-slot="sheet-overlay"
       className={cn(
         "data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0",
-        "fixed inset-0 z-200 duration-300",
-        ...overlayClasses,
+        // No tint — the page beside a sheet stays in view (the layer still takes the outside click).
+        "fixed inset-0 z-200 bg-transparent duration-150",
         className,
       )}
       {...props}

@@ -126,7 +126,7 @@ export default function AccessPersonPage() {
             <AccessCard access={p?.access} loading={person.isLoading} names={names} />
           </div>
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Refused</CardHeaderTitle>
                 <CardHeaderSubtitle>Denied requests · past 7 days</CardHeaderSubtitle>
@@ -208,7 +208,7 @@ function RolesCard({
   const rows = [...(assignments ?? [])].sort((a, b) => (a.status === b.status ? b.grantedAt.localeCompare(a.grantedAt) : a.status === 'active' ? -1 : 1));
 
   return (
-    <Card collapseable="expanded">
+    <Card collapseable="expanded" maximizable>
       <CardHeader>
         <CardHeaderTitle>Roles</CardHeaderTitle>
         <CardHeaderSubtitle>Given by · until · active first</CardHeaderSubtitle>
@@ -286,7 +286,7 @@ function AccessCard({ access, loading, names }: { access?: AccessExplanation; lo
   const groups = groupByModule(actions, (a) => a);
 
   return (
-    <Card collapseable="expanded">
+    <Card collapseable="expanded" maximizable>
       <CardHeader>
         <CardHeaderTitle>What they can do</CardHeaderTitle>
         <CardHeaderSubtitle>
@@ -334,7 +334,7 @@ function AccessCard({ access, loading, names }: { access?: AccessExplanation; lo
 function DelegationsCard({ userId, delegations, loading, names }: { userId: string; delegations?: Delegation[]; loading: boolean; names: ReadonlyMap<string, string> }) {
   const rows = delegations ?? [];
   return (
-    <Card collapseable="expanded">
+    <Card collapseable="expanded" maximizable>
       <CardHeader>
         <CardHeaderTitle>Delegations</CardHeaderTitle>
         <CardHeaderSubtitle>Lent and received · newest first</CardHeaderSubtitle>

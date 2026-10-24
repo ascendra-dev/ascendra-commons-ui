@@ -316,7 +316,7 @@ type ListQuery<T> = { data?: T; isLoading: boolean; isError: boolean; error: Err
 function FailedItemsCard({ query }: { query: ListQuery<Awaited<ReturnType<typeof backgroundJobsApi.failedItems>>> }) {
   const items = query.data ?? [];
   return (
-    <Card collapseable="expanded">
+    <Card collapseable="expanded" maximizable>
       <CardHeader>
         <CardHeaderTitle>Failed items</CardHeaderTitle>
         <CardHeaderSubtitle>Failing in 2+ of its last {STREAK_WINDOW} runs · matched by label, best-effort</CardHeaderSubtitle>
@@ -370,7 +370,7 @@ function RecentRunsCard({
 }) {
   const runs = query.data?.data ?? [];
   return (
-    <Card collapseable="expanded">
+    <Card collapseable="expanded" maximizable>
       <CardHeader>
         <CardHeaderTitle>Recent runs</CardHeaderTitle>
         <CardHeaderSubtitle>Its latest {RECENT_RUNS}, newest first</CardHeaderSubtitle>

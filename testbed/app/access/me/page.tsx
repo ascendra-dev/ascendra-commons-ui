@@ -72,7 +72,7 @@ export default function MyAccessPage() {
       <DashboardContent>
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>What I can do</CardHeaderTitle>
                 <CardHeaderSubtitle>
@@ -139,7 +139,7 @@ function LentCard({ title, rows, loading, lent = false }: { title: string; rows?
   });
   const list = (rows ?? []).filter((d) => d.status === 'active');
   return (
-    <Card collapseable="expanded">
+    <Card collapseable="expanded" maximizable>
       <CardHeader>
         <CardHeaderTitle>{title}</CardHeaderTitle>
         <CardHeaderSubtitle>Running now</CardHeaderSubtitle>
@@ -206,7 +206,7 @@ function LendForm({ actions }: { actions: string[] }) {
   const lendable = actions.filter((x) => x !== 'authz.manage_delegations');
 
   return (
-    <Card collapseable="expanded">
+    <Card collapseable="expanded" maximizable>
       <CardHeader>
         <CardHeaderTitle>Lend some of my access</CardHeaderTitle>
         <CardHeaderSubtitle>To a colleague here, until a date (at most {MAX_LEND_DAYS} days). It stops granting anything you stop holding.</CardHeaderSubtitle>

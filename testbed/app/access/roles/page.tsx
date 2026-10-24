@@ -57,7 +57,7 @@ export default function AccessRolesPage() {
         )}
       </PageHeader>
       <DashboardContent>
-        <Card collapseable="expanded">
+        <Card collapseable="expanded" maximizable>
           <CardHeader>
             <CardHeaderTitle>Every role</CardHeaderTitle>
             <CardHeaderSubtitle>Tenant roles first · a platform role is assigned to all tenants, by a platform admin</CardHeaderSubtitle>

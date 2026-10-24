@@ -8,7 +8,7 @@ import {
   buildBorderClasses,
   type BorderConfig,
 } from "@/ascendra-ui/components/ui/accent-styles";
-import { overlayClasses } from "@/ascendra-ui/components/ui/overlay-styles";
+import { maximizeOverlayClasses } from "@/ascendra-ui/components/ui/overlay-styles";
 import { MaximizedPopupLayer } from "@/ascendra-ui/components/ui/popup-layer";
 
 type CardContextValue = {
@@ -21,6 +21,17 @@ type CardContextValue = {
   /** Filling the screen — a list or table shows every row, the body scrolls. */
   maximized: boolean;
   onToggleMaximize: () => void;
+  /**
+   * Brings a maximized card back, then calls `then` once it's in its place — what a link inside it does instead of
+   * leaving the page: the card returns first, and the link waits in context for a second click.
+   */
+  restore: (then?: () => void) => void;
+  /**
+   * What a restored card marks for a moment (`markRestored`) — a chart column reads it and tints itself, which
+   * survives the chart redrawing its shapes as it shrinks back.
+   */
+  restoredMark?: string;
+  markRestored: (key: string) => void;
 };
 
 const CardContext = createContext<CardContextValue>({
@@ -31,10 +42,26 @@ const CardContext = createContext<CardContextValue>({
   maximizable: false,
   maximized: false,
   onToggleMaximize: () => {},
+  restore: () => {},
+  markRestored: () => {},
 });
 
 export function useCardContext() {
   return useContext(CardContext);
+}
+
+/**
+ * A brief tint over what a restored card's link pointed at — a row, a chart column — so the eye finds it again.
+ * An SVG shape tints its fill, anything else its background.
+ */
+const FLASH_MS = 1600;
+
+export function flashElement(el: Element) {
+  const property = el instanceof SVGElement ? "fill" : "backgroundColor";
+  el.animate(
+    [{ [property]: "color-mix(in oklab, var(--primary) 18%, transparent)" }, { [property]: "transparent" }],
+    { duration: FLASH_MS, easing: "ease-out" },
+  );
 }
 
 type ViewTransitionDocument = Document & {
@@ -42,10 +69,12 @@ type ViewTransitionDocument = Document & {
 };
 
 /**
- * `collapseable` — the header gets a chevron that folds the body. `maximizable` (on by default for a collapseable
- * card) — the header also gets a maximize toggle: the card fills the screen over the page's overlay, in place — the same
- * element, so nothing inside it remounts or loses its state — with a placeholder holding its spot. Esc or a click on the
- * overlay brings it back. Where the browser has View Transitions it grows from where it was and shrinks back.
+ * `collapseable` — a click on the header folds the body (its chevron says which way). `maximizable` — the header gets a
+ * maximize toggle: the card fills the screen over a light overlay, in place — the same element, so nothing inside it
+ * remounts or loses its state — with a placeholder holding its spot. Esc or a click on the overlay brings it back.
+ * Where the browser has View Transitions it grows from where it was and shrinks back. Maximized it's for reading:
+ * a row or chart link that would leave the page brings the card back instead (see `restore`), and a chart takes the
+ * card's height.
  */
 export function Card({
   danger = false,
@@ -70,27 +99,50 @@ export function Card({
   const [collapsed, setCollapsed] = useState(collapseable === "collapsed");
   const [maximized, setMaximized] = useState(false);
   const [placeholderHeight, setPlaceholderHeight] = useState<number>();
+  const [restoredMark, setRestoredMark] = useState<string>();
   const ref = useRef<HTMLElement>(null);
   const transitionName = `card-${useId().replace(/[^a-zA-Z0-9-]/g, "")}`;
-  const canMaximize = maximizable ?? !!collapseable;
 
-  const toggleMaximize = useCallback(() => {
-    const el = ref.current;
-    const next = !maximized;
-    const apply = () =>
-      flushSync(() => {
-        if (next && el) setPlaceholderHeight(el.getBoundingClientRect().height);
-        setMaximized(next);
+  const setMaximize = useCallback(
+    (next: boolean, then?: () => void) => {
+      const el = ref.current;
+      const apply = () => {
+        flushSync(() => {
+          if (next && el) setPlaceholderHeight(el.getBoundingClientRect().height);
+          setMaximized(next);
+        });
+        if (!el) return;
+        // Maximized, focus moves to the card (no ring) — Esc and a screen reader start there. Back, a focus left on
+        // the card or dropped goes to its maximize toggle.
+        if (next) el.focus({ preventScroll: true });
+        else if (document.activeElement === el || document.activeElement === document.body)
+          el.querySelector<HTMLElement>("[data-slot=card-maximize]")?.focus({ preventScroll: true });
+      };
+      const doc = document as ViewTransitionDocument;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!el || !doc.startViewTransition || reduceMotion) {
+        apply();
+        then?.();
+        return;
+      }
+      // Named only while it moves, so two cards never share a name.
+      el.style.viewTransitionName = transitionName;
+      doc.startViewTransition(apply).finished.finally(() => {
+        el.style.viewTransitionName = "";
+        then?.();
       });
-    const doc = document as ViewTransitionDocument;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!el || !doc.startViewTransition || reduceMotion) return apply();
-    // Named only while it moves, so two cards never share a name.
-    el.style.viewTransitionName = transitionName;
-    doc.startViewTransition(apply).finished.finally(() => {
-      el.style.viewTransitionName = "";
-    });
-  }, [maximized, transitionName]);
+    },
+    [transitionName],
+  );
+  const toggleMaximize = useCallback(() => setMaximize(!maximized), [maximized, setMaximize]);
+  const restore = useCallback((then?: () => void) => setMaximize(false, then), [setMaximize]);
+  const markRestored = useCallback((key: string) => setRestoredMark(key), []);
+
+  useEffect(() => {
+    if (!restoredMark) return;
+    const timer = setTimeout(() => setRestoredMark(undefined), FLASH_MS);
+    return () => clearTimeout(timer);
+  }, [restoredMark]);
 
   // Maximized: Esc brings it back, and the page behind doesn't scroll.
   useEffect(() => {
@@ -117,9 +169,12 @@ export function Card({
         collapsed: collapsed && !maximized,
         onToggle: () => setCollapsed((prev) => !prev),
         step,
-        maximizable: canMaximize,
+        maximizable: !!maximizable,
         maximized,
         onToggleMaximize: toggleMaximize,
+        restore,
+        restoredMark,
+        markRestored,
       }}
     >
       {/* Holds the card's spot in the layout while it fills the screen. */}
@@ -130,7 +185,7 @@ export function Card({
             data-slot="card-maximize-overlay"
             aria-hidden
             onClick={toggleMaximize}
-            className={cn("fixed inset-0 z-189", ...overlayClasses)}
+            className={cn("fixed inset-0 z-189", ...maximizeOverlayClasses)}
           />,
           document.body,
         )}
@@ -140,6 +195,7 @@ export function Card({
         data-maximized={maximized || undefined}
         role={maximized ? "dialog" : undefined}
         aria-modal={maximized || undefined}
+        tabIndex={maximized ? -1 : undefined}
         className={cn(
           "group bg-muted flex flex-col rounded-xl pb-1 has-data-[slot=card-header]:pt-1",
           danger && "bg-red-50 dark:bg-(--color-red-1500)",
@@ -153,7 +209,15 @@ export function Card({
           inverse && "dark",
           className,
           // Last, over a className's height or width: the screen, above the top bars and the slide-in sidebar.
-          maximized && "fixed inset-4 z-190 h-auto max-h-none w-auto shadow-2xl sm:inset-8",
+          // A hairline outline keeps its edge readable over the overlay.
+          maximized && [
+            "fixed inset-4 z-190 h-auto max-h-none w-auto shadow-2xl outline-none sm:inset-8",
+            "ring-1 ring-black/10 dark:ring-white/12",
+            // A chart takes the card's height (a fixed h-56 would only widen) — every box between the body and the
+            // chart fills its parent, and the chart keeps at least its usual 14rem.
+            "[&_[data-slot=card-panel-body]_:has([data-slot=chart])]:h-full",
+            "[&_[data-slot=card-panel-body]_[data-slot=chart]]:h-full [&_[data-slot=card-panel-body]_[data-slot=chart]]:min-h-56",
+          ],
         )}
         {...props}
       >

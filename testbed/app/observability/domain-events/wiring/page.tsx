@@ -146,7 +146,7 @@ export default function DomainEventWiringPage() {
           />
         </div>
 
-        <Card collapseable="expanded">
+        <Card collapseable="expanded" maximizable>
           <CardHeader>
             <CardHeaderTitle>Events</CardHeaderTitle>
             <CardHeaderSubtitle>

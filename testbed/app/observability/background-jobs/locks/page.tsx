@@ -57,7 +57,7 @@ export default function BackgroundJobLocksPage() {
         </PageHeaderGroup>
       </PageHeader>
       <DashboardContent>
-        <Card collapseable="expanded">
+        <Card collapseable="expanded" maximizable>
           <CardHeader>
             <CardHeaderTitle>Lease locks</CardHeaderTitle>
             <CardHeaderSubtitle>

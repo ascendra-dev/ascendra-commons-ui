@@ -100,7 +100,7 @@ export default function AccessRolePage() {
         )}
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Grants</CardHeaderTitle>
                 <CardHeaderSubtitle>{r ? (r.grantsAll ? 'every action' : `${r.actions.length} actions · ${r.scope} scope`) : ' '}</CardHeaderSubtitle>
@@ -135,7 +135,7 @@ export default function AccessRolePage() {
             </Card>
           </div>
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Holders {tenantId ? `in ${tenantName(tenantId)}` : platform ? 'in every tenant' : ''}</CardHeaderTitle>
                 <CardHeaderSubtitle>{holders.data ? `${rows.length} ${rows.length === 1 ? 'assignment' : 'assignments'} · by name` : ' '}</CardHeaderSubtitle>

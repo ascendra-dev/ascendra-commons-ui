@@ -246,7 +246,7 @@ export default function IdempotencyOverviewPage() {
 
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Duplicates by endpoint</CardHeaderTitle>
                 <CardHeaderSubtitle>{period.label} · replays and 409s, most first</CardHeaderSubtitle>
@@ -293,7 +293,7 @@ export default function IdempotencyOverviewPage() {
           </div>
 
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>In progress</CardHeaderTitle>
                 <CardHeaderSubtitle>Requests that haven&apos;t finished · newest first</CardHeaderSubtitle>

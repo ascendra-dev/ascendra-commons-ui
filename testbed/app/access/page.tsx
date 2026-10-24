@@ -226,7 +226,7 @@ export default function AccessOverviewPage() {
 
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Who holds what</CardHeaderTitle>
                 <CardHeaderSubtitle>Active holders per role · most first</CardHeaderSubtitle>
@@ -265,7 +265,7 @@ export default function AccessOverviewPage() {
           </div>
 
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Needs a look</CardHeaderTitle>
                 <CardHeaderSubtitle>Lapsed and ending access, the most refused people</CardHeaderSubtitle>

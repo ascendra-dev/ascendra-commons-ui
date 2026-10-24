@@ -257,7 +257,7 @@ export default function RateLimitOverviewPage() {
 
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Rejections by route</CardHeaderTitle>
                 <CardHeaderSubtitle>
@@ -306,7 +306,7 @@ export default function RateLimitOverviewPage() {
           </div>
 
           <div className="col-span-12 lg:col-span-6">
-            <Card collapseable="expanded">
+            <Card collapseable="expanded" maximizable>
               <CardHeader>
                 <CardHeaderTitle>Top sources</CardHeaderTitle>
                 <CardHeaderSubtitle>
