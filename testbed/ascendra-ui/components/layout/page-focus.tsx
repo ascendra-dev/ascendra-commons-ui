@@ -7,16 +7,24 @@ import { cn } from "@/ascendra-ui/shadcn";
 import { Button } from "@/ascendra-ui/components/ui/button";
 import { MaximizeBackdrop, MaximizeProvider, useMaximize } from "@/ascendra-ui/components/ui/maximize";
 import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars";
+import "./page-focus.css";
 
 const PageFocusContext = React.createContext<{ canFocus: boolean; focused: boolean; toggle: () => void } | null>(
   null,
 );
+
+/** The DataTables in a PageFocus register here; with exactly one, a focused page fills the screen around it. */
+const PageTableContext = React.createContext<{ register: () => () => void; fill: boolean } | null>(null);
 
 /**
  * Focus mode for a page: wraps its PageHeader and PageMain, and a PageFocusToggle in the header fills the screen with
  * them over a light overlay — in place, the same elements, so a table's query, filters and page survive (see
  * useMaximize). Focused, it scrolls inside itself, it's for reading — a row or chart link that would leave the page
  * brings the page back instead — and the title's back arrow hides. Leave a BackLink outside it.
+ *
+ * With one DataTable, focused, the page is compact: a column the screen's height — the title, query bar and toolbar
+ * keep theirs, the table takes the rest and scrolls its rows (its column header stays, its footer sits at the bottom).
+ * The rules are in page-focus.css; on a screen too short for that, the whole page scrolls instead.
  *
  * A page holding a maximizable Card can't be focused (no stacking) — the toggle doesn't show, and development warns.
  */
@@ -28,6 +36,13 @@ export function PageFocus({ className, children, ...props }: React.ComponentProp
   const viewportRef = React.useRef<HTMLDivElement>(null);
   // On a wrapper, not the section — the scrollbars make their host `position: relative`, which would undo `fixed`.
   useOverlayScrollbars(hostRef, viewportRef, { y: "scroll", enabled: focused });
+  const [tables, setTables] = React.useState(0);
+  const register = React.useCallback(() => {
+    setTables((n) => n + 1);
+    return () => setTables((n) => n - 1);
+  }, []);
+  const fill = focused && tables === 1;
+  const tableValue = React.useMemo(() => ({ register, fill }), [register, fill]);
   const value = React.useMemo(
     () => ({ canFocus: max.canMaximize, focused, toggle: max.toggle }),
     [max.canMaximize, focused, max.toggle],
@@ -63,14 +78,24 @@ export function PageFocus({ className, children, ...props }: React.ComponentProp
             className={cn(focused && "h-full overflow-y-auto")}
           >
             {/* Padding here — the scrollbars take over the viewport's own. */}
-            <div className={cn(focused && "p-6 sm:p-8")}>
-              <MaximizeProvider state={max}>{children}</MaximizeProvider>
+            <div data-page-fill={fill || undefined} className={cn(focused && "p-6 sm:p-8")}>
+              <PageTableContext.Provider value={tableValue}>
+                <MaximizeProvider state={max}>{children}</MaximizeProvider>
+              </PageTableContext.Provider>
             </div>
           </div>
         </div>
       </section>
     </PageFocusContext.Provider>
   );
+}
+
+/** For DataTable: registers it with the PageFocus around (if any); true while that page fills the screen around it. */
+export function usePageFillTable() {
+  const ctx = React.useContext(PageTableContext);
+  const register = ctx?.register;
+  React.useEffect(() => register?.(), [register]);
+  return ctx?.fill ?? false;
 }
 
 /** Whether the page around is focused — false outside a PageFocus. */

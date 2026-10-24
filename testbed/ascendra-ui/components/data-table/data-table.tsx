@@ -5,6 +5,7 @@ import { cn } from '@/ascendra-ui/shadcn';
 import { useOverlayScrollbars } from '@/ascendra-ui/hooks/use-overlay-scrollbars';
 import { useVisibleRowsHeight } from '@/ascendra-ui/hooks/use-visible-rows-height';
 import { tableCardFrameClasses, tableCardViewportClasses, tableClasses } from '@/ascendra-ui/components/ui/table';
+import { usePageFillTable } from '@/ascendra-ui/components/layout/page-focus';
 
 export const DataTableScrollContext = React.createContext({
   scrolled: false,
@@ -32,9 +33,11 @@ export function DataTable({
   const hostRef = React.useRef<HTMLDivElement>(null);
   const ref = React.useRef<HTMLDivElement>(null);
   const rowsHeight = useVisibleRowsHeight(ref, visibleRows);
-  const maxHeight = visibleRows ? rowsHeight : scrollable && vertical ? height : undefined;
+  // In a focused page it takes the rest of the height and its rows scroll (header sticky, footer below) — see PageFocus.
+  const fill = usePageFillTable();
+  const maxHeight = fill ? undefined : visibleRows ? rowsHeight : scrollable && vertical ? height : undefined;
   const scrollX = scrollable && horizontal;
-  const scrollY = !!maxHeight;
+  const scrollY = !!maxHeight || fill;
   useOverlayScrollbars(hostRef, ref, {
     x: scrollX ? 'scroll' : 'hidden',
     y: scrollY ? 'scroll' : 'hidden',
@@ -54,7 +57,7 @@ export function DataTable({
     <DataTableScrollContext.Provider
       value={{ scrolled, vscroll: scrollY }}
     >
-      <div ref={hostRef} className={tableCardFrameClasses}>
+      <div ref={hostRef} data-slot="data-table-frame" className={tableCardFrameClasses}>
         <div
           ref={ref}
           data-slot="table-wrapper"
@@ -65,7 +68,7 @@ export function DataTable({
             scrollX && 'overflow-x-auto',
             scrollY && 'overflow-y-auto'
           )}
-          style={scrollY ? { maxHeight: `${maxHeight}px` } : undefined}
+          style={maxHeight ? { maxHeight: `${maxHeight}px` } : undefined}
         >
           <table
             data-slot="table"

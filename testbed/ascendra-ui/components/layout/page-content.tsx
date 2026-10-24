@@ -11,7 +11,7 @@ export function PageContent({
       className={cn('mt-8 flex flex-col gap-6 [[data-slot=page-bar]+&]:mt-0', className)}
       {...props}
     >
-      <div className="flex flex-col items-start gap-8 lg:flex-row">
+      <div data-slot="page-content-row" className="flex flex-col items-start gap-8 lg:flex-row">
         {children}
       </div>
     </div>

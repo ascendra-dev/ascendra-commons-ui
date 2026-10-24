@@ -17,10 +17,12 @@ export function DataTableWrapper({
 
   return (
     <div
+      data-slot="data-table-wrapper"
+      data-param-panel-open={showParamPanel || undefined}
       className="grid transition-[grid-template-rows] duration-300 ease-in-out"
       style={{ gridTemplateRows: showParamPanel ? '0fr' : '1fr' }}
     >
-      <div className="min-h-0 overflow-hidden">
+      <div data-slot="data-table-clip" className="min-h-0 overflow-hidden">
         <div
           data-slot="table-container"
           className={cn(
