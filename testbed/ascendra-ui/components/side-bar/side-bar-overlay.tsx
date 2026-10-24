@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/ascendra-ui/shadcn';
+import { overlayClasses } from '@/ascendra-ui/components/ui/overlay-styles';
 
 export function SideBarOverlay() {
   const closeSidebar = () => {
@@ -15,10 +16,8 @@ export function SideBarOverlay() {
       id="sidebar-overlay"
       onClick={closeSidebar}
       className={cn(
-        'pointer-events-none fixed inset-0 z-140 bg-black/40 opacity-0 transition-opacity duration-300 group-data-[sidebar=open]:pointer-events-auto group-data-[sidebar=open]:opacity-100 lg:not-in-data-[layout=menu]:hidden',
-        // Dot-grid texture layered over the semi-transparent base
-        'bg-[radial-gradient(rgba(255,255,255,0.07)_2px,transparent_2px)]',
-        'bg-size-[20px_20px]'
+        'pointer-events-none fixed inset-0 z-140 opacity-0 transition-opacity duration-300 group-data-[sidebar=open]:pointer-events-auto group-data-[sidebar=open]:opacity-100 lg:not-in-data-[layout=menu]:hidden',
+        ...overlayClasses
       )}
     />
   );

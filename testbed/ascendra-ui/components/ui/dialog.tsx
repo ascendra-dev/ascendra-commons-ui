@@ -4,6 +4,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { cn } from "@/ascendra-ui/shadcn";
+import { overlayClasses } from "./overlay-styles";
 import { OverlayPopupLayer } from "./popup-layer";
 
 /* ── Overlay ──────────────────────────────────────────────────────────────── */
@@ -17,10 +18,8 @@ function DialogOverlay({
       data-slot="dialog-overlay"
       className={cn(
         "data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0",
-        "fixed inset-0 z-200 bg-black/40 duration-300 supports-backdrop-filter:backdrop-blur-sm",
-        // Dot-grid texture layered over the semi-transparent base
-        "bg-[radial-gradient(rgba(255,255,255,0.07)_2px,transparent_2px)]",
-        "bg-size-[20px_20px]",
+        "fixed inset-0 z-200 duration-300",
+        ...overlayClasses,
         className,
       )}
       {...props}
