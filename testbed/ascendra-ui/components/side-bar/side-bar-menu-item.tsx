@@ -4,7 +4,6 @@ import React, { useLayoutEffect } from 'react';
 import Link from 'next/link';
 import { cn } from '@/ascendra-ui/shadcn';
 import { usePathname } from 'next/navigation';
-import { useIsSmallScreen } from '@/ascendra-ui/hooks/use-is-small-screen';
 import { pathMatches, useSideBar } from './side-bar';
 
 type IconType = React.ComponentType<{ className?: string }>;
@@ -24,7 +23,6 @@ export function SideBarMenuItem({
   icon: Icon,
   ...props
 }: Props) {
-  const isSmallScreen = useIsSmallScreen();
   const pathname = usePathname();
   const { paths, registerPath } = useSideBar();
   useLayoutEffect(() => registerPath?.(path), [registerPath, path]);
@@ -33,12 +31,10 @@ export function SideBarMenuItem({
   const isActive =
     pathMatches(pathname, path) && !(paths ?? []).some((p) => p.length > path.length && pathMatches(pathname, p));
 
+  // A link in the slide-in menu (a small screen, or the 'menu' layout) closes it, so the page it opens isn't left
+  // under the menu and its overlay. Docked, the attribute changes nothing.
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (isSmallScreen) {
-      document
-        .getElementById('app-layout')
-        ?.setAttribute('data-sidebar', 'closed');
-    }
+    document.getElementById('app-layout')?.setAttribute('data-sidebar', 'closed');
     props.onClick?.(e);
   };
 
