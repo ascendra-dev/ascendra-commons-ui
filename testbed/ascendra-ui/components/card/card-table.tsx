@@ -9,7 +9,7 @@ import { useCardContext } from "@/ascendra-ui/components/card/card";
  * panel, the footer's separator shows only while it's collapsed. Put a Table and its loading/empty/error bodies in it.
  */
 export function CardTable({ className, children, ...props }: React.ComponentProps<"div">) {
-  const { collapseable, collapsed } = useCardContext();
+  const { collapseable, collapsed, maximized } = useCardContext();
   const isCollapsed = collapseable && collapsed;
   return (
     <div
@@ -19,6 +19,8 @@ export function CardTable({ className, children, ...props }: React.ComponentProp
       inert={isCollapsed}
       className={cn(
         "grid transition-all duration-300",
+        // Filling the screen: the table takes the rest of the card's height and scrolls.
+        maximized && "min-h-0 flex-1",
         isCollapsed ? "grid-rows-[0fr]" : "grid-rows-[1fr]",
         className,
       )}
@@ -29,6 +31,7 @@ export function CardTable({ className, children, ...props }: React.ComponentProp
         className={cn(
           "-m-2 flex min-h-0 flex-col overflow-hidden p-2 transition-all duration-300",
           isCollapsed && "m-0 p-0",
+          maximized && "overflow-y-auto",
         )}
       >
         {children}

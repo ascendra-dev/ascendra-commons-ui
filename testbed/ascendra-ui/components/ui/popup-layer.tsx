@@ -94,4 +94,13 @@ function OverlayPopupLayer({ children }: { children?: React.ReactNode }) {
   return <PopupLayerContext.Provider value={OVERLAY_POPUP_Z}>{children}</PopupLayerContext.Provider>;
 }
 
-export { OverlayPopupLayer, PopupLayer, TopBarPopupLayer, usePopupTopInset, usePopupZIndex };
+/**
+ * A maximized Card's children — while `active`, popups opened inside show above it (as in a dialog); otherwise the
+ * layer they'd have anyway. A value switch, not a wrapper that comes and goes, so the children never remount.
+ */
+function MaximizedPopupLayer({ active, children }: { active: boolean; children?: React.ReactNode }) {
+  const inherited = usePopupZIndex();
+  return <PopupLayerContext.Provider value={active ? OVERLAY_POPUP_Z : inherited}>{children}</PopupLayerContext.Provider>;
+}
+
+export { MaximizedPopupLayer, OverlayPopupLayer, PopupLayer, TopBarPopupLayer, usePopupTopInset, usePopupZIndex };

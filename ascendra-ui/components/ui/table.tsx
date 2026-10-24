@@ -15,6 +15,7 @@ import { PaginationButton } from "@/ascendra-ui/components/common-ui/pagination-
 import { cn, Separator } from "@/ascendra-ui/shadcn";
 import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars";
 import { useVisibleRowsHeight } from "@/ascendra-ui/hooks/use-visible-rows-height";
+import { useCardContext } from "@/ascendra-ui/components/card/card";
 import { type PaginationState } from "@/ascendra-ui/providers/data-table/use-pagination.hook";
 import {
   buildBorderClasses,
@@ -138,8 +139,11 @@ function Table({
   const [scrolled, setScrolled] = React.useState(false);
   const hostRef = React.useRef<HTMLDivElement>(null);
   const ref = React.useRef<HTMLDivElement>(null);
-  const rowsHeight = useVisibleRowsHeight(ref, visibleRows);
-  const maxHeight = visibleRows ? rowsHeight : scrollable && vertical ? height : undefined;
+  // In a maximized card it shows every row — the card body scrolls instead.
+  const { maximized } = useCardContext();
+  const rowCap = maximized ? undefined : visibleRows;
+  const rowsHeight = useVisibleRowsHeight(ref, rowCap);
+  const maxHeight = rowCap ? rowsHeight : scrollable && vertical && !maximized ? height : undefined;
   const scrollX = scrollable && horizontal;
   const scrollY = !!maxHeight;
   useOverlayScrollbars(hostRef, ref, {

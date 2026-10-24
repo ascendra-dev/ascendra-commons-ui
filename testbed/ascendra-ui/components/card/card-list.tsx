@@ -5,6 +5,7 @@ import { cn } from "@/ascendra-ui/shadcn";
 import { TableRowLink, rowLinkRowClasses, rowSheetIcon } from "@/ascendra-ui/components/ui/table";
 import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars";
 import { useVisibleRowsHeight } from "@/ascendra-ui/hooks/use-visible-rows-height";
+import { useCardContext } from "@/ascendra-ui/components/card/card";
 
 const CardListContext = React.createContext({ columns: false });
 
@@ -27,7 +28,9 @@ export function CardList({
 }: React.ComponentProps<"div"> & { columns?: string; visibleRows?: number }) {
   const hostRef = React.useRef<HTMLDivElement>(null);
   const viewportRef = React.useRef<HTMLDivElement>(null);
-  const maxHeight = useVisibleRowsHeight(viewportRef, visibleRows);
+  // Filling the screen, it shows every row — the card body scrolls instead.
+  const { maximized } = useCardContext();
+  const maxHeight = useVisibleRowsHeight(viewportRef, maximized ? undefined : visibleRows);
   useOverlayScrollbars(hostRef, viewportRef, { x: "hidden", y: "scroll", enabled: !!maxHeight });
 
   return (
