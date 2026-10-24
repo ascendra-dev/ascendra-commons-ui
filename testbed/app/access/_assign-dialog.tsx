@@ -20,13 +20,13 @@ import {
   Field,
   FieldHint,
   FieldLabel,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Input,
+  OverlayScroll,
+  RadioGroup,
+  RadioGroupItem,
   toast,
 } from '@/ascendra-ui';
+import { cn } from '@/ascendra-ui/shadcn';
 import { authorizationApi } from '@/ascendra-commons-ui/authorization.ui';
 import { useAccessScope } from './_scope';
 import { tenantName } from './tenants';
@@ -88,6 +88,10 @@ export function AssignRoleContent({ userIds, label, tenantId, fixedRoleId, peopl
     queryFn: () => authorizationApi.assignableRoles(target ?? undefined),
   });
   const choice = roles.data?.find((r) => r.id === roleId);
+  // The role list — every role, searched by name or what it's for; those this viewer can't give stay, greyed, with why.
+  const [roleSearch, setRoleSearch] = useState('');
+  const needle = roleSearch.trim().toLowerCase();
+  const shownRoles = (roles.data ?? []).filter((r) => !needle || r.id.toLowerCase().includes(needle) || (r.description ?? '').toLowerCase().includes(needle));
 
   const give = useMutation({
     mutationFn: async () => {
@@ -136,23 +140,27 @@ export function AssignRoleContent({ userIds, label, tenantId, fixedRoleId, peopl
         )}
         {!fixedRoleId && (
           <Field>
-            <FieldLabel htmlFor="assign-role">Role</FieldLabel>
-            <Select value={roleId} onValueChange={setRoleId}>
-              <SelectTrigger id="assign-role" className="w-full">
-                <SelectValue placeholder={roles.isLoading ? 'Loading roles…' : 'Choose a role'} />
-              </SelectTrigger>
-              <SelectContent>
-                {(roles.data ?? []).map((r) => (
-                  <SelectItem key={r.id} value={r.id} disabled={!r.assignable}>
-                    <span className="flex flex-col">
-                      <span>{r.id}</span>
-                      <span className="text-muted-foreground text-xs">{r.assignable ? (r.description ?? `${r.actions.length} actions`) : r.reason}</span>
+            <FieldLabel htmlFor="assign-role-search">Role</FieldLabel>
+            <Input id="assign-role-search" type="search" placeholder="Search roles" value={roleSearch} onChange={(e) => setRoleSearch(e.target.value)} full />
+            {/* A visible list, not a dropdown: each role says what it's for, or why it can't be given here. */}
+            <OverlayScroll className="max-h-60">
+              {roles.isLoading && <p className="text-muted-foreground px-2 py-1.5 text-sm">Loading roles…</p>}
+              {!roles.isLoading && shownRoles.length === 0 && <p className="text-muted-foreground px-2 py-1.5 text-sm">No role by that name.</p>}
+              <RadioGroup value={roleId ?? ''} onValueChange={setRoleId} className="grid-cols-1 gap-0.5" aria-label="Role">
+                {shownRoles.map((r) => (
+                  <label
+                    key={r.id}
+                    className={cn('flex min-w-0 items-start gap-3 rounded-md px-2 py-1.5', r.assignable ? 'hover:bg-muted cursor-pointer' : 'cursor-not-allowed opacity-50')}
+                  >
+                    <RadioGroupItem value={r.id} disabled={!r.assignable} wrapperClassName="mt-0.5" />
+                    <span className="flex min-w-0 flex-col">
+                      <span className="text-sm">{r.id}</span>
+                      <span className="text-muted-foreground truncate text-xs">{r.assignable ? (r.description ?? `${r.actions.length} actions`) : r.reason}</span>
                     </span>
-                  </SelectItem>
+                  </label>
                 ))}
-              </SelectContent>
-            </Select>
-            {choice && !choice.assignable && <FieldHint description={choice.reason} />}
+              </RadioGroup>
+            </OverlayScroll>
           </Field>
         )}
         {fixedRoleId && choice && !choice.assignable && <p className="text-destructive text-sm">{choice.reason}</p>}
