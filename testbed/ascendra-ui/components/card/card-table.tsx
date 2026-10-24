@@ -31,7 +31,9 @@ export function CardTable({ className, children, ...props }: React.ComponentProp
         className={cn(
           "-m-2 flex min-h-0 flex-col overflow-hidden p-2 transition-all duration-300",
           isCollapsed && "m-0 p-0",
-          maximized && "overflow-y-auto",
+          // Scrolling, the top edge clips the rows — flush with the header's bottom, not 8px up inside it (the frame's
+          // ring starts under the table's column header, so it needs no room there).
+          maximized && "mt-0 overflow-y-auto pt-0",
         )}
       >
         {children}
