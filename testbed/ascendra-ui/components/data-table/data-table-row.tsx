@@ -20,6 +20,7 @@ export function DataTableRow({ className, style, children, active, opensSheet, .
   return (
     <tr
       data-slot="table-row"
+      data-opens-sheet={opensSheet || undefined}
       data-active={active || undefined}
       aria-current={active || undefined}
       className={cn(

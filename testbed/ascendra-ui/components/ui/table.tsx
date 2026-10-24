@@ -353,6 +353,10 @@ const rowLinkRowClasses = [
   "has-data-[slot=row-end-icon]:relative",
   "has-data-[slot=table-row-link]:[&_:is(button:not([data-slot=table-row-link]),input,select,textarea,[role=button],[role=checkbox],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip],[data-slot=table-checkbox-cell])]:relative",
   "has-data-[slot=table-row-link]:[&_:is(button:not([data-slot=table-row-link]),input,select,textarea,[role=button],[role=checkbox],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip],[data-slot=table-checkbox-cell])]:z-2",
+  // In focus mode (a focused page, a maximized card) the hover tint means the row responds — none on a row with no
+  // link and no sheet.
+  "in-[[data-slot=page-focus][data-focused]]:not-has-[[data-slot=table-row-link]]:not-data-[opens-sheet]:hover:bg-transparent",
+  "in-[[data-slot=card][data-maximized]]:not-has-[[data-slot=table-row-link]]:not-data-[opens-sheet]:hover:bg-transparent",
 ];
 
 /** Lucide's panel-right, as a mask — the same icon RowEndIcon draws for a sheet, drawn by the row itself. */
@@ -395,6 +399,7 @@ function TableRow({
   return (
     <tr
       data-slot="table-row"
+      data-opens-sheet={opensSheet || undefined}
       className={cn(
         "group/row transition-colors hover:bg-gray-700/4",
         ...rowLinkRowClasses,
@@ -439,7 +444,7 @@ function RowEndIcon({ kind }: { kind: "page" | "external" }) {
  * The row ends in a chevron (an arrow out with `external`).
  *
  * In a maximized card or focused page (which are for reading) a page link doesn't leave: the row becomes a button —
- * no icon, the ordinary cursor — that brings it back, then scrolls to the row, tints it and focuses its link — the next click goes there, in context. An `external`
+ * no icon, the zoom-out cursor (a way back to the normal view) — that brings it back, then scrolls to the row, tints it and focuses its link — the next click goes there, in context. An `external`
  * link still opens its new tab.
  */
 function TableRowLink({
@@ -461,7 +466,7 @@ function TableRowLink({
       <button
         type="button"
         data-slot="table-row-link"
-        className={cn("cursor-default text-left", linkClasses)}
+        className={cn("cursor-zoom-out text-left", linkClasses)}
         onClick={(event) => {
           const row = event.currentTarget.closest("tr, [role=listitem]");
           restore(() => {

@@ -74,6 +74,7 @@ export function CardListItem({
     <div
       role="listitem"
       data-slot="card-list-item"
+      data-opens-sheet={opensSheet || undefined}
       className={cn(
         "group/row border-border px-5 py-4 text-sm transition-colors not-last:border-b hover:bg-gray-700/4",
         "first:rounded-t-lg last:rounded-b-lg",
