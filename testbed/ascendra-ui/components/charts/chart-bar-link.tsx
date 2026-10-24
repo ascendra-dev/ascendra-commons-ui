@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Rectangle, type RectangleProps } from "recharts";
 
-import { flashElement, useCardContext } from "@/ascendra-ui/components/card/card";
+import { flashElement, useMaximizeScope } from "@/ascendra-ui/components/ui/maximize";
 
 type ChartBarLinkProps<T> = {
   /** Where this bar's column goes — from its data row; `undefined` leaves the column plain. */
@@ -22,12 +22,12 @@ type ChartBarLinkProps<T> = {
  * series only — that one's column covers the stack. The chart's tooltip is unaffected. Not a Tab stop: a chart has
  * one per bar.
  *
- * In a maximized card (which is for reading) a column doesn't leave: a click brings the card back, then tints that
+ * In a maximized card or focused page (which are for reading) a column doesn't leave: a click brings it back, then tints that
  * column — the next click goes there, in context.
  */
 export function ChartBarLink<T>({ href, payload, background, ...bar }: ChartBarLinkProps<T>) {
   const router = useRouter();
-  const { maximized, restore, restoredMark, markRestored } = useCardContext();
+  const { maximized, restore, restoredMark, markRestored } = useMaximizeScope();
   const columnRef = React.useRef<SVGRectElement>(null);
   const url = payload ? href(payload) : undefined;
   const marked = !!url && restoredMark === url;

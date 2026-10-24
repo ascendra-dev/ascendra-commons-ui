@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { LuArrowLeft } from "react-icons/lu";
 import { cn } from "@/ascendra-ui/shadcn";
+import { usePageFocused } from "@/ascendra-ui/components/layout/page-focus";
 
 /** The URL params a cross-link carries so the page it opens can go back to where you were. */
 const BACK = "back";
@@ -62,7 +63,8 @@ function BackLinkView({ href, children, label, className, asLocation = false }: 
 
 /**
  * A back arrow beside the page title — only when the page was opened by a cross-link built with `useBackTo`; it
- * returns there (labelled "Back to denied requests" for screen readers), with that page's filters as they were. Nothing otherwise. PageTitle
+ * returns there (labelled "Back to denied requests" for screen readers), with that page's filters as they were. Nothing otherwise,
+ * nor while the page is focused (PageFocus). PageTitle
  * renders it.
  */
 export function PageBackButton() {
@@ -76,7 +78,9 @@ export function PageBackButton() {
 function PageBackButtonFromUrl() {
   const params = useSearchParams();
   const back = samePath(params.get(BACK));
-  if (!back) return null;
+  // Focus mode is for reading — the way out to another page waits until it's over.
+  const focused = usePageFocused();
+  if (!back || focused) return null;
   const label = `Back to ${params.get(BACK_LABEL) || "the previous page"}`;
   return (
     <Link

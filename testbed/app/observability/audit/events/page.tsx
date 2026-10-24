@@ -48,6 +48,9 @@ import {
   WithEmptyValue,
   WithSheetIcon,
   WithTooltip,
+  PageFocus,
+  PageFocusToggle,
+  PageHeaderAction,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -96,269 +99,274 @@ export default function AuditLogListPage() {
   return (
     <>
       <BackLink href={auditLogLinks.overview()} label="Audit log">Back to overview</BackLink>
-      <PageHeader>
-        <PageHeaderGroup>
-          <PageTitle>Audit Log</PageTitle>
-          <PageSubtitle>
-            Every recorded change, who made it, and when.
-          </PageSubtitle>
-        </PageHeaderGroup>
-      </PageHeader>
-      <PageMain>
-        <PageWrapper>
-          <PageContent>
-            <MainContent>
-              <DataTableWithQueryProvider
-                queries={queryDefs}
-                fieldOptions={fieldOptions}
-                queryFunctions={queryFunctions}
-                columns={columns}
-                getRowId={(row) => row.id}
-                tableId="audit-log-table"
-              >
-                <QueryBar />
-                <QueryParamPanel />
-                <DataTableBar>
-                  <DataTableBarContent>
-                    <DataTableSearchInput />
-                    <DataTableColumnManager />
-                    <DataTableSortDropdown />
-                    <DataTableFilterDropdown />
-                  </DataTableBarContent>
-                  <DataTableBarAction>
-                    <DataTableExportButton exportFn={exportEvents} />
-                  </DataTableBarAction>
-                </DataTableBar>
-                <DataTableFilterBar />
-                <DataTableWrapper>
-                  <DataTable scrollable horizontal height={480}>
-                    <DataTableHeader>
-                      <DataTableHeaderRow>
-                        <DataTableHead column="occurredAt">
-                          Occurred at
-                        </DataTableHead>
-                        <DataTableHead column="actor">Actor</DataTableHead>
-                        <DataTableHead column="action">Action</DataTableHead>
-                        {!tenantScoped && <DataTableHead column="tenantId">Tenant</DataTableHead>}
-                        <DataTableHead column="reason">Reason</DataTableHead>
-                        <DataTableHead column="correlationId">
-                          Correlation
-                        </DataTableHead>
-                        <DataTableHead column="application">
-                          Application
-                        </DataTableHead>
-                        <DataTableHeadAction />
-                      </DataTableHeaderRow>
-                    </DataTableHeader>
-                    <DataTableBody>
-                      {(row: AuditEvent) => (
-                        <DataTableRow
-                          key={row.id}
-                          active={row.id === selected?.id}
-                          opensSheet
-                          className="cursor-pointer"
-                          onClick={() => {
-                            setCellSheet(null);
-                            setSelected(row);
-                          }}
-                        >
-                          <DataTableCell
-                            column="occurredAt"
-                            className="whitespace-nowrap"
+      <PageFocus>
+        <PageHeader>
+          <PageHeaderGroup>
+            <PageTitle>Audit Log</PageTitle>
+            <PageSubtitle>
+              Every recorded change, who made it, and when.
+            </PageSubtitle>
+          </PageHeaderGroup>
+          <PageHeaderAction className="w-fit">
+            <PageFocusToggle />
+          </PageHeaderAction>
+        </PageHeader>
+        <PageMain>
+          <PageWrapper>
+            <PageContent>
+              <MainContent>
+                <DataTableWithQueryProvider
+                  queries={queryDefs}
+                  fieldOptions={fieldOptions}
+                  queryFunctions={queryFunctions}
+                  columns={columns}
+                  getRowId={(row) => row.id}
+                  tableId="audit-log-table"
+                >
+                  <QueryBar />
+                  <QueryParamPanel />
+                  <DataTableBar>
+                    <DataTableBarContent>
+                      <DataTableSearchInput />
+                      <DataTableColumnManager />
+                      <DataTableSortDropdown />
+                      <DataTableFilterDropdown />
+                    </DataTableBarContent>
+                    <DataTableBarAction>
+                      <DataTableExportButton exportFn={exportEvents} />
+                    </DataTableBarAction>
+                  </DataTableBar>
+                  <DataTableFilterBar />
+                  <DataTableWrapper>
+                    <DataTable scrollable horizontal>
+                      <DataTableHeader>
+                        <DataTableHeaderRow>
+                          <DataTableHead column="occurredAt">
+                            Occurred at
+                          </DataTableHead>
+                          <DataTableHead column="actor">Actor</DataTableHead>
+                          <DataTableHead column="action">Action</DataTableHead>
+                          {!tenantScoped && <DataTableHead column="tenantId">Tenant</DataTableHead>}
+                          <DataTableHead column="reason">Reason</DataTableHead>
+                          <DataTableHead column="correlationId">
+                            Correlation
+                          </DataTableHead>
+                          <DataTableHead column="application">
+                            Application
+                          </DataTableHead>
+                          <DataTableHeadAction />
+                        </DataTableHeaderRow>
+                      </DataTableHeader>
+                      <DataTableBody>
+                        {(row: AuditEvent) => (
+                          <DataTableRow
+                            key={row.id}
+                            active={row.id === selected?.id}
+                            opensSheet
+                            className="cursor-pointer"
+                            onClick={() => {
+                              setCellSheet(null);
+                              setSelected(row);
+                            }}
                           >
-                            <DataTableHighlight
-                              text={formatDateTime(row.occurredAt, {
-                                time: true,
-                              })}
-                              item={row}
-                              itemKey="occurredAt"
-                            />
-                          </DataTableCell>
-                          {/* The row's spare width, a long actor truncated — so the table fits its card and the row's
-                              end (its sheet icon, its menu) stays in view. */}
-                          <DataTableCell column="actor" className="w-full max-w-0">
-                            <button
-                              type="button"
-                              className="flex max-w-full cursor-pointer hover:underline"
-                              title={row.actor}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openCellSheet({ kind: 'actor', actor: row.actor });
-                              }}
+                            <DataTableCell
+                              column="occurredAt"
+                              className="whitespace-nowrap"
                             >
-                              <WithSheetIcon className="min-w-0">
-                                <span className="truncate">
-                                  <DataTableHighlight
-                                    text={row.actor}
-                                    item={row}
-                                    itemKey="actor"
-                                  />
-                                </span>
-                              </WithSheetIcon>
-                            </button>
-                          </DataTableCell>
-                          {/* Entity type, action and entity id folded into one cell: `invoice.created`, the id beneath. */}
-                          <DataTableCell column="action">
-                            <div className="flex flex-col gap-0.5">
-                              <SimpleBadge className="w-fit">
-                                <span>
-                                  <DataTableHighlight
-                                    text={auditActionLabel(row)}
-                                    item={row}
-                                    itemKey="action"
-                                  />
-                                </span>
-                              </SimpleBadge>
+                              <DataTableHighlight
+                                text={formatDateTime(row.occurredAt, {
+                                  time: true,
+                                })}
+                                item={row}
+                                itemKey="occurredAt"
+                              />
+                            </DataTableCell>
+                            {/* The row's spare width, a long actor truncated — so the table fits its card and the row's
+                                end (its sheet icon, its menu) stays in view. */}
+                            <DataTableCell column="actor" className="w-full max-w-0">
                               <button
                                 type="button"
-                                className="w-fit cursor-pointer text-left hover:underline"
+                                className="flex max-w-full cursor-pointer hover:underline"
+                                title={row.actor}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  openCellSheet({ kind: 'entity', entityType: row.entityType, entityId: row.entityId });
+                                  openCellSheet({ kind: 'actor', actor: row.actor });
+                                }}
+                              >
+                                <WithSheetIcon className="min-w-0">
+                                  <span className="truncate">
+                                    <DataTableHighlight
+                                      text={row.actor}
+                                      item={row}
+                                      itemKey="actor"
+                                    />
+                                  </span>
+                                </WithSheetIcon>
+                              </button>
+                            </DataTableCell>
+                            {/* Entity type, action and entity id folded into one cell: `invoice.created`, the id beneath. */}
+                            <DataTableCell column="action">
+                              <div className="flex flex-col gap-0.5">
+                                <SimpleBadge className="w-fit">
+                                  <span>
+                                    <DataTableHighlight
+                                      text={auditActionLabel(row)}
+                                      item={row}
+                                      itemKey="action"
+                                    />
+                                  </span>
+                                </SimpleBadge>
+                                <button
+                                  type="button"
+                                  className="w-fit cursor-pointer text-left hover:underline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openCellSheet({ kind: 'entity', entityType: row.entityType, entityId: row.entityId });
+                                  }}
+                                >
+                                  <WithSheetIcon>
+                                    <IdText
+                                      value={row.entityId}
+                                      size="lg"
+                                      copyable={false}
+                                      className="text-muted-foreground text-xs"
+                                      showTooltip={false}
+                                    />
+                                  </WithSheetIcon>
+                                </button>
+                              </div>
+                            </DataTableCell>
+                            {!tenantScoped && (
+                              <DataTableCell column="tenantId">
+                                {row.tenantId ? (
+                                  <DataTableHighlight
+                                    text={row.tenantId}
+                                    item={row}
+                                    itemKey="tenantId"
+                                  />
+                                ) : (
+                                  <SimpleBadge variant="info">platform</SimpleBadge>
+                                )}
+                              </DataTableCell>
+                            )}
+                            <DataTableCell column="reason">
+                              <WithEmptyValue value={row.reason}>
+                                <WithTooltip
+                                  tooltip={row.reason}
+                                  className="line-clamp-3 w-64"
+                                >
+                                  <DataTableHighlight
+                                    text={row.reason!}
+                                    item={row}
+                                    itemKey="reason"
+                                  />
+                                </WithTooltip>
+                              </WithEmptyValue>
+                            </DataTableCell>
+                            <DataTableCell column="correlationId">
+                              <button
+                                type="button"
+                                className="cursor-pointer text-left hover:underline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openCellSheet({ kind: 'trace', correlationId: row.correlationId });
                                 }}
                               >
                                 <WithSheetIcon>
                                   <IdText
-                                    value={row.entityId}
+                                    value={row.correlationId}
                                     size="lg"
+                                    className="text-muted-foreground"
                                     copyable={false}
-                                    className="text-muted-foreground text-xs"
                                     showTooltip={false}
                                   />
                                 </WithSheetIcon>
                               </button>
-                            </div>
-                          </DataTableCell>
-                          {!tenantScoped && (
-                            <DataTableCell column="tenantId">
-                              {row.tenantId ? (
-                                <DataTableHighlight
-                                  text={row.tenantId}
-                                  item={row}
-                                  itemKey="tenantId"
-                                />
-                              ) : (
-                                <SimpleBadge variant="info">platform</SimpleBadge>
-                              )}
                             </DataTableCell>
-                          )}
-                          <DataTableCell column="reason">
-                            <WithEmptyValue value={row.reason}>
+                            <DataTableCell column="application">
                               <WithTooltip
-                                tooltip={row.reason}
-                                className="line-clamp-3 w-64"
+                                tooltip={row.application}
+                                className="line-clamp-2"
                               >
                                 <DataTableHighlight
-                                  text={row.reason!}
+                                  text={row.application}
                                   item={row}
-                                  itemKey="reason"
+                                  itemKey="application"
                                 />
                               </WithTooltip>
-                            </WithEmptyValue>
-                          </DataTableCell>
-                          <DataTableCell column="correlationId">
-                            <button
-                              type="button"
-                              className="cursor-pointer text-left hover:underline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openCellSheet({ kind: 'trace', correlationId: row.correlationId });
-                              }}
-                            >
-                              <WithSheetIcon>
-                                <IdText
-                                  value={row.correlationId}
-                                  size="lg"
-                                  className="text-muted-foreground"
-                                  copyable={false}
-                                  showTooltip={false}
-                                />
-                              </WithSheetIcon>
-                            </button>
-                          </DataTableCell>
-                          <DataTableCell column="application">
-                            <WithTooltip
-                              tooltip={row.application}
-                              className="line-clamp-2"
-                            >
-                              <DataTableHighlight
-                                text={row.application}
-                                item={row}
-                                itemKey="application"
+                            </DataTableCell>
+                            <DataTableRowAction>
+                              <DropdownMenuLabel>Row actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {/* A fresh Advanced Filter run on this row's value, over the filter's default range (the past
+                                  90 days). The ids are copyable in the record's sheet. */}
+                              <DataTableRunQueryAction
+                                title="Filter by actor"
+                                queryId={auditQueryIds.advancedFilter}
+                                params={{ actor: row.actor }}
                               />
-                            </WithTooltip>
-                          </DataTableCell>
-                          <DataTableRowAction>
-                            <DropdownMenuLabel>Row actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            {/* A fresh Advanced Filter run on this row's value, over the filter's default range (the past
-                                90 days). The ids are copyable in the record's sheet. */}
-                            <DataTableRunQueryAction
-                              title="Filter by actor"
-                              queryId={auditQueryIds.advancedFilter}
-                              params={{ actor: row.actor }}
-                            />
-                            <DataTableRunQueryAction
-                              title="Filter by action"
-                              queryId={auditQueryIds.advancedFilter}
-                              params={{ entityType: row.entityType, action: row.action }}
-                            />
-                            <DataTableRunQueryAction
-                              title="Filter by entity"
-                              queryId={auditQueryIds.advancedFilter}
-                              params={{ entityType: row.entityType, entityId: row.entityId }}
-                            />
-                            <DataTableRunQueryAction
-                              title="Filter by correlation"
-                              queryId={auditQueryIds.advancedFilter}
-                              params={{ correlationId: row.correlationId }}
-                            />
-                          </DataTableRowAction>
-                        </DataTableRow>
-                      )}
-                    </DataTableBody>
-                  </DataTable>
-                  <DataTableLoadingBody />
-                  <DataTableErrorBody />
-                  <DataTableEmptyBody />
-                  <DataTableFoot />
-                </DataTableWrapper>
-                {selected && (
-                  <AuditEventDetailSheet
-                    record={selected}
-                    onClose={() => setSelected(null)}
-                    navigator={
-                      <DataTableSheetNavigator<AuditEvent>
-                        selectedId={selected.id}
-                        onSelect={setSelected}
-                      />
-                    }
-                  />
-                )}
-                {cellSheet?.kind === 'actor' && (
-                  <AuditActorActivitySheet
-                    actor={cellSheet.actor}
-                    onClose={() => setCellSheet(null)}
-                  />
-                )}
-                {cellSheet?.kind === 'entity' && (
-                  <AuditEntityHistorySheet
-                    entityType={cellSheet.entityType}
-                    entityId={cellSheet.entityId}
-                    onClose={() => setCellSheet(null)}
-                  />
-                )}
-                {cellSheet?.kind === 'trace' && (
-                  <AuditTraceSheet
-                    correlationId={cellSheet.correlationId}
-                    onClose={() => setCellSheet(null)}
-                  />
-                )}
-              </DataTableWithQueryProvider>
-            </MainContent>
-          </PageContent>
-        </PageWrapper>
-      </PageMain>
+                              <DataTableRunQueryAction
+                                title="Filter by action"
+                                queryId={auditQueryIds.advancedFilter}
+                                params={{ entityType: row.entityType, action: row.action }}
+                              />
+                              <DataTableRunQueryAction
+                                title="Filter by entity"
+                                queryId={auditQueryIds.advancedFilter}
+                                params={{ entityType: row.entityType, entityId: row.entityId }}
+                              />
+                              <DataTableRunQueryAction
+                                title="Filter by correlation"
+                                queryId={auditQueryIds.advancedFilter}
+                                params={{ correlationId: row.correlationId }}
+                              />
+                            </DataTableRowAction>
+                          </DataTableRow>
+                        )}
+                      </DataTableBody>
+                    </DataTable>
+                    <DataTableLoadingBody />
+                    <DataTableErrorBody />
+                    <DataTableEmptyBody />
+                    <DataTableFoot />
+                  </DataTableWrapper>
+                  {selected && (
+                    <AuditEventDetailSheet
+                      record={selected}
+                      onClose={() => setSelected(null)}
+                      navigator={
+                        <DataTableSheetNavigator<AuditEvent>
+                          selectedId={selected.id}
+                          onSelect={setSelected}
+                        />
+                      }
+                    />
+                  )}
+                  {cellSheet?.kind === 'actor' && (
+                    <AuditActorActivitySheet
+                      actor={cellSheet.actor}
+                      onClose={() => setCellSheet(null)}
+                    />
+                  )}
+                  {cellSheet?.kind === 'entity' && (
+                    <AuditEntityHistorySheet
+                      entityType={cellSheet.entityType}
+                      entityId={cellSheet.entityId}
+                      onClose={() => setCellSheet(null)}
+                    />
+                  )}
+                  {cellSheet?.kind === 'trace' && (
+                    <AuditTraceSheet
+                      correlationId={cellSheet.correlationId}
+                      onClose={() => setCellSheet(null)}
+                    />
+                  )}
+                </DataTableWithQueryProvider>
+              </MainContent>
+            </PageContent>
+          </PageWrapper>
+        </PageMain>
+      </PageFocus>
     </>
   );
 }

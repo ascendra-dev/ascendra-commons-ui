@@ -45,6 +45,8 @@ import {
   TableRowLink,
   useDataTable,
   WithTooltip,
+  PageFocus,
+  PageFocusToggle,
 } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -76,101 +78,104 @@ export default function AccessPeoplePage() {
 
   return (
     <>
-      <PageHeader>
-        <PageHeaderGroup>
-          <PageTitle>People</PageTitle>
-          <PageSubtitle>Everyone {tenantId ? `in ${tenantName(tenantId)}` : platform ? 'in every tenant' : 'here'}, and what they hold.</PageSubtitle>
-        </PageHeaderGroup>
-        {platform && (
-          <PageHeaderAction className="flex w-fit gap-2">
-            <TenantPicker />
-          </PageHeaderAction>
-        )}
-      </PageHeader>
-      <PageMain>
-        <PageWrapper>
-          <PageContent>
-            <MainContent>
-              <DataTableWithQueryProvider
-                queries={queries}
-                fieldOptions={fieldOptions}
-                queryFunctions={peopleQueryFunctions}
-                columns={peopleColumns}
-                getRowId={(row) => row.id}
-                selectable={can('authz.assign_roles')}
-                tableId="access-people-table"
-              >
-                <QueryBar />
-                <QueryParamPanel />
-                <DataTableBar>
-                  <DataTableBarContent>
-                    <DataTableSearchInput />
-                    <DataTableColumnManager />
-                    {can('authz.assign_roles') && <GiveRoleToSelected />}
-                  </DataTableBarContent>
-                </DataTableBar>
-                <DataTableFilterBar />
-                <DataTableWrapper>
-                  <DataTable scrollable horizontal height={520}>
-                    <DataTableHeader>
-                      <DataTableHeaderRow>
-                        {can('authz.assign_roles') && <DataTableCheckboxHead />}
-                        <DataTableHead column="name">Person</DataTableHead>
-                        {(platform && !tenantId) ? <DataTableHead column="tenantId">Tenant</DataTableHead> : null}
-                        <DataTableHead column="roles">Roles</DataTableHead>
-                        {/* Visible, not on hover — it carries the selection's count, Select all and Clear all. */}
-                        <DataTableHeadAction variant="visible" />
-                      </DataTableHeaderRow>
-                    </DataTableHeader>
-                    <DataTableBody>
-                      {(row: PersonRow) => (
-                        <DataTableRow key={row.id}>
-                          {can('authz.assign_roles') && <DataTableCheckboxCell rowId={row.id} />}
-                          <DataTableCell column="name">
-                            <TableRowLink href={authorizationLinks.person(row.id)} className="flex flex-col">
-                              <span className="font-medium">
-                                <DataTableHighlight text={row.name} item={row} itemKey="name" />
-                              </span>
-                              <span className="text-muted-foreground text-xs">{row.email ?? row.id}</span>
-                            </TableRowLink>
-                          </DataTableCell>
-                          {(platform && !tenantId) ? (
-                            <DataTableCell column="tenantId" className="text-muted-foreground whitespace-nowrap">
-                              {row.tenantId ? tenantName(row.tenantId) : 'Platform'}
+      <PageFocus>
+        <PageHeader>
+          <PageHeaderGroup>
+            <PageTitle>People</PageTitle>
+            <PageSubtitle>Everyone {tenantId ? `in ${tenantName(tenantId)}` : platform ? 'in every tenant' : 'here'}, and what they hold.</PageSubtitle>
+          </PageHeaderGroup>
+          {platform && (
+            <PageHeaderAction className="flex w-fit gap-2">
+              <TenantPicker />
+              <PageFocusToggle />
+            </PageHeaderAction>
+          )}
+        </PageHeader>
+        <PageMain>
+          <PageWrapper>
+            <PageContent>
+              <MainContent>
+                <DataTableWithQueryProvider
+                  queries={queries}
+                  fieldOptions={fieldOptions}
+                  queryFunctions={peopleQueryFunctions}
+                  columns={peopleColumns}
+                  getRowId={(row) => row.id}
+                  selectable={can('authz.assign_roles')}
+                  tableId="access-people-table"
+                >
+                  <QueryBar />
+                  <QueryParamPanel />
+                  <DataTableBar>
+                    <DataTableBarContent>
+                      <DataTableSearchInput />
+                      <DataTableColumnManager />
+                      {can('authz.assign_roles') && <GiveRoleToSelected />}
+                    </DataTableBarContent>
+                  </DataTableBar>
+                  <DataTableFilterBar />
+                  <DataTableWrapper>
+                    <DataTable scrollable horizontal>
+                      <DataTableHeader>
+                        <DataTableHeaderRow>
+                          {can('authz.assign_roles') && <DataTableCheckboxHead />}
+                          <DataTableHead column="name">Person</DataTableHead>
+                          {(platform && !tenantId) ? <DataTableHead column="tenantId">Tenant</DataTableHead> : null}
+                          <DataTableHead column="roles">Roles</DataTableHead>
+                          {/* Visible, not on hover — it carries the selection's count, Select all and Clear all. */}
+                          <DataTableHeadAction variant="visible" />
+                        </DataTableHeaderRow>
+                      </DataTableHeader>
+                      <DataTableBody>
+                        {(row: PersonRow) => (
+                          <DataTableRow key={row.id}>
+                            {can('authz.assign_roles') && <DataTableCheckboxCell rowId={row.id} />}
+                            <DataTableCell column="name">
+                              <TableRowLink href={authorizationLinks.person(row.id)} className="flex flex-col">
+                                <span className="font-medium">
+                                  <DataTableHighlight text={row.name} item={row} itemKey="name" />
+                                </span>
+                                <span className="text-muted-foreground text-xs">{row.email ?? row.id}</span>
+                              </TableRowLink>
                             </DataTableCell>
-                          ) : null}
-                          <DataTableCell column="roles">
-                            <RoleChips row={row} />
-                          </DataTableCell>
-                          <DataTableRowAction>
-                            <DropdownMenuLabel>Row actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            {row.roles.map((r) => (
-                              <DataTableRunQueryAction
-                                key={r.roleId}
-                                title={`Everyone holding ${r.roleId}`}
-                                queryId={authorizationQueryIds.peopleFilter}
-                                params={{ roleId: r.roleId }}
-                              />
-                            ))}
-                            {row.roles.length === 0 && (
-                              <DataTableRunQueryAction title="Everyone holding no role" queryId={authorizationQueryIds.peopleFilter} params={{ roleless: 'true' }} />
-                            )}
-                          </DataTableRowAction>
-                        </DataTableRow>
-                      )}
-                    </DataTableBody>
-                  </DataTable>
-                  <DataTableLoadingBody />
-                  <DataTableErrorBody />
-                  <DataTableEmptyBody title="Nobody matches" description="Clear the search or the role filter." />
-                  <DataTableFoot />
-                </DataTableWrapper>
-              </DataTableWithQueryProvider>
-            </MainContent>
-          </PageContent>
-        </PageWrapper>
-      </PageMain>
+                            {(platform && !tenantId) ? (
+                              <DataTableCell column="tenantId" className="text-muted-foreground whitespace-nowrap">
+                                {row.tenantId ? tenantName(row.tenantId) : 'Platform'}
+                              </DataTableCell>
+                            ) : null}
+                            <DataTableCell column="roles">
+                              <RoleChips row={row} />
+                            </DataTableCell>
+                            <DataTableRowAction>
+                              <DropdownMenuLabel>Row actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {row.roles.map((r) => (
+                                <DataTableRunQueryAction
+                                  key={r.roleId}
+                                  title={`Everyone holding ${r.roleId}`}
+                                  queryId={authorizationQueryIds.peopleFilter}
+                                  params={{ roleId: r.roleId }}
+                                />
+                              ))}
+                              {row.roles.length === 0 && (
+                                <DataTableRunQueryAction title="Everyone holding no role" queryId={authorizationQueryIds.peopleFilter} params={{ roleless: 'true' }} />
+                              )}
+                            </DataTableRowAction>
+                          </DataTableRow>
+                        )}
+                      </DataTableBody>
+                    </DataTable>
+                    <DataTableLoadingBody />
+                    <DataTableErrorBody />
+                    <DataTableEmptyBody title="Nobody matches" description="Clear the search or the role filter." />
+                    <DataTableFoot />
+                  </DataTableWrapper>
+                </DataTableWithQueryProvider>
+              </MainContent>
+            </PageContent>
+          </PageWrapper>
+        </PageMain>
+      </PageFocus>
     </>
   );
 }

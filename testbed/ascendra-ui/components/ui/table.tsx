@@ -15,7 +15,8 @@ import { PaginationButton } from "@/ascendra-ui/components/common-ui/pagination-
 import { cn, Separator } from "@/ascendra-ui/shadcn";
 import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars";
 import { useVisibleRowsHeight } from "@/ascendra-ui/hooks/use-visible-rows-height";
-import { flashElement, useCardContext } from "@/ascendra-ui/components/card/card";
+import { useCardContext } from "@/ascendra-ui/components/card/card";
+import { flashElement, useMaximizeScope } from "@/ascendra-ui/components/ui/maximize";
 import { type PaginationState } from "@/ascendra-ui/providers/data-table/use-pagination.hook";
 import {
   buildBorderClasses,
@@ -435,8 +436,8 @@ function RowEndIcon({ kind }: { kind: "page" | "external" | "restore" }) {
  * sits above the overlay. A row that opens a sheet keeps its `onClick` and takes `opensSheet` instead.
  * The row ends in a chevron (an arrow out with `external`).
  *
- * In a maximized card (which is for reading) a page link doesn't leave: the row becomes a button that brings the card
- * back, then scrolls to the row, tints it and focuses its link — the next click goes there, in context. An `external`
+ * In a maximized card or focused page (which are for reading) a page link doesn't leave: the row becomes a button
+ * that brings it back, then scrolls to the row, tints it and focuses its link — the next click goes there, in context. An `external`
  * link still opens its new tab.
  */
 function TableRowLink({
@@ -445,7 +446,7 @@ function TableRowLink({
   external = false,
   ...props
 }: React.ComponentProps<typeof Link> & { external?: boolean }) {
-  const { maximized, restore } = useCardContext();
+  const { maximized, restore } = useMaximizeScope();
   const linkClasses = cn(
     // z-1: above the row's positioned content (a SimpleBadge is `relative`), which would otherwise paint over it.
     "outline-none after:absolute after:inset-0 after:z-1 after:content-['']",
@@ -470,7 +471,7 @@ function TableRowLink({
         }}
       >
         {children}
-        <span className="sr-only"> — restores the section; then open it</span>
+        <span className="sr-only"> — restores the view; then open it</span>
         <RowEndIcon kind="restore" />
       </button>
     );

@@ -41,6 +41,8 @@ import {
   SimpleBadge,
   TableRowLink,
   useBackTo,
+  PageFocus,
+  PageFocusToggle,
 } from '@/ascendra-ui';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -73,95 +75,98 @@ export default function AccessRefusalsPage() {
   return (
     <>
       <BackLink href={authorizationLinks.denials()} label="Denied requests">Back to denied requests</BackLink>
-      <PageHeader>
-        <PageHeaderGroup>
-          <PageTitle>Refusals</PageTitle>
-          <PageSubtitle>Every request refused {tenantId ? `in ${tenantName(tenantId)}` : platform ? 'in every tenant' : 'here'} — a row per person, action and page per minute.</PageSubtitle>
-        </PageHeaderGroup>
-        {platform && (
-          <PageHeaderAction className="flex w-fit gap-2">
-            <TenantPicker />
-          </PageHeaderAction>
-        )}
-      </PageHeader>
-      <PageMain>
-        <PageWrapper>
-          <PageContent>
-            <MainContent>
-              <DataTableWithQueryProvider
-                queries={queries}
-                fieldOptions={fieldOptions}
-                queryFunctions={denialQueryFunctions}
-                columns={denialColumns}
-                getRowId={(row) => row.id}
-                tableId="access-denials-table"
-              >
-                <QueryBar />
-                <QueryParamPanel />
-                <DataTableBar>
-                  <DataTableBarContent>
-                    <DataTableSearchInput />
-                    <DataTableColumnManager />
-                  </DataTableBarContent>
-                </DataTableBar>
-                <DataTableFilterBar />
-                <DataTableWrapper>
-                  <DataTable scrollable horizontal height={480}>
-                    <DataTableHeader>
-                      <DataTableHeaderRow>
-                        <DataTableHead column="windowStart">Minute</DataTableHead>
-                        <DataTableHead column="actorName">Person</DataTableHead>
-                        <DataTableHead column="action">Needed</DataTableHead>
-                        <DataTableHead column="route">Page</DataTableHead>
-                        <DataTableHead column="count">Times</DataTableHead>
-                        <DataTableHeadAction />
-                      </DataTableHeaderRow>
-                    </DataTableHeader>
-                    <DataTableBody>
-                      {(row: DenialRow) => (
-                        <DataTableRow key={row.id}>
-                          <DataTableCell column="windowStart" className="whitespace-nowrap">
-                            <DataTableHighlight text={formatDateTime(row.windowStart, { time: true })} item={row} itemKey="windowStart" />
-                          </DataTableCell>
-                          <DataTableCell column="actorName">
-                            <TableRowLink href={backTo(authorizationLinks.person(row.actorId))}>
-                              <DataTableHighlight text={row.actorName} item={row} itemKey="actorName" />
-                            </TableRowLink>
-                            {platform && !tenantId && <div className="text-muted-foreground text-xs">{row.tenantId ? tenantName(row.tenantId) : 'platform'}</div>}
-                          </DataTableCell>
-                          <DataTableCell column="action">
-                            <SimpleBadge>
-                              <span>
-                                <DataTableHighlight text={row.action} item={row} itemKey="action" />
-                              </span>
-                            </SimpleBadge>
-                          </DataTableCell>
-                          <DataTableCell column="route" className="text-muted-foreground font-mono text-xs">
-                            {row.method} {row.route}
-                          </DataTableCell>
-                          <DataTableCell column="count" className={`font-mono tabular-nums ${row.count > 1 ? 'text-negative' : ''}`}>
-                            {formatCount(row.count)}
-                          </DataTableCell>
-                          <DataTableRowAction>
-                            <DropdownMenuLabel>Row actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DataTableRunQueryAction title={`Everything ${row.actorName} was refused`} queryId={authorizationQueryIds.denialsFilter} params={{ actorId: row.actorId }} />
-                            <DataTableRunQueryAction title={`Everyone refused ${row.action}`} queryId={authorizationQueryIds.denialsFilter} params={{ action: row.action }} />
-                          </DataTableRowAction>
-                        </DataTableRow>
-                      )}
-                    </DataTableBody>
-                  </DataTable>
-                  <DataTableLoadingBody />
-                  <DataTableErrorBody />
-                  <DataTableEmptyBody title="Nothing refused" description="Widen the range or clear a filter." />
-                  <DataTableFoot />
-                </DataTableWrapper>
-              </DataTableWithQueryProvider>
-            </MainContent>
-          </PageContent>
-        </PageWrapper>
-      </PageMain>
+      <PageFocus>
+        <PageHeader>
+          <PageHeaderGroup>
+            <PageTitle>Refusals</PageTitle>
+            <PageSubtitle>Every request refused {tenantId ? `in ${tenantName(tenantId)}` : platform ? 'in every tenant' : 'here'} — a row per person, action and page per minute.</PageSubtitle>
+          </PageHeaderGroup>
+          {platform && (
+            <PageHeaderAction className="flex w-fit gap-2">
+              <TenantPicker />
+              <PageFocusToggle />
+            </PageHeaderAction>
+          )}
+        </PageHeader>
+        <PageMain>
+          <PageWrapper>
+            <PageContent>
+              <MainContent>
+                <DataTableWithQueryProvider
+                  queries={queries}
+                  fieldOptions={fieldOptions}
+                  queryFunctions={denialQueryFunctions}
+                  columns={denialColumns}
+                  getRowId={(row) => row.id}
+                  tableId="access-denials-table"
+                >
+                  <QueryBar />
+                  <QueryParamPanel />
+                  <DataTableBar>
+                    <DataTableBarContent>
+                      <DataTableSearchInput />
+                      <DataTableColumnManager />
+                    </DataTableBarContent>
+                  </DataTableBar>
+                  <DataTableFilterBar />
+                  <DataTableWrapper>
+                    <DataTable scrollable horizontal>
+                      <DataTableHeader>
+                        <DataTableHeaderRow>
+                          <DataTableHead column="windowStart">Minute</DataTableHead>
+                          <DataTableHead column="actorName">Person</DataTableHead>
+                          <DataTableHead column="action">Needed</DataTableHead>
+                          <DataTableHead column="route">Page</DataTableHead>
+                          <DataTableHead column="count">Times</DataTableHead>
+                          <DataTableHeadAction />
+                        </DataTableHeaderRow>
+                      </DataTableHeader>
+                      <DataTableBody>
+                        {(row: DenialRow) => (
+                          <DataTableRow key={row.id}>
+                            <DataTableCell column="windowStart" className="whitespace-nowrap">
+                              <DataTableHighlight text={formatDateTime(row.windowStart, { time: true })} item={row} itemKey="windowStart" />
+                            </DataTableCell>
+                            <DataTableCell column="actorName">
+                              <TableRowLink href={backTo(authorizationLinks.person(row.actorId))}>
+                                <DataTableHighlight text={row.actorName} item={row} itemKey="actorName" />
+                              </TableRowLink>
+                              {platform && !tenantId && <div className="text-muted-foreground text-xs">{row.tenantId ? tenantName(row.tenantId) : 'platform'}</div>}
+                            </DataTableCell>
+                            <DataTableCell column="action">
+                              <SimpleBadge>
+                                <span>
+                                  <DataTableHighlight text={row.action} item={row} itemKey="action" />
+                                </span>
+                              </SimpleBadge>
+                            </DataTableCell>
+                            <DataTableCell column="route" className="text-muted-foreground font-mono text-xs">
+                              {row.method} {row.route}
+                            </DataTableCell>
+                            <DataTableCell column="count" className={`font-mono tabular-nums ${row.count > 1 ? 'text-negative' : ''}`}>
+                              {formatCount(row.count)}
+                            </DataTableCell>
+                            <DataTableRowAction>
+                              <DropdownMenuLabel>Row actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DataTableRunQueryAction title={`Everything ${row.actorName} was refused`} queryId={authorizationQueryIds.denialsFilter} params={{ actorId: row.actorId }} />
+                              <DataTableRunQueryAction title={`Everyone refused ${row.action}`} queryId={authorizationQueryIds.denialsFilter} params={{ action: row.action }} />
+                            </DataTableRowAction>
+                          </DataTableRow>
+                        )}
+                      </DataTableBody>
+                    </DataTable>
+                    <DataTableLoadingBody />
+                    <DataTableErrorBody />
+                    <DataTableEmptyBody title="Nothing refused" description="Widen the range or clear a filter." />
+                    <DataTableFoot />
+                  </DataTableWrapper>
+                </DataTableWithQueryProvider>
+              </MainContent>
+            </PageContent>
+          </PageWrapper>
+        </PageMain>
+      </PageFocus>
     </>
   );
 }

@@ -46,6 +46,9 @@ import {
   SimpleBadge,
   WithEmptyValue,
   WithSheetIcon,
+  PageFocus,
+  PageFocusToggle,
+  PageHeaderAction,
 } from '@/ascendra-ui';
 import { formatCount, formatDateTime } from '@/ascendra-ui/utils/common.util';
 import {
@@ -74,143 +77,148 @@ export default function IdempotencyClaimsPage() {
   return (
     <>
       <BackLink href={idempotencyLinks.overview()} label="Idempotency">Back to overview</BackLink>
-      <PageHeader>
-        <PageHeaderGroup>
-          <PageTitle>Claims</PageTitle>
-          <PageSubtitle>Every request that carried an idempotency key — and the repeats it absorbed.</PageSubtitle>
-        </PageHeaderGroup>
-      </PageHeader>
-      <PageMain>
-        <PageWrapper>
-          <PageContent>
-            <MainContent>
-              <DataTableWithQueryProvider
-                queries={idempotencyQueryDefs}
-                fieldOptions={fieldOptions}
-                queryFunctions={idempotencyQueryFunctions}
-                columns={idempotencyClaimColumns}
-                getRowId={(row) => `${row.scope}/${row.key}`}
-                tableId="idempotency-claims-table"
-              >
-                <QueryBar />
-                <QueryParamPanel />
-                <DataTableBar>
-                  <DataTableBarContent>
-                    <DataTableSearchInput />
-                    <DataTableColumnManager />
-                    <DataTableSortDropdown />
-                    <DataTableFilterDropdown />
-                  </DataTableBarContent>
-                </DataTableBar>
-                <DataTableFilterBar />
-                <DataTableWrapper>
-                  <DataTable scrollable horizontal height={480}>
-                    <DataTableHeader>
-                      <DataTableHeaderRow>
-                        <DataTableHead column="createdAt">Created</DataTableHead>
-                        <DataTableHead column="route">Route</DataTableHead>
-                        <DataTableHead column="key">Key</DataTableHead>
-                        <DataTableHead column="scope">Scope</DataTableHead>
-                        <DataTableHead column="status">Status</DataTableHead>
-                        <DataTableHead column="replayCount">Replayed</DataTableHead>
-                        <DataTableHead column="conflictCount">409s</DataTableHead>
-                        <DataTableHead column="lateCompleteNoOpCount">Safety</DataTableHead>
-                        <DataTableHead column="correlationId">Correlation</DataTableHead>
-                        <DataTableHeadAction />
-                      </DataTableHeaderRow>
-                    </DataTableHeader>
-                    <DataTableBody>
-                      {(row: IdempotencyClaim) => (
-                        <DataTableRow key={`${row.scope}/${row.key}`}>
-                          <DataTableCell column="createdAt" className="whitespace-nowrap">
-                            <DataTableHighlight text={formatDateTime(row.createdAt, { time: true })} item={row} itemKey="createdAt" />
-                          </DataTableCell>
-                          <DataTableCell column="route">
-                            <SimpleBadge>
-                              <span>
-                                <DataTableHighlight text={routeLabel(row.route)} item={row} itemKey="route" />
-                              </span>
-                            </SimpleBadge>
-                          </DataTableCell>
-                          <DataTableCell column="key">
-                            <button type="button" className="cursor-pointer text-left hover:underline" onClick={() => setSelected(row)}>
-                              <WithSheetIcon>
-                                <IdText value={row.key} size="lg" copyable={false} showTooltip={false} />
-                              </WithSheetIcon>
-                            </button>
-                          </DataTableCell>
-                          <DataTableCell column="scope" className="whitespace-nowrap">
-                            <DataTableHighlight text={row.scope} item={row} itemKey="scope" />
-                          </DataTableCell>
-                          <DataTableCell column="status">
-                            <SimpleBadge variant={claimStatusVariant(row)}>
-                              <span>
-                                <DataTableHighlight text={claimStatusLabel(row)} item={row} itemKey="status" />
-                              </span>
-                            </SimpleBadge>
-                          </DataTableCell>
-                          <DataTableCell column="replayCount" className={countClass(row.replayCount)}>
-                            {formatCount(row.replayCount)}
-                          </DataTableCell>
-                          <DataTableCell column="conflictCount" className={countClass(row.conflictCount)}>
-                            {formatCount(row.conflictCount)}
-                          </DataTableCell>
-                          <DataTableCell column="lateCompleteNoOpCount">
-                            <SafetyCell row={row} />
-                          </DataTableCell>
-                          <DataTableCell column="correlationId">
-                            <WithEmptyValue value={row.correlationId}>
-                              <button
-                                type="button"
-                                className="cursor-pointer text-left hover:underline"
-                                onClick={() => setTraceId(row.correlationId)}
-                              >
+      <PageFocus>
+        <PageHeader>
+          <PageHeaderGroup>
+            <PageTitle>Claims</PageTitle>
+            <PageSubtitle>Every request that carried an idempotency key — and the repeats it absorbed.</PageSubtitle>
+          </PageHeaderGroup>
+          <PageHeaderAction className="w-fit">
+            <PageFocusToggle />
+          </PageHeaderAction>
+        </PageHeader>
+        <PageMain>
+          <PageWrapper>
+            <PageContent>
+              <MainContent>
+                <DataTableWithQueryProvider
+                  queries={idempotencyQueryDefs}
+                  fieldOptions={fieldOptions}
+                  queryFunctions={idempotencyQueryFunctions}
+                  columns={idempotencyClaimColumns}
+                  getRowId={(row) => `${row.scope}/${row.key}`}
+                  tableId="idempotency-claims-table"
+                >
+                  <QueryBar />
+                  <QueryParamPanel />
+                  <DataTableBar>
+                    <DataTableBarContent>
+                      <DataTableSearchInput />
+                      <DataTableColumnManager />
+                      <DataTableSortDropdown />
+                      <DataTableFilterDropdown />
+                    </DataTableBarContent>
+                  </DataTableBar>
+                  <DataTableFilterBar />
+                  <DataTableWrapper>
+                    <DataTable scrollable horizontal>
+                      <DataTableHeader>
+                        <DataTableHeaderRow>
+                          <DataTableHead column="createdAt">Created</DataTableHead>
+                          <DataTableHead column="route">Route</DataTableHead>
+                          <DataTableHead column="key">Key</DataTableHead>
+                          <DataTableHead column="scope">Scope</DataTableHead>
+                          <DataTableHead column="status">Status</DataTableHead>
+                          <DataTableHead column="replayCount">Replayed</DataTableHead>
+                          <DataTableHead column="conflictCount">409s</DataTableHead>
+                          <DataTableHead column="lateCompleteNoOpCount">Safety</DataTableHead>
+                          <DataTableHead column="correlationId">Correlation</DataTableHead>
+                          <DataTableHeadAction />
+                        </DataTableHeaderRow>
+                      </DataTableHeader>
+                      <DataTableBody>
+                        {(row: IdempotencyClaim) => (
+                          <DataTableRow key={`${row.scope}/${row.key}`}>
+                            <DataTableCell column="createdAt" className="whitespace-nowrap">
+                              <DataTableHighlight text={formatDateTime(row.createdAt, { time: true })} item={row} itemKey="createdAt" />
+                            </DataTableCell>
+                            <DataTableCell column="route">
+                              <SimpleBadge>
+                                <span>
+                                  <DataTableHighlight text={routeLabel(row.route)} item={row} itemKey="route" />
+                                </span>
+                              </SimpleBadge>
+                            </DataTableCell>
+                            <DataTableCell column="key">
+                              <button type="button" className="cursor-pointer text-left hover:underline" onClick={() => setSelected(row)}>
                                 <WithSheetIcon>
-                                  <IdText
-                                    value={row.correlationId ?? ''}
-                                    size="lg"
-                                    className="text-muted-foreground"
-                                    copyable={false}
-                                    showTooltip={false}
-                                  />
+                                  <IdText value={row.key} size="lg" copyable={false} showTooltip={false} />
                                 </WithSheetIcon>
                               </button>
-                            </WithEmptyValue>
-                          </DataTableCell>
-                          <DataTableRowAction>
-                            <DropdownMenuLabel>Row actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            {/* A fresh Advanced Filter run on this row's value, over the filter's default range. */}
-                            {row.route && (
+                            </DataTableCell>
+                            <DataTableCell column="scope" className="whitespace-nowrap">
+                              <DataTableHighlight text={row.scope} item={row} itemKey="scope" />
+                            </DataTableCell>
+                            <DataTableCell column="status">
+                              <SimpleBadge variant={claimStatusVariant(row)}>
+                                <span>
+                                  <DataTableHighlight text={claimStatusLabel(row)} item={row} itemKey="status" />
+                                </span>
+                              </SimpleBadge>
+                            </DataTableCell>
+                            <DataTableCell column="replayCount" className={countClass(row.replayCount)}>
+                              {formatCount(row.replayCount)}
+                            </DataTableCell>
+                            <DataTableCell column="conflictCount" className={countClass(row.conflictCount)}>
+                              {formatCount(row.conflictCount)}
+                            </DataTableCell>
+                            <DataTableCell column="lateCompleteNoOpCount">
+                              <SafetyCell row={row} />
+                            </DataTableCell>
+                            <DataTableCell column="correlationId">
+                              <WithEmptyValue value={row.correlationId}>
+                                <button
+                                  type="button"
+                                  className="cursor-pointer text-left hover:underline"
+                                  onClick={() => setTraceId(row.correlationId)}
+                                >
+                                  <WithSheetIcon>
+                                    <IdText
+                                      value={row.correlationId ?? ''}
+                                      size="lg"
+                                      className="text-muted-foreground"
+                                      copyable={false}
+                                      showTooltip={false}
+                                    />
+                                  </WithSheetIcon>
+                                </button>
+                              </WithEmptyValue>
+                            </DataTableCell>
+                            <DataTableRowAction>
+                              <DropdownMenuLabel>Row actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {/* A fresh Advanced Filter run on this row's value, over the filter's default range. */}
+                              {row.route && (
+                                <DataTableRunQueryAction
+                                  title="Filter by route"
+                                  queryId={idempotencyQueryIds.advancedFilter}
+                                  params={{ route: row.route }}
+                                />
+                              )}
                               <DataTableRunQueryAction
-                                title="Filter by route"
+                                title="Filter by scope"
                                 queryId={idempotencyQueryIds.advancedFilter}
-                                params={{ route: row.route }}
+                                params={{ scope: row.scope }}
                               />
-                            )}
-                            <DataTableRunQueryAction
-                              title="Filter by scope"
-                              queryId={idempotencyQueryIds.advancedFilter}
-                              params={{ scope: row.scope }}
-                            />
-                            <DataTableCopyValueAction title="Copy key" value={row.key} icon={<LuCopy />} />
-                          </DataTableRowAction>
-                        </DataTableRow>
-                      )}
-                    </DataTableBody>
-                  </DataTable>
-                  <DataTableLoadingBody />
-                  <DataTableErrorBody />
-                  <DataTableEmptyBody title="No claims match" description="Widen the range or clear a filter." />
-                  <DataTableFoot />
-                </DataTableWrapper>
-                {selected && <ClaimSheet claim={selected} onClose={() => setSelected(null)} />}
-                {traceId && <ClaimTraceSheet correlationId={traceId} onClose={() => setTraceId(null)} />}
-              </DataTableWithQueryProvider>
-            </MainContent>
-          </PageContent>
-        </PageWrapper>
-      </PageMain>
+                              <DataTableCopyValueAction title="Copy key" value={row.key} icon={<LuCopy />} />
+                            </DataTableRowAction>
+                          </DataTableRow>
+                        )}
+                      </DataTableBody>
+                    </DataTable>
+                    <DataTableLoadingBody />
+                    <DataTableErrorBody />
+                    <DataTableEmptyBody title="No claims match" description="Widen the range or clear a filter." />
+                    <DataTableFoot />
+                  </DataTableWrapper>
+                  {selected && <ClaimSheet claim={selected} onClose={() => setSelected(null)} />}
+                  {traceId && <ClaimTraceSheet correlationId={traceId} onClose={() => setTraceId(null)} />}
+                </DataTableWithQueryProvider>
+              </MainContent>
+            </PageContent>
+          </PageWrapper>
+        </PageMain>
+      </PageFocus>
     </>
   );
 }
