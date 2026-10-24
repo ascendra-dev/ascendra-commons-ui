@@ -54,7 +54,8 @@ export function ChartBarLink<T>({ href, payload, background, ...bar }: ChartBarL
       <g
         data-slot="chart-bar-link"
         data-href={url}
-        className="cursor-pointer"
+        // The ordinary cursor — in focus mode a page link isn't a way out, just a way back.
+        className="cursor-default"
         // Focus stays on the card — a chart layer that took it would draw its outline once the card is back.
         onMouseDown={(event) => event.preventDefault()}
         onClick={() => restore(() => markRestored(url))}

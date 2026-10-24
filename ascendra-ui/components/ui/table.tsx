@@ -31,7 +31,6 @@ import {
   LuChevronLast,
   LuChevronLeft,
   LuChevronRight,
-  LuMinimize2,
   LuLoaderCircle,
 } from "react-icons/lu";
 
@@ -373,6 +372,9 @@ function rowSheetIcon(opensSheet: boolean | undefined) {
       "after:pointer-events-none after:absolute after:top-1/2 after:right-1.5 after:z-2 after:size-3 after:-translate-y-1/2 after:content-['']",
       "after:bg-muted-foreground after:[mask:var(--row-sheet-icon)_center/contain_no-repeat]",
       "after:opacity-0 after:transition-opacity hover:after:opacity-100 focus-within:after:opacity-100 pointer-coarse:after:opacity-100",
+      // In focus mode (a focused page, a maximized card) the hand cursor alone says it opens a sheet — no icon.
+      "in-[[data-slot=page-focus][data-focused]]:cursor-pointer in-[[data-slot=card][data-maximized]]:cursor-pointer",
+      "in-[[data-slot=page-focus][data-focused]]:after:hidden in-[[data-slot=card][data-maximized]]:after:hidden",
     ),
     style: { "--row-sheet-icon": SHEET_ICON_MASK } as React.CSSProperties,
   };
@@ -408,13 +410,13 @@ function TableRow({
 }
 
 /**
- * Where a row goes, at its right end — a chevron for a page, an arrow out for another site, inward arrows in a
- * maximized card (the click restores it; a sheet's panel: see rowSheetIcon) — so
+ * Where a row goes, at its right end — a chevron for a page, an arrow out for another site (a sheet's panel: see
+ * rowSheetIcon; none in focus mode) — so
  * it can be told before the click. In the row's right padding (it pushes no column), shown on hover or keyboard focus,
  * and always on a touch screen. Positioned against the row (which every row component makes `relative` for it).
  */
-function RowEndIcon({ kind }: { kind: "page" | "external" | "restore" }) {
-  const Icon = { page: LuChevronRight, external: LuArrowUpRight, restore: LuMinimize2 }[kind];
+function RowEndIcon({ kind }: { kind: "page" | "external" }) {
+  const Icon = kind === "external" ? LuArrowUpRight : LuChevronRight;
   return (
     <span
       data-slot="row-end-icon"
@@ -436,8 +438,8 @@ function RowEndIcon({ kind }: { kind: "page" | "external" | "restore" }) {
  * sits above the overlay. A row that opens a sheet keeps its `onClick` and takes `opensSheet` instead.
  * The row ends in a chevron (an arrow out with `external`).
  *
- * In a maximized card or focused page (which are for reading) a page link doesn't leave: the row becomes a button
- * that brings it back, then scrolls to the row, tints it and focuses its link — the next click goes there, in context. An `external`
+ * In a maximized card or focused page (which are for reading) a page link doesn't leave: the row becomes a button —
+ * no icon, the ordinary cursor — that brings it back, then scrolls to the row, tints it and focuses its link — the next click goes there, in context. An `external`
  * link still opens its new tab.
  */
 function TableRowLink({
@@ -459,7 +461,7 @@ function TableRowLink({
       <button
         type="button"
         data-slot="table-row-link"
-        className={cn("cursor-pointer text-left", linkClasses)}
+        className={cn("cursor-default text-left", linkClasses)}
         onClick={(event) => {
           const row = event.currentTarget.closest("tr, [role=listitem]");
           restore(() => {
@@ -472,7 +474,6 @@ function TableRowLink({
       >
         {children}
         <span className="sr-only"> — restores the view; then open it</span>
-        <RowEndIcon kind="restore" />
       </button>
     );
   }
