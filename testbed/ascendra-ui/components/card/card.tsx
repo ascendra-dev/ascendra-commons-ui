@@ -211,6 +211,8 @@ export function Card({
           // Last, over a className's height or width: the screen, above the top bars and the slide-in sidebar.
           maximized && [
             "fixed inset-4 z-190 h-auto max-h-none w-auto shadow-2xl outline-none sm:inset-8",
+            // Dark only: a hairline keeps the edge readable over the dimmed page (light has its shadow for that).
+            "dark:ring-1 dark:ring-white/12",
             // A chart takes the card's height (a fixed h-56 would only widen) — every box between the body and the
             // chart fills its parent, and the chart keeps at least its usual 14rem.
             "[&_[data-slot=card-panel-body]_:has([data-slot=chart])]:h-full",
