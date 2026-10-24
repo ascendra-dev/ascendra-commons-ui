@@ -113,10 +113,14 @@ export function Card({
         });
         if (!el) return;
         // Maximized, focus moves to the card (no ring) — Esc and a screen reader start there. Back, a focus left on
-        // the card or dropped goes to its maximize toggle.
+        // the card or dropped stays on the card, still no ring (on a toggle, Esc being a key would draw one), and Tab
+        // goes on from there; the card is focusable only until focus leaves it.
         if (next) el.focus({ preventScroll: true });
-        else if (document.activeElement === el || document.activeElement === document.body)
-          el.querySelector<HTMLElement>("[data-slot=card-maximize]")?.focus({ preventScroll: true });
+        else if (document.activeElement === el || document.activeElement === document.body) {
+          el.tabIndex = -1;
+          el.addEventListener("blur", () => el.removeAttribute("tabindex"), { once: true });
+          el.focus({ preventScroll: true });
+        }
       };
       const doc = document as ViewTransitionDocument;
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -208,6 +212,8 @@ export function Card({
           border && buildBorderClasses(border),
           inverse && "dark",
           className,
+          // Focused only programmatically (maximized, and just after) — never a ring.
+          "focus:outline-none",
           // Last, over a className's height or width: the screen, above the top bars and the slide-in sidebar.
           maximized && [
             "fixed inset-4 z-190 h-auto max-h-none w-auto shadow-2xl outline-none sm:inset-8",
