@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/ascendra-ui/shadcn";
-import { TableRowLink, rowLinkRowClasses, rowSheetIcon } from "@/ascendra-ui/components/ui/table";
+import { TableRowLink, rowLinkRowClasses, rowOpensSheet } from "@/ascendra-ui/components/ui/table";
 import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars";
 import { useVisibleRowsHeight } from "@/ascendra-ui/hooks/use-visible-rows-height";
 import { useCardContext } from "@/ascendra-ui/components/card/card";
@@ -60,7 +60,7 @@ export function CardList({
 
 /**
  * One row — a separator below it (not the last), the table's hover tint, and room for a CardListLink. `opensSheet`:
- * the row opens a sheet (its own onClick) and ends in the panel icon.
+ * the row opens a sheet (its own onClick) — the hand cursor says so.
  */
 export function CardListItem({
   className,
@@ -69,12 +69,11 @@ export function CardListItem({
   ...props
 }: React.ComponentProps<"div"> & { opensSheet?: boolean }) {
   const { columns } = React.useContext(CardListContext);
-  const sheet = rowSheetIcon(opensSheet);
+  const sheet = rowOpensSheet(opensSheet);
   return (
     <div
       role="listitem"
       data-slot="card-list-item"
-      data-opens-sheet={opensSheet || undefined}
       className={cn(
         "group/row border-border px-5 py-4 text-sm transition-colors not-last:border-b hover:bg-gray-700/4",
         "first:rounded-t-lg last:rounded-b-lg",
@@ -83,7 +82,7 @@ export function CardListItem({
         sheet.className,
         className,
       )}
-      style={{ ...sheet.style, ...style }}
+      style={style}
       {...props}
     />
   );

@@ -353,35 +353,14 @@ const rowLinkRowClasses = [
   "has-data-[slot=row-end-icon]:relative",
   "has-data-[slot=table-row-link]:[&_:is(button:not([data-slot=table-row-link]),input,select,textarea,[role=button],[role=checkbox],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip],[data-slot=table-checkbox-cell])]:relative",
   "has-data-[slot=table-row-link]:[&_:is(button:not([data-slot=table-row-link]),input,select,textarea,[role=button],[role=checkbox],a:not([data-slot=table-row-link]),[data-slot=tooltip-trigger],[data-slot=with-tooltip],[data-slot=table-checkbox-cell])]:z-2",
-  // In focus mode (a focused page, a maximized card) the hover tint means the row responds — none on a row with no
-  // link and no sheet.
-  "in-[[data-slot=page-focus][data-focused]]:not-has-[[data-slot=table-row-link]]:not-data-[opens-sheet]:hover:bg-transparent",
-  "in-[[data-slot=card][data-maximized]]:not-has-[[data-slot=table-row-link]]:not-data-[opens-sheet]:hover:bg-transparent",
 ];
 
-/** Lucide's panel-right, as a mask — the same icon RowEndIcon draws for a sheet, drawn by the row itself. */
-const SHEET_ICON_MASK =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='3' rx='2'/%3E%3Cpath d='M15 3v18'/%3E%3C/svg%3E\")";
-
 /**
- * `opensSheet` on a row (TableRow, DataTableRow, CardListItem): the row opens a sheet with its own `onClick`, and
- * ends in the panel icon — drawn on the row's ::after, so it needs no cell and survives hidden or reordered columns.
- * Same place, size and reveal as a linked row's chevron.
+ * `opensSheet` on a row (TableRow, DataTableRow, CardListItem): the row opens a sheet with its own `onClick` — the hand
+ * cursor says so (no icon; a page link's row has the hand too, as any link).
  */
-function rowSheetIcon(opensSheet: boolean | undefined) {
-  if (!opensSheet) return { className: undefined, style: undefined };
-  return {
-    className: cn(
-      "relative",
-      "after:pointer-events-none after:absolute after:top-1/2 after:right-1.5 after:z-2 after:size-3 after:-translate-y-1/2 after:content-['']",
-      "after:bg-muted-foreground after:[mask:var(--row-sheet-icon)_center/contain_no-repeat]",
-      "after:opacity-0 after:transition-opacity hover:after:opacity-100 focus-within:after:opacity-100 pointer-coarse:after:opacity-100",
-      // In focus mode (a focused page, a maximized card) the hand cursor alone says it opens a sheet — no icon.
-      "in-[[data-slot=page-focus][data-focused]]:cursor-pointer in-[[data-slot=card][data-maximized]]:cursor-pointer",
-      "in-[[data-slot=page-focus][data-focused]]:after:hidden in-[[data-slot=card][data-maximized]]:after:hidden",
-    ),
-    style: { "--row-sheet-icon": SHEET_ICON_MASK } as React.CSSProperties,
-  };
+function rowOpensSheet(opensSheet: boolean | undefined) {
+  return { className: opensSheet ? "cursor-pointer" : undefined };
 }
 
 function TableRow({
@@ -392,21 +371,20 @@ function TableRow({
   children,
   ...props
 }: React.ComponentProps<"tr"> & { columns?: ColVisibility[]; opensSheet?: boolean }) {
-  const sheet = rowSheetIcon(opensSheet);
+  const sheet = rowOpensSheet(opensSheet);
   const content = columns
     ? filterChildrenByColumns(columns, children)
     : children;
   return (
     <tr
       data-slot="table-row"
-      data-opens-sheet={opensSheet || undefined}
       className={cn(
         "group/row transition-colors hover:bg-gray-700/4",
         ...rowLinkRowClasses,
         sheet.className,
         className,
       )}
-      style={{ ...sheet.style, ...style }}
+      style={style}
       {...props}
     >
       {content}
@@ -415,13 +393,12 @@ function TableRow({
 }
 
 /**
- * Where a row goes, at its right end — a chevron for a page, an arrow out for another site (a sheet's panel: see
- * rowSheetIcon; none in focus mode) — so
- * it can be told before the click. In the row's right padding (it pushes no column), shown on hover or keyboard focus,
- * and always on a touch screen. Positioned against the row (which every row component makes `relative` for it).
+ * An arrow out at an external link's row end — the one row icon: it opens another site in a new tab, which a cursor
+ * can't tell (a page link or a sheet row says it with the hand cursor alone). In the row's right padding (it pushes
+ * no column), shown on hover or keyboard focus, and always on a touch screen. Positioned against the row (which every
+ * row component makes `relative` for it).
  */
-function RowEndIcon({ kind }: { kind: "page" | "external" }) {
-  const Icon = kind === "external" ? LuArrowUpRight : LuChevronRight;
+function RowEndIcon() {
   return (
     <span
       data-slot="row-end-icon"
@@ -431,7 +408,7 @@ function RowEndIcon({ kind }: { kind: "page" | "external" }) {
         "opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100 pointer-coarse:opacity-100",
       )}
     >
-      <Icon className="size-3.5" />
+      <LuArrowUpRight className="size-3.5" />
     </span>
   );
 }
@@ -441,7 +418,7 @@ function RowEndIcon({ kind }: { kind: "page" | "external" }) {
  * "copy link" and Tab focus work. Put it in one cell (usually the first, around that cell's label); its overlay
  * stretches over every cell of the row. One per row: a cell that goes somewhere else uses an ordinary link, which
  * sits above the overlay. A row that opens a sheet keeps its `onClick` and takes `opensSheet` instead.
- * The row ends in a chevron (an arrow out with `external`).
+ * An `external` link's row ends in an arrow out; otherwise no icon — the hand cursor says it goes somewhere.
  *
  * In a maximized card or focused page (which are for reading) a page link doesn't leave: the row becomes a button —
  * no icon, the zoom-out cursor (a way back to the normal view) — that brings it back, then scrolls to the row, tints it and focuses its link — the next click goes there, in context. An `external`
@@ -491,7 +468,7 @@ function TableRowLink({
       {...props}
     >
       {children}
-      <RowEndIcon kind={external ? "external" : "page"} />
+      {external && <RowEndIcon />}
     </Link>
   );
 }
@@ -691,5 +668,5 @@ export {
   TableRowLink,
   TableWrapper,
   rowLinkRowClasses,
-  rowSheetIcon,
+  rowOpensSheet,
 };
