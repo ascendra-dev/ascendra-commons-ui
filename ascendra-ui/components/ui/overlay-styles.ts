@@ -12,8 +12,7 @@ export const overlayClasses = [
 ];
 
 /**
- * Behind a maximized Card: the same dots, a lighter tint — the page dims, but the card's edge still reads against it
- * (the card adds a hairline outline of its own).
+ * Behind a maximized Card: the same dots, a lighter tint — the page dims, but the card's edge still reads against it.
  */
 export const maximizeOverlayClasses = [
   "bg-[color:rgba(10,10,16,0.20)] dark:bg-[color:rgba(0,0,0,0.35)]",
