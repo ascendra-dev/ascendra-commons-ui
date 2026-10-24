@@ -24,7 +24,8 @@ const PageTableContext = React.createContext<{ register: () => () => void; fill:
  *
  * With one DataTable, focused, the page is compact: a column the screen's height — the title, query bar and toolbar
  * keep theirs, the table takes the rest and scrolls its rows (its column header stays, its footer sits at the bottom).
- * The rules are in page-focus.css; on a screen too short for that, the whole page scrolls instead.
+ * The rules are in page-focus.css; on a screen too short for that, the whole page scrolls instead. Focused, any page is
+ * compact too: tighter padding and gaps, no subtitle or separator, a smaller title.
  *
  * A page holding a maximizable Card can't be focused (no stacking) — the toggle doesn't show, and development warns.
  */
@@ -77,8 +78,8 @@ export function PageFocus({ className, children, ...props }: React.ComponentProp
             data-overlayscrollbars-initialize={focused ? "" : undefined}
             className={cn(focused && "h-full overflow-y-auto")}
           >
-            {/* Padding here — the scrollbars take over the viewport's own. */}
-            <div data-page-fill={fill || undefined} className={cn(focused && "p-6 sm:p-8")}>
+            {/* Padding here — the scrollbars take over the viewport's own. Compact (see page-focus.css). */}
+            <div data-page-fill={fill || undefined} className={cn(focused && "p-4")}>
               <PageTableContext.Provider value={tableValue}>
                 <MaximizeProvider state={max}>{children}</MaximizeProvider>
               </PageTableContext.Provider>

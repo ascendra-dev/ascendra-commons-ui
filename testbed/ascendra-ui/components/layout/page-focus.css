@@ -1,4 +1,29 @@
 /*
+ * Any focused page is compact — the rows get the height: a 16px rhythm instead of 24-32px, the header a single row
+ * (title, actions) with no subtitle, no separator under it, the title a size smaller.
+ */
+[data-slot='page-focus'][data-focused] [data-slot='page-header'] {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+[data-slot='page-focus'][data-focused] [data-slot='page-subtitle'],
+[data-slot='page-focus'][data-focused] [data-slot='page-wrapper-separator'] {
+  display: none;
+}
+[data-slot='page-focus'][data-focused] [data-slot='page-title'] {
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+}
+[data-slot='page-focus'][data-focused] [data-slot='page-content'] {
+  margin-top: 1rem;
+  gap: 1rem;
+}
+[data-slot='page-focus'][data-focused] [data-slot='main-content'] {
+  gap: 1rem;
+}
+
+/*
  * A focused page with one DataTable (PageFocus sets data-page-fill): a column the screen's height. Everything above the
  * table keeps its height; the boxes from PageMain down to the table's frame grow into the rest, and the frame's
  * viewport scrolls the rows (DataTable switches its vertical scrolling on). On a screen too short for the table's
