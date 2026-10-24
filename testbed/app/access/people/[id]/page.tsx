@@ -157,7 +157,7 @@ export default function AccessPersonPage() {
                   <span>
                     <Link
                       className="underline underline-offset-2"
-                      href={backTo(authorizationLinks.denials({
+                      href={backTo(authorizationLinks.denialsLog({
                         queryId: authorizationQueryIds.denialsFilter,
                         params: { actorId: userId, deniedRange: { from: new Date(refused.dataUpdatedAt - 7 * 24 * 60 * 60 * 1000), to: new Date(refused.dataUpdatedAt) } },
                       }))}

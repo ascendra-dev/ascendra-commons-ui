@@ -2,7 +2,7 @@ import { buildQuerySearch, type TriggerParams } from '@/ascendra-ui';
 
 /**
  * Fixed base path (`/access`) — where `packages/access` (the console's shell) mounts this module's pages. Lists that
- * filter (People, Delegations, Denied requests) take a run — a query id from `authorizationQueryIds` and its params —
+ * filter (People, Delegations, Refusals) take a run — a query id from `authorizationQueryIds` and its params —
  * which the list runs on load (ascendra-ui's `buildQuerySearch`); without one they show the table's last run.
  */
 const run = (path: string, query?: { queryId: string; params?: TriggerParams }) =>
@@ -20,7 +20,10 @@ export const authorizationLinks = {
     const params = new URLSearchParams(Object.entries(q).filter(([, v]) => v) as [string, string][]);
     return params.size ? `/access/checker?${params}` : '/access/checker';
   },
-  denials: (query?: { queryId: string; params?: TriggerParams }) => run('/access/denials', query),
+  /** Denied requests — the summary: who and what was refused most, over a period. */
+  denials: () => '/access/denials',
+  /** Refusals — every denied request, a row per person, action and page per minute; filtered by a run. */
+  denialsLog: (query?: { queryId: string; params?: TriggerParams }) => run('/access/denials/log', query),
   catalog: () => '/access/catalog',
   mine: () => '/access/me',
 };

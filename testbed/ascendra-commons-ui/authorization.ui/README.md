@@ -20,7 +20,7 @@ ship with the app — the console gives them out and takes them back, never edit
 
 - **Overview** — tiles: People (with a role), Without a role (→ People, no role), Active delegations, Lapsed
   delegations (→ Delegations, lapsed), Roles ending (assignments within 7 days — a count of assignments, no list, so no
-  link), Denied requests (the period → Denied requests); a platform admin adds Platform access. **Who holds what**
+  link), Denied requests (the period → Refusals); a platform admin adds Platform access. **Who holds what**
   (holders per role → the Role) and **Needs a look** (lapsed delegations, roles and delegations ending, the most refused
   people).
 - **People** — the app's users (its `AuthzUserDirectory`) by name with their active roles; Find people (name or email,
@@ -33,8 +33,10 @@ ship with the app — the console gives them out and takes them back, never edit
   person); a row opens the delegation sheet (Revoke).
 - **Access checker** — "Can this person…" (allowed / denied with the reason: a role, a delegation, a lapsed one) and
   "Who can…" (holders and live delegations). The URL carries the question (`authorizationLinks.checker`).
-- **Denied requests** — most refused actions and people over a period, and the list (Recent; Filter by person, action
-  and a required range up to 90 days).
+- **Denied requests** — most refused actions and people over a period; each row opens Refusals filtered to what it
+  counted (`authorizationLinks.denials()`).
+- **Refusals** — the list under Denied requests (Recent; Filter by person, action and a required range up to 90 days;
+  `authorizationLinks.denialsLog(query)`).
 - **Action catalog** — drift and description tiles; every action by module with its scope and roles; a platform admin
   describes them.
 - **My access** — anyone's: what I can do and why, what I lent and was lent (take back / give back), and lending some of

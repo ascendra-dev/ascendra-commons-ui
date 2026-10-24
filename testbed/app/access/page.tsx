@@ -132,7 +132,7 @@ export default function AccessOverviewPage() {
       title: `${who(a.actorId)} refused ${formatCount(a.count)} ${a.count === 1 ? 'time' : 'times'}`,
       meta: `${a.actions} ${a.actions === 1 ? 'action' : 'actions'} · ${period.label.toLowerCase()} · a missing grant, or curiosity`,
       badge: { label: 'refused', variant: 'blue' as const },
-      href: backTo(authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { actorId: a.actorId, deniedRange: deniedRange(denials.dataUpdatedAt, period.days) } })),
+      href: backTo(authorizationLinks.denialsLog({ queryId: authorizationQueryIds.denialsFilter, params: { actorId: a.actorId, deniedRange: deniedRange(denials.dataUpdatedAt, period.days) } })),
     })),
   ];
 
@@ -211,7 +211,7 @@ export default function AccessOverviewPage() {
             label="Denied requests"
             value={denials.data?.total ?? null}
             caption={denials.data ? `by ${formatCount(denials.data.actors)} ${denials.data.actors === 1 ? 'person' : 'people'} · ${period.label.toLowerCase()}` : '…'}
-            href={denials.data && backTo(authorizationLinks.denials({ queryId: authorizationQueryIds.denialsFilter, params: { deniedRange: deniedRange(denials.dataUpdatedAt, period.days) } }))}
+            href={denials.data && backTo(authorizationLinks.denialsLog({ queryId: authorizationQueryIds.denialsFilter, params: { deniedRange: deniedRange(denials.dataUpdatedAt, period.days) } }))}
             loading={denials.isLoading}
           />
           {platform && (
