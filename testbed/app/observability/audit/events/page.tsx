@@ -205,27 +205,25 @@ export default function AuditLogListPage() {
                               column="actor"
                               className="whitespace-nowrap"
                             >
-                              <WithTooltip tooltip="See this actor's activity">
-                                <button
-                                  type="button"
-                                  className="flex cursor-pointer hover:underline"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openCellSheet({
-                                      kind: 'actor',
-                                      actor: row.actor,
-                                    });
-                                  }}
-                                >
-                                  <WithSheetIcon>
-                                    <DataTableHighlight
-                                      text={row.actor}
-                                      item={row}
-                                      itemKey="actor"
-                                    />
-                                  </WithSheetIcon>
-                                </button>
-                              </WithTooltip>
+                              <button
+                                type="button"
+                                className="flex cursor-pointer hover:underline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openCellSheet({
+                                    kind: 'actor',
+                                    actor: row.actor,
+                                  });
+                                }}
+                              >
+                                <WithSheetIcon>
+                                  <DataTableHighlight
+                                    text={row.actor}
+                                    item={row}
+                                    itemKey="actor"
+                                  />
+                                </WithSheetIcon>
+                              </button>
                             </DataTableCell>
                             {/* Entity type, action and entity id folded into one cell: `invoice.created`, the id beneath. */}
                             <DataTableCell column="action">
