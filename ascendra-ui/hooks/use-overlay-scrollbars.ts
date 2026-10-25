@@ -9,8 +9,9 @@ type Overflow = NonNullable<PartialOptions['overflow']>;
 
 /**
  * Script-drawn scrollbars that float over the content — no gutter beside it — on every device, touch included:
- * a 4px thumb in a 10px grab area, stopping 12px short of each end, shown only while scrolling (theme in
- * overlay-scrollbars.css).
+ * a 4px thumb in a 10px grab area, stopping 12px short of each end (theme in overlay-scrollbars.css). Shown while
+ * scrolling and while the pointer moves over the area, hidden 800ms after — a wheel mouse can't scroll sideways, so
+ * moving over a wide table is how its user finds the horizontal bar to drag. Only an axis that overflows has a bar.
  *
  * `host` is a non-scrolling wrapper the scrollbars are appended to; `viewport` is its only child, the element
  * that actually scrolls. Both stay React-rendered — the library adopts the viewport rather than generating
@@ -27,7 +28,7 @@ export function useOverlayScrollbars(
       { target: host.current, elements: { viewport: viewport.current } },
       {
         overflow: { x, y },
-        scrollbars: { theme: 'os-theme-ascendra', autoHide: 'scroll', autoHideDelay: 800, clickScroll: true },
+        scrollbars: { theme: 'os-theme-ascendra', autoHide: 'move', autoHideDelay: 800, clickScroll: true },
       }
     );
     return () => instance.destroy();
