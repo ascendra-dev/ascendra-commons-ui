@@ -112,7 +112,8 @@ export default function AccessCatalogPage() {
               {groups.length > 0 && (
                 <TableBody>
                   {groups.flatMap((g) => [
-                    <TableRow key={`group-${g.module}`}>
+                    // A heading between the actions, not a row of its own — no hover tint.
+                    <TableRow key={`group-${g.module}`} className="hover:bg-transparent">
                       <TableCell colSpan={4} className="text-muted-foreground bg-muted/40 py-2 text-[0.6875rem] tracking-wide uppercase">
                         {g.label}
                       </TableCell>
