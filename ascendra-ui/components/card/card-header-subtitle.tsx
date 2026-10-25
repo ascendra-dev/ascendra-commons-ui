@@ -11,7 +11,7 @@ export function CardHeaderSubtitle({
   children,
   ...props
 }: CardHeaderSubtitleProps) {
-  const { step } = useCardContext();
+  const { step, maximized } = useCardContext();
   const stepper = useStepperContextSafe();
 
   if (step !== undefined && stepper !== null && stepper.currentStep !== step) {
@@ -21,7 +21,8 @@ export function CardHeaderSubtitle({
   return (
     <p
       data-slot="card-header-subtitle"
-      className={cn("text-muted-foreground mt-0.5 text-xs", className)}
+      // Maximized, the card is for reading its body — the title is enough (as a focused page drops its subtitle).
+      className={cn("text-muted-foreground mt-0.5 text-xs", className, maximized && "hidden")}
       {...props}
     >
       {children}

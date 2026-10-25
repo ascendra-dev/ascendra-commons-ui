@@ -74,7 +74,7 @@ export function CardPanel({
             ref={viewportRef}
             // hides the native scrollbar until useOverlayScrollbars takes over
             data-overlayscrollbars-initialize={maximized ? "" : undefined}
-            className={cn("flex flex-1 flex-col", maximized && "min-h-0 overflow-y-auto")}
+            className={cn("flex flex-1 flex-col", maximized && "min-h-0 overflow-y-auto overscroll-y-none")}
           >
             {children}
           </div>

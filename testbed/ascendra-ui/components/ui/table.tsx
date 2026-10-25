@@ -93,6 +93,15 @@ export const tableCardFrameClasses = cn(
 export const tableCardViewportClasses =
   "relative z-1 [clip-path:inset(0_4px_round_var(--radius-lg))]";
 
+/** A table filling the room it's given (a maximized CardTable, a focused page's DataTable): the frame grows, and the
+ *  body card is painted down to its ring — with a few rows the room under them is the card's, not the layer's (in dark
+ *  mode the two matched and the footer ran into the rows). Its rows don't bounce at the ends: nothing behind scrolls. */
+export const tableCardFillFrameClasses = cn(
+  "flex min-h-0 flex-col has-[tbody]:flex-1",
+  "has-[tbody]:before:pointer-events-none has-[tbody]:before:absolute has-[tbody]:before:inset-x-1 has-[tbody]:before:top-[var(--table-head-h,2.5rem)] has-[tbody]:before:bottom-px has-[tbody]:before:rounded-lg has-[tbody]:before:bg-background",
+);
+export const tableCardFillViewportClasses = "min-h-0 overscroll-y-none";
+
 /** The <table> itself — the mb-px is the room under the card for its bottom ring, see tableCardFrameClasses. */
 export const tableClasses = "mb-px w-full border-separate border-spacing-0";
 
@@ -142,7 +151,7 @@ function Table({
   const hostRef = React.useRef<HTMLDivElement>(null);
   const ref = React.useRef<HTMLDivElement>(null);
   // In a maximized card it shows every row — the card body scrolls instead; in a maximized CardTable the table itself
-  // scrolls, as tall as the card leaves it (no taller than its rows), so the column header and the scrollbar stay put.
+  // scrolls in the rest of the card's height, so the column header and the scrollbar stay put.
   const { maximized } = useCardContext();
   const inCardTable = useInCardTable();
   const fill = maximized && inCardTable;
@@ -172,7 +181,7 @@ function Table({
 
   return (
     <TableScrollContext.Provider value={{ scrolled, vscroll: scrollY }}>
-      <div ref={hostRef} data-slot="table-frame" className={cn(tableCardFrameClasses, fill && "flex min-h-0 flex-col")}>
+      <div ref={hostRef} data-slot="table-frame" className={cn(tableCardFrameClasses, fill && tableCardFillFrameClasses)}>
         <div
           ref={ref}
           data-slot="table-container"
@@ -180,7 +189,7 @@ function Table({
           data-overlayscrollbars-initialize={scrollX || scrollY ? "" : undefined}
           className={cn(
             tableCardViewportClasses,
-            fill && "min-h-0",
+            fill && tableCardFillViewportClasses,
             scrollX && "overflow-x-auto",
             scrollY && "overflow-y-auto",
           )}

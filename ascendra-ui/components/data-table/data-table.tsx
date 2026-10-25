@@ -4,7 +4,13 @@ import * as React from 'react';
 import { cn } from '@/ascendra-ui/shadcn';
 import { useOverlayScrollbars } from '@/ascendra-ui/hooks/use-overlay-scrollbars';
 import { useVisibleRowsHeight } from '@/ascendra-ui/hooks/use-visible-rows-height';
-import { tableCardFrameClasses, tableCardViewportClasses, tableClasses } from '@/ascendra-ui/components/ui/table';
+import {
+  tableCardFillFrameClasses,
+  tableCardFillViewportClasses,
+  tableCardFrameClasses,
+  tableCardViewportClasses,
+  tableClasses,
+} from '@/ascendra-ui/components/ui/table';
 import { usePageFillTable } from '@/ascendra-ui/components/layout/page-focus';
 
 export const DataTableScrollContext = React.createContext({
@@ -57,7 +63,7 @@ export function DataTable({
     <DataTableScrollContext.Provider
       value={{ scrolled, vscroll: scrollY }}
     >
-      <div ref={hostRef} data-slot="data-table-frame" className={tableCardFrameClasses}>
+      <div ref={hostRef} data-slot="data-table-frame" className={cn(tableCardFrameClasses, fill && tableCardFillFrameClasses)}>
         <div
           ref={ref}
           data-slot="table-wrapper"
@@ -65,6 +71,7 @@ export function DataTable({
           data-overlayscrollbars-initialize={scrollX || scrollY ? '' : undefined}
           className={cn(
             tableCardViewportClasses,
+            fill && tableCardFillViewportClasses,
             scrollX && 'overflow-x-auto',
             scrollY && 'overflow-y-auto'
           )}
