@@ -138,8 +138,11 @@ function Table({
   className,
   ...props
 }: React.ComponentProps<"table"> & {
+  /** With `vertical` and `height`: the rows scroll in that height. */
   scrollable?: boolean;
   vertical?: boolean;
+  /** Columns wider than the card scroll sideways — on by default, so a table never cuts its columns off on a narrow
+   *  screen (it needs no `scrollable`); false clips them. */
   horizontal?: boolean;
   height?: number;
   minHeight?: number;
@@ -158,7 +161,7 @@ function Table({
   const rowCap = maximized ? undefined : visibleRows;
   const rowsHeight = useVisibleRowsHeight(ref, rowCap);
   const maxHeight = rowCap ? rowsHeight : scrollable && vertical && !maximized ? height : undefined;
-  const scrollX = scrollable && horizontal;
+  const scrollX = horizontal;
   const scrollY = !!maxHeight || fill;
   useOverlayScrollbars(hostRef, ref, {
     x: scrollX ? "scroll" : "hidden",

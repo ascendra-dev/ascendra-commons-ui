@@ -27,8 +27,11 @@ export function DataTable({
   className,
   ...props
 }: React.ComponentProps<'table'> & {
+  /** With `vertical` and `height`: the rows scroll in that height. */
   scrollable?: boolean;
   vertical?: boolean;
+  /** Columns wider than the card scroll sideways — on by default, so a table never cuts its columns off on a narrow
+   *  screen (it needs no `scrollable`); false clips them. */
   horizontal?: boolean;
   height?: number;
   /** Shows this many body rows whole, then scrolls vertically — measured, so rows of any height fit. Needs no
@@ -42,7 +45,7 @@ export function DataTable({
   // In a focused page it takes the rest of the height and its rows scroll (header sticky, footer below) — see PageFocus.
   const fill = usePageFillTable();
   const maxHeight = fill ? undefined : visibleRows ? rowsHeight : scrollable && vertical ? height : undefined;
-  const scrollX = scrollable && horizontal;
+  const scrollX = horizontal;
   const scrollY = !!maxHeight || fill;
   useOverlayScrollbars(hostRef, ref, {
     x: scrollX ? 'scroll' : 'hidden',
