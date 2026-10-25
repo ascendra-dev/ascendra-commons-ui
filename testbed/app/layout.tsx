@@ -61,6 +61,8 @@ export default function RootLayout({
               <NavLink href="/observability">Observability</NavLink>
               {/* And to the access console (authorization) — its own shell, packages/access. */}
               <NavLink href="/access">Access</NavLink>
+              {/* And to the notification console — its own shell, packages/notifications. */}
+              <NavLink href="/notifications">Notifications</NavLink>
             </Nav>
             <MainContainer>{children}</MainContainer>
           </PageLayout>
