@@ -59,7 +59,11 @@ import {
   auditQueryFunctions,
   auditQueryIds,
 } from '@/ascendra-commons-ui/audit-logging.ui/queries';
-import { auditApi, type AuditCatalog, type AuditEvent } from '@/ascendra-commons-ui/audit-logging.ui/api';
+import {
+  auditApi,
+  type AuditCatalog,
+  type AuditEvent,
+} from '@/ascendra-commons-ui/audit-logging.ui/api';
 import { auditActionLabel } from '@/ascendra-commons-ui/audit-logging.ui/display';
 import { auditLogLinks } from '@/ascendra-commons-ui/audit-logging.ui/links';
 import { AuditEventDetailSheet } from './_audit-event-detail-sheet';
@@ -75,7 +79,6 @@ const fetchCatalog = auditApi.catalog;
 const EMPTY_CATALOG: AuditCatalog = { entries: [], applications: [] };
 const exportEvents = auditApi.exportEvents;
 
-
 type CellSheet =
   | { kind: 'actor'; actor: string }
   | { kind: 'entity'; entityType: string; entityId: string }
@@ -90,15 +93,27 @@ export default function AuditLogListPage() {
     setSelected(null);
     setCellSheet(sheet);
   };
-  const catalog = useQuery({ queryKey: ['audit-catalog'], queryFn: fetchCatalog, staleTime: Infinity });
-  const fieldOptions = useMemo(() => auditFieldOptionsFor(catalog.data ?? EMPTY_CATALOG), [catalog.data]);
+  const catalog = useQuery({
+    queryKey: ['audit-catalog'],
+    queryFn: fetchCatalog,
+    staleTime: Infinity,
+  });
+  const fieldOptions = useMemo(
+    () => auditFieldOptionsFor(catalog.data ?? EMPTY_CATALOG),
+    [catalog.data],
+  );
   // A tenant admin only ever sees their own tenant: no Tenant column or filter (see auditListViewFor).
   const tenantScoped = useSession().data?.actor?.tenantId != null;
-  const { columns, queryDefs } = useMemo(() => auditListViewFor(tenantScoped), [tenantScoped]);
+  const { columns, queryDefs } = useMemo(
+    () => auditListViewFor(tenantScoped),
+    [tenantScoped],
+  );
 
   return (
     <>
-      <BackLink href={auditLogLinks.overview()} label="Audit log">Back to overview</BackLink>
+      <BackLink href={auditLogLinks.overview()} label="Audit log">
+        Back to overview
+      </BackLink>
       <PageFocus>
         <PageHeader>
           <PageHeaderGroup>
@@ -146,7 +161,11 @@ export default function AuditLogListPage() {
                           </DataTableHead>
                           <DataTableHead column="actor">Actor</DataTableHead>
                           <DataTableHead column="action">Action</DataTableHead>
-                          {!tenantScoped && <DataTableHead column="tenantId">Tenant</DataTableHead>}
+                          {!tenantScoped && (
+                            <DataTableHead column="tenantId">
+                              Tenant
+                            </DataTableHead>
+                          )}
                           <DataTableHead column="reason">Reason</DataTableHead>
                           <DataTableHead column="correlationId">
                             Correlation
@@ -181,28 +200,32 @@ export default function AuditLogListPage() {
                                 itemKey="occurredAt"
                               />
                             </DataTableCell>
-                            {/* The row's spare width, a long actor truncated — so the table fits its card and the row's
-                                end (its sheet icon, its menu) stays in view. */}
-                            <DataTableCell column="actor" className="w-full max-w-0">
-                              <button
-                                type="button"
-                                className="flex max-w-full cursor-pointer hover:underline"
-                                title={row.actor}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openCellSheet({ kind: 'actor', actor: row.actor });
-                                }}
-                              >
-                                <WithSheetIcon className="min-w-0">
-                                  <span className="truncate">
+                            {/* The whole actor on one line — a wide table scrolls sideways rather than cutting it. */}
+                            <DataTableCell
+                              column="actor"
+                              className="whitespace-nowrap"
+                            >
+                              <WithTooltip tooltip="See this actor's activity">
+                                <button
+                                  type="button"
+                                  className="flex cursor-pointer hover:underline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openCellSheet({
+                                      kind: 'actor',
+                                      actor: row.actor,
+                                    });
+                                  }}
+                                >
+                                  <WithSheetIcon>
                                     <DataTableHighlight
                                       text={row.actor}
                                       item={row}
                                       itemKey="actor"
                                     />
-                                  </span>
-                                </WithSheetIcon>
-                              </button>
+                                  </WithSheetIcon>
+                                </button>
+                              </WithTooltip>
                             </DataTableCell>
                             {/* Entity type, action and entity id folded into one cell: `invoice.created`, the id beneath. */}
                             <DataTableCell column="action">
@@ -221,7 +244,11 @@ export default function AuditLogListPage() {
                                   className="w-fit cursor-pointer text-left hover:underline"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    openCellSheet({ kind: 'entity', entityType: row.entityType, entityId: row.entityId });
+                                    openCellSheet({
+                                      kind: 'entity',
+                                      entityType: row.entityType,
+                                      entityId: row.entityId,
+                                    });
                                   }}
                                 >
                                   <WithSheetIcon>
@@ -245,7 +272,9 @@ export default function AuditLogListPage() {
                                     itemKey="tenantId"
                                   />
                                 ) : (
-                                  <SimpleBadge variant="info">platform</SimpleBadge>
+                                  <SimpleBadge variant="info">
+                                    platform
+                                  </SimpleBadge>
                                 )}
                               </DataTableCell>
                             )}
@@ -269,7 +298,10 @@ export default function AuditLogListPage() {
                                 className="cursor-pointer text-left hover:underline"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  openCellSheet({ kind: 'trace', correlationId: row.correlationId });
+                                  openCellSheet({
+                                    kind: 'trace',
+                                    correlationId: row.correlationId,
+                                  });
                                 }}
                               >
                                 <WithSheetIcon>
@@ -308,12 +340,18 @@ export default function AuditLogListPage() {
                               <DataTableRunQueryAction
                                 title="Filter by action"
                                 queryId={auditQueryIds.advancedFilter}
-                                params={{ entityType: row.entityType, action: row.action }}
+                                params={{
+                                  entityType: row.entityType,
+                                  action: row.action,
+                                }}
                               />
                               <DataTableRunQueryAction
                                 title="Filter by entity"
                                 queryId={auditQueryIds.advancedFilter}
-                                params={{ entityType: row.entityType, entityId: row.entityId }}
+                                params={{
+                                  entityType: row.entityType,
+                                  entityId: row.entityId,
+                                }}
                               />
                               <DataTableRunQueryAction
                                 title="Filter by correlation"
