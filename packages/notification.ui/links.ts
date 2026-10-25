@@ -10,5 +10,6 @@ const run = (path: string, query?: { queryId: string; params?: TriggerParams }) 
 
 export const notificationLinks = {
   overview: () => '/notifications',
+  retention: () => '/notifications/retention',
   deliveries: (query?: { queryId: string; params?: TriggerParams }) => run('/notifications/deliveries', query),
 };

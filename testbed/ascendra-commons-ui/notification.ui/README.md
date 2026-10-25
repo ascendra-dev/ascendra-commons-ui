@@ -10,8 +10,15 @@ and the screens don't offer the rest.
 
 ## Shipped
 
+- **Overview** — over the past 24 hours, 7 or 30 days (a platform admin picks a tenant): tiles for sends, reached,
+  failed, skipped and config gaps; **By channel** (reached · waiting · failed · skipped, the worst in red); **Why sends
+  failed** (by reason, with the kind of fix — config, recipient, transient, skipped); **By type** (failure rate, worst
+  first); **Configuration health** (coverage gaps, and leftover routes for undeclared types); **Sends per day** (failed
+  on top). Each count opens Deliveries filtered to exactly what it counted (`?reason=` for a reason).
+- **Volume & retention** — platform admins: rows, rows still holding the message, table size, rows per day over 30
+  days; the app states its own retention under the chart.
 - **Deliveries** — every send attempt, one row per channel, newest first; test sends hidden unless asked for. Recent;
-  Advanced Filter by type, channel, status, tenant (platform), a user, a guest's address (hashed by the API — the log
+  Advanced Filter by type, channel, status, reason, tenant (platform), a user, a guest's address (hashed by the API — the log
   never stores it), a recipient key, correlation id and a required range up to 90 days. The status reads in plain words
   beside its badge (`reasonLabel`); a delivery a later one retried is marked "retried".
 - **Delivery sheet** — what happened when (a retry of…, the attempt, the provider's callback, retried → …; a linked

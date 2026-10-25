@@ -1,7 +1,16 @@
 import { api } from '@/ascendra-ui/lib/api';
 import { dateRangeBounds } from '@/ascendra-ui';
 import type { CursorListResponse, QueryParamValues } from '@/ascendra-ui';
-import type { Delivery, DeliveryContent, NotificationTypeSummary, SendResult } from './notification-api.types';
+import type {
+  CoverageGap,
+  Delivery,
+  DeliveryContent,
+  DeliveryStats,
+  DeliveryVolume,
+  NotificationTypeSummary,
+  SendResult,
+  StatsWindow,
+} from './notification-api.types';
 
 const enc = encodeURIComponent;
 
@@ -38,6 +47,21 @@ export const notificationApi = {
   /** GET /notifications/types — the declared types with their default channels, templates and gap counts. */
   types(): Promise<NotificationTypeSummary[]> {
     return api.get<NotificationTypeSummary[]>('/notifications/types');
+  },
+
+  /** GET /notifications/stats — `tz` is the viewer's zone, so a day is a day on their calendar. */
+  stats(window: StatsWindow, timeZone: string, tenantId?: string): Promise<DeliveryStats> {
+    return api.get<DeliveryStats>('/notifications/stats', { window, tz: timeZone, ...(tenantId ? { tenantId } : {}) });
+  },
+
+  /** GET /notifications/config/coverage-gaps — scoped by the API: a tenant admin's own and the defaults. */
+  coverageGaps(): Promise<CoverageGap[]> {
+    return api.get<CoverageGap[]>('/notifications/config/coverage-gaps');
+  },
+
+  /** GET /notifications/volume — per day over 30 days in `tz`, the table's size and age. Platform admins only. */
+  volume(timeZone: string): Promise<DeliveryVolume> {
+    return api.get<DeliveryVolume>('/notifications/volume', { tz: timeZone });
   },
 
   /** Resend a failed delivery to its user, on its channel — once; the new row links back. */

@@ -84,3 +84,38 @@ export interface NotificationTypeSummary {
   templates: Array<{ channel: NotificationChannel; tenantId: string | null }>;
   gaps: number;
 }
+
+/** The overview's window: the last 24 hours rolling, or whole calendar days in the viewer's zone. */
+export type StatsWindow = '24h' | '7d' | '30d';
+
+/** `GET /notifications/stats` — test sends left out. */
+export interface DeliveryStats {
+  since: string;
+  until: string;
+  byChannel: Array<{ channel: NotificationChannel; status: DeliveryStatus; count: number }>;
+  byType: Array<{ notificationType: string; status: DeliveryStatus; count: number }>;
+  /** Every day of a day window (a quiet one at 0); `failed` counts failed and bounced. */
+  byDay: Array<{ day: string; count: number; failed: number }>;
+  /** Failed, skipped and bounced sends by the reason's code — a bounce is one group, `bounced`. */
+  byReason: Array<{ status: 'failed' | 'skipped' | 'bounced'; reason: string; count: number }>;
+}
+
+/** `GET /notifications/config/coverage-gaps` — what will fail the next send of a type on a channel. */
+export interface CoverageGap {
+  notificationType: string;
+  /** null — the default route, checked for every tenant. */
+  tenantId: string | null;
+  channel: NotificationChannel;
+  kind: 'missing_template' | 'missing_provider_credential';
+}
+
+/** `GET /notifications/volume` — platform admins only. */
+export interface DeliveryVolume {
+  oldestAttemptedAt: string | null;
+  rowCount: number;
+  /** Rows still holding the message — retention clears it sooner than the row. */
+  contentRowCount: number;
+  oldestContentAt: string | null;
+  tableSizeBytes: number | null;
+  perDay: Array<{ day: string; deliveries: number; failed: number; withContent: number }>;
+}

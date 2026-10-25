@@ -1,7 +1,7 @@
 import type { ColumnDef, FieldDef, FieldOptionsMap, QueryDef } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
 import type { Delivery, NotificationTypeSummary } from '../api/notification-api.types';
-import { channelLabel, NOTIFICATION_CHANNELS, reasonLabel, recipientLabel } from '../display';
+import { channelLabel, NOTIFICATION_CHANNELS, REASON_CODES, reasonLabel, reasonTitle, recipientLabel } from '../display';
 
 /** The list's query ids — for a link or row action that runs one (`notificationLinks.deliveries({ queryId, params })`). */
 export const notificationQueryIds = { recent: 'recent', advancedFilter: 'advanced-filter' } as const;
@@ -13,7 +13,7 @@ export const MAX_DELIVERY_RANGE_DAYS = 90;
 const tenantParam: FieldDef = { name: 'tenantId', label: 'Tenant', type: 'select', span: 1, optional: true };
 
 /**
- * Deliveries — every send newest first, and one Advanced Filter (AUI-028): the API ANDs type, channel, status,
+ * Deliveries — every send newest first, and one Advanced Filter (AUI-028): the API ANDs type, channel, status, reason,
  * tenant, recipient, correlation id and when. A recipient is a user (by id) or a guest's address — the API hashes the
  * address before it reaches the database; "everything to this recipient" fills the recipient key. Test sends are
  * hidden unless asked for.
@@ -32,6 +32,7 @@ export function deliveryQueryDefs(platform: boolean): QueryDef[] {
         { name: 'notificationType', label: 'Type', type: 'select', span: 1, optional: true },
         { name: 'channel', label: 'Channel', type: 'select', span: 1, optional: true },
         { name: 'status', label: 'Status', type: 'select', span: 1, optional: true },
+        { name: 'reason', label: 'Reason', type: 'select', span: 1, optional: true },
         ...(platform ? [tenantParam] : []),
         { name: 'test', label: 'Test sends', type: 'select', span: 1, optional: true, placeholder: 'Hidden' },
         { _type: 'section', title: 'Recipient', showTitle: true },
@@ -96,6 +97,7 @@ export function deliveryFieldOptions(types: readonly NotificationTypeSummary[], 
       notificationType: types.map((t) => ({ value: t.name, label: t.name })),
       channel: NOTIFICATION_CHANNELS.map((c) => ({ value: c, label: channelLabel(c) })),
       status: ['sent', 'delivered', 'failed', 'bounced', 'skipped'].map((s) => ({ value: s, label: s })),
+      reason: REASON_CODES.map((code) => ({ value: code, label: reasonTitle(code) })),
       tenantId: tenants.map((t) => ({ value: t.id, label: t.name })),
       test: [
         { value: 'hidden', label: 'Hidden' },

@@ -27,6 +27,50 @@ const REASONS: Record<string, string> = {
   no_credential: 'no provider account',
 };
 
+/** How a reason reads as a heading — the overview's "why sends failed". */
+const REASON_TITLES: Record<string, string> = {
+  suppressed: 'Suppressed — the address bounced before',
+  opted_out: 'Opted out by the user',
+  template_not_found: 'No template for the channel',
+  no_address_available: 'No phone or email on file',
+  provider_rejected: 'Provider rejected the address',
+  provider_auth_failed: 'Provider rejected the key',
+  provider_timeout: 'Provider timed out',
+  provider_error: 'Provider error',
+  no_credential: 'No provider account',
+  bounced: 'Bounced',
+};
+
+/** What a reason says about the fix: skipped on purpose, the configuration, the recipient, or a passing failure. */
+export type ReasonKind = 'skipped' | 'config' | 'recipient' | 'transient';
+
+const REASON_KINDS: Record<string, ReasonKind> = {
+  suppressed: 'skipped',
+  opted_out: 'skipped',
+  template_not_found: 'config',
+  provider_auth_failed: 'config',
+  no_credential: 'config',
+  no_address_available: 'recipient',
+  provider_rejected: 'recipient',
+  bounced: 'recipient',
+  provider_timeout: 'transient',
+  provider_error: 'transient',
+};
+
+export const REASON_KIND_BADGE: Record<ReasonKind, { label: string; variant: 'secondary' | 'orange' | 'red' | 'blue' }> = {
+  skipped: { label: 'skipped', variant: 'secondary' },
+  config: { label: 'config', variant: 'orange' },
+  recipient: { label: 'recipient', variant: 'red' },
+  transient: { label: 'transient — retryable', variant: 'blue' },
+};
+
+/** A reason code (`template_not_found`) as a heading, and what kind of fix it needs. */
+export const reasonTitle = (code: string) => REASON_TITLES[code] ?? code.replaceAll('_', ' ');
+export const reasonKind = (code: string): ReasonKind | null => REASON_KINDS[code] ?? null;
+
+/** The reason codes the module records — the delivery filter's Reason options. */
+export const REASON_CODES = Object.keys(REASON_TITLES).filter((code) => code !== 'bounced');
+
 /** A reason split into its code and the provider's own detail: `provider_timeout: no answer within 10s`. */
 export function splitReason(reason: string | null): { code: string | null; detail: string | null } {
   if (!reason) return { code: null, detail: null };
@@ -79,3 +123,15 @@ export function retryBlocker(d: Delivery): string | null {
 /** Retryable by the API's rules (the viewer still needs `notification.retry`). */
 export const canRetry = (d: Delivery) =>
   (d.status === 'failed' || d.status === 'bounced') && !d.retriedBy && retryBlocker(d) === null;
+
+/** A table size: `3.1 MB`. */
+export function formatBytes(bytes: number): string {
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit++;
+  }
+  return `${value.toFixed(value >= 10 || unit === 0 ? 0 : 1)} ${units[unit]}`;
+}
