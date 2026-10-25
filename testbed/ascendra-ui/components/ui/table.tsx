@@ -16,6 +16,7 @@ import { cn, Separator } from "@/ascendra-ui/shadcn";
 import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars";
 import { useVisibleRowsHeight } from "@/ascendra-ui/hooks/use-visible-rows-height";
 import { useCardContext } from "@/ascendra-ui/components/card/card";
+import { useInCardTable } from "@/ascendra-ui/components/card/card-table";
 import { flashElement, useMaximizeScope } from "@/ascendra-ui/components/ui/maximize";
 import { type PaginationState } from "@/ascendra-ui/providers/data-table/use-pagination.hook";
 import {
@@ -140,13 +141,16 @@ function Table({
   const [scrolled, setScrolled] = React.useState(false);
   const hostRef = React.useRef<HTMLDivElement>(null);
   const ref = React.useRef<HTMLDivElement>(null);
-  // In a maximized card it shows every row — the card body scrolls instead.
+  // In a maximized card it shows every row — the card body scrolls instead; in a maximized CardTable the table itself
+  // scrolls, as tall as the card leaves it (no taller than its rows), so the column header and the scrollbar stay put.
   const { maximized } = useCardContext();
+  const inCardTable = useInCardTable();
+  const fill = maximized && inCardTable;
   const rowCap = maximized ? undefined : visibleRows;
   const rowsHeight = useVisibleRowsHeight(ref, rowCap);
   const maxHeight = rowCap ? rowsHeight : scrollable && vertical && !maximized ? height : undefined;
   const scrollX = scrollable && horizontal;
-  const scrollY = !!maxHeight;
+  const scrollY = !!maxHeight || fill;
   useOverlayScrollbars(hostRef, ref, {
     x: scrollX ? "scroll" : "hidden",
     y: scrollY ? "scroll" : "hidden",
@@ -168,7 +172,7 @@ function Table({
 
   return (
     <TableScrollContext.Provider value={{ scrolled, vscroll: scrollY }}>
-      <div ref={hostRef} data-slot="table-frame" className={tableCardFrameClasses}>
+      <div ref={hostRef} data-slot="table-frame" className={cn(tableCardFrameClasses, fill && "flex min-h-0 flex-col")}>
         <div
           ref={ref}
           data-slot="table-container"
@@ -176,6 +180,7 @@ function Table({
           data-overlayscrollbars-initialize={scrollX || scrollY ? "" : undefined}
           className={cn(
             tableCardViewportClasses,
+            fill && "min-h-0",
             scrollX && "overflow-x-auto",
             scrollY && "overflow-y-auto",
           )}

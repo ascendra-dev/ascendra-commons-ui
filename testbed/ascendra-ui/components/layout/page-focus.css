@@ -106,3 +106,17 @@
 [data-page-fill] [data-slot='table-container'] > [data-slot='table-empty-body'] {
   flex: 1 1 0%;
 }
+
+/*
+ * The rows' card reaches down to the footer (its ring and shadow are drawn on the frame), so paint it all the way: with
+ * a few rows the room under them is the card's, not the panel around it — in dark mode the two were the same colour
+ * and the footer ran into the rows.
+ */
+[data-page-fill] [data-slot='data-table-frame']:has(tbody)::before {
+  content: '';
+  position: absolute;
+  inset: var(--table-head-h, 2.5rem) 0.25rem 1px;
+  border-radius: var(--radius-lg);
+  background: var(--background);
+  pointer-events: none;
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { cn } from "@/ascendra-ui/shadcn";
 import {
   buildBorderClasses,
@@ -9,6 +10,7 @@ import {
 } from "@/ascendra-ui/components/ui/accent-styles";
 import { useCardContext } from "@/ascendra-ui/components/card/card";
 import { useStepperContextSafe } from "@/ascendra-ui/providers/stepper/stepper.hook";
+import { useOverlayScrollbars } from "@/ascendra-ui/hooks/use-overlay-scrollbars";
 
 export function CardPanel({
   collapsed,
@@ -24,6 +26,10 @@ export function CardPanel({
 }) {
   const { collapseable, collapsed: contextCollapsed, step, maximized } = useCardContext();
   const stepper = useStepperContextSafe();
+  // Filling the screen, the body scrolls — with the library's floating scrollbar, as a list or table does at its size.
+  const bodyRef = React.useRef<HTMLDivElement>(null);
+  const viewportRef = React.useRef<HTMLDivElement>(null);
+  useOverlayScrollbars(bodyRef, viewportRef, { y: "scroll", enabled: maximized });
 
   const isCollapsed =
     step !== undefined && stepper !== null
@@ -53,17 +59,25 @@ export function CardPanel({
         )}
       >
         <div
+          ref={bodyRef}
           data-slot="card-panel-body"
           className={cn(
             "bg-background mx-1 flex flex-1 flex-col rounded-lg ring-1 ring-(--color-umbra)/4 dark:ring-black/20",
-            maximized && "min-h-0 overflow-y-auto",
+            maximized && "min-h-0",
             "shadow-[0_1px_2px_0_rgba(25,28,33,0.06),0_0_2px_0_rgba(0,0,0,0.08)]",
             "dark:shadow-[inset_0_0_1px_1px_rgba(255,255,255,0.01),0_1px_3px_0_rgba(0,0,0,0.4),0_0_3px_0_rgba(0,0,0,0.2)]",
             border && buildBorderClasses(border),
             bg && buildBgClasses(bg),
           )}
         >
-          {children}
+          <div
+            ref={viewportRef}
+            // hides the native scrollbar until useOverlayScrollbars takes over
+            data-overlayscrollbars-initialize={maximized ? "" : undefined}
+            className={cn("flex flex-1 flex-col", maximized && "min-h-0 overflow-y-auto")}
+          >
+            {children}
+          </div>
         </div>
       </div>
     </div>
