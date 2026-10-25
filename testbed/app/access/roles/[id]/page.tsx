@@ -185,7 +185,7 @@ function PeoplePickerAssign({ roleId, target, onClose }: { roleId: string; targe
   const chosen = picked.map((id) => ({ id, name: candidates.find((c) => c.id === id)?.name ?? id }));
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent focusField>
         {step === 'pick' ? (
           <PickContent
             title={`Give ${roleId} to…`}

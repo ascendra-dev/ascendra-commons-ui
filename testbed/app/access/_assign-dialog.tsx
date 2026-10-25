@@ -55,7 +55,7 @@ export function AssignRoleDialog({
 }: Omit<AssignRoleContentProps, 'onDone'> & { open: boolean; onOpenChange: (open: boolean) => void }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>{open && <AssignRoleContent {...props} onDone={() => onOpenChange(false)} />}</DialogContent>
+      <DialogContent focusField>{open && <AssignRoleContent {...props} onDone={() => onOpenChange(false)} />}</DialogContent>
     </Dialog>
   );
 }
