@@ -24,7 +24,12 @@ const REASONS: Record<string, string> = {
   provider_auth_failed: 'provider rejected the key',
   provider_timeout: 'provider timed out',
   provider_error: 'provider error',
-  no_credential: 'no provider account',
+  no_provider_config: 'no provider account',
+  no_channel_configured: 'not routed anywhere',
+  no_email: 'no email on file',
+  no_phone: 'no phone on file',
+  no_inbox: 'no inbox',
+  duplicate_in_flight: 'a duplicate — already sending',
 };
 
 /** How a reason reads as a heading — the overview's "why sends failed". */
@@ -37,7 +42,12 @@ const REASON_TITLES: Record<string, string> = {
   provider_auth_failed: 'Provider rejected the key',
   provider_timeout: 'Provider timed out',
   provider_error: 'Provider error',
-  no_credential: 'No provider account',
+  no_provider_config: 'No provider account',
+  no_channel_configured: 'The type isn’t routed anywhere',
+  no_email: 'No email on file',
+  no_phone: 'No phone on file',
+  no_inbox: 'In-app has no inbox wired',
+  duplicate_in_flight: 'A duplicate — already sending',
   bounced: 'Bounced',
 };
 
@@ -49,8 +59,13 @@ const REASON_KINDS: Record<string, ReasonKind> = {
   opted_out: 'skipped',
   template_not_found: 'config',
   provider_auth_failed: 'config',
-  no_credential: 'config',
+  no_provider_config: 'config',
+  no_channel_configured: 'config',
+  no_inbox: 'config',
+  duplicate_in_flight: 'skipped',
   no_address_available: 'recipient',
+  no_email: 'recipient',
+  no_phone: 'recipient',
   provider_rejected: 'recipient',
   bounced: 'recipient',
   provider_timeout: 'transient',
@@ -135,3 +150,12 @@ export function formatBytes(bytes: number): string {
   }
   return `${value.toFixed(value >= 10 || unit === 0 ? 0 : 1)} ${units[unit]}`;
 }
+
+/** WhatsApp sends a template pre-approved at the provider — there's nothing to write here. */
+export const needsTemplate = (channel: NotificationChannel) => channel !== 'whatsapp';
+
+/** An SMS has no subject; an in-app item's subject is its title; only email can be HTML. */
+export const hasSubject = (channel: NotificationChannel) => channel === 'email' || channel === 'in_app';
+
+/** `{{name}}` — how a template writes a variable. */
+export const variableToken = (name: string) => `{{${name}}}`;

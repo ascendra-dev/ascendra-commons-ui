@@ -77,8 +77,11 @@ export interface NotificationTypeSummary {
   description: string | null;
   /** Who it reaches — the app's own words (`payer`, `tenant staff`…). */
   audience: string | null;
+  /** Always sent — a user can't turn it off. */
+  required: boolean;
   variables: TypeVariable[];
-  defaultChannels: NotificationChannel[];
+  /** The default route's channels — null when there's no default route. */
+  defaultChannels: NotificationChannel[] | null;
   /** How many tenants route it their own way. */
   tenantRoutes: number;
   templates: Array<{ channel: NotificationChannel; tenantId: string | null }>;
@@ -119,3 +122,30 @@ export interface DeliveryVolume {
   tableSizeBytes: number | null;
   perDay: Array<{ day: string; deliveries: number; failed: number; withContent: number }>;
 }
+
+/** One route — the channels a type goes out on; `tenantId` null is the default every tenant gets. */
+export interface ChannelRoute {
+  notificationType: string;
+  tenantId: string | null;
+  channels: NotificationChannel[];
+}
+
+/** One template — a type's text on a channel; a tenant's own wins over the default. */
+export interface Template {
+  channel: NotificationChannel;
+  notificationType: string;
+  tenantId: string | null;
+  subject: string | null;
+  body: string;
+  isHtml: boolean;
+}
+
+/** `GET /notifications/types/:name` — every route and template the viewer may see, and its gaps. */
+export interface NotificationTypeDetail extends Omit<NotificationTypeSummary, 'tenantRoutes' | 'templates' | 'gaps'> {
+  routes: ChannelRoute[];
+  templates: Template[];
+  gaps: CoverageGap[];
+}
+
+/** `POST /notifications/test-send` — a user (yourself, a colleague) or, for a platform admin, an address. */
+export type TestRecipient = { type: 'user'; id: string } | { type: 'raw'; email?: string; phone?: string };

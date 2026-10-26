@@ -17,6 +17,17 @@ and the screens don't offer the rest.
   on top). Each count opens Deliveries filtered to exactly what it counted (`?reason=` for a reason).
 - **Volume & retention** — platform admins: rows, rows still holding the message, table size, rows per day over 30
   days; the app states its own retention under the chart.
+- **Notification types** — what the app sends, grouped by audience, each with its default channels and what's notable:
+  tenant routes, white-labelled templates, gaps, required (can't be turned off), leftovers nothing declares.
+- **Type page** — Routing (the default and each tenant's; edit, add a tenant's own, remove it to use the default),
+  Templates per routed channel (default and each tenant's own; WhatsApp is the provider's; missing ones flagged),
+  Variables with samples, Coverage (each gap links to the sends it failed). The defaults are the platform's; a tenant
+  admin edits its own. A platform admin picks a tenant to act for it.
+- **Template editor** — subject (title for in-app; none for SMS), body, HTML for email; a variable palette inserts at
+  the cursor; the preview renders with the type's samples as you type, and a variable the type doesn't have blocks Save.
+  A tenant's own text starts from the default; Delete goes back to it.
+- **Test send** — to yourself, a colleague (a platform admin: any user or an address, and whose configuration), the
+  type's samples editable; the result per channel, and a link to the test sends in the log.
 - **Deliveries** — every send attempt, one row per channel, newest first; test sends hidden unless asked for. Recent;
   Advanced Filter by type, channel, status, reason, tenant (platform), a user, a guest's address (hashed by the API — the log
   never stores it), a recipient key, correlation id and a required range up to 90 days. The status reads in plain words

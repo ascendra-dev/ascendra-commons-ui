@@ -473,7 +473,7 @@ function ConfigHealthCard({
               <CardListItem key={t.name}>
                 <div>
                   <div>
-                    {t.name} · {t.defaultChannels.map(channelLabel).join(', ')}
+                    {t.name} · {(t.defaultChannels ?? []).map(channelLabel).join(', ')}
                   </div>
                   <div className="text-muted-foreground mt-1 text-xs">A leftover route — this app no longer declares the type; nothing sends it</div>
                 </div>
