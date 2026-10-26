@@ -14,6 +14,9 @@ export const notificationLinks = {
   types: () => '/notifications/types',
   accounts: () => '/notifications/accounts',
   suppressions: () => '/notifications/suppressions',
+  /** Everyone's — the signed-in user's own inbox and preferences. */
+  inbox: () => '/notifications/inbox',
+  preferences: () => '/notifications/preferences',
   type: (name: string) => `/notifications/types/${encodeURIComponent(name)}`,
   deliveries: (query?: { queryId: string; params?: TriggerParams }) => run('/notifications/deliveries', query),
 };

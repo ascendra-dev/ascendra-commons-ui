@@ -181,3 +181,33 @@ export interface Suppression {
   removable: boolean;
   recipientName: string | null;
 }
+
+/** One in-app message in the signed-in user's own inbox. */
+export interface InboxItem {
+  id: string;
+  notificationType: string;
+  title: string | null;
+  body: string;
+  createdAt: string;
+  readAt: string | null;
+}
+
+/** A preference rule — `*` for every type or every channel; the most specific rule wins, none means on. */
+export interface PreferenceRule {
+  notificationType: string;
+  channel: NotificationChannel | '*';
+  enabled: boolean;
+  updatedAt: string;
+}
+
+/** `GET /notifications/preferences/me` — each type, the channels it reaches this user on, on or off. */
+export interface MyPreferences {
+  rules: PreferenceRule[];
+  types: Array<{
+    name: string;
+    description: string | null;
+    audience: string | null;
+    required: boolean;
+    channels: Array<{ channel: NotificationChannel; enabled: boolean }>;
+  }>;
+}

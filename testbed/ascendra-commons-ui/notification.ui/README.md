@@ -44,7 +44,18 @@ and the screens don't offer the rest.
   **Retry** (`notification.retry`) for a failed or bounced send to a user with its variables kept — once; the confirm
   warns when the failure wasn't transient. **Everything to …** filters the list to the recipient.
 
+## Everyone's
+
+- **The bell** (`NotificationBell`, for the app's top bar — pass `enabled` when someone is signed in): the unread count
+  (polled every 30 s — no push yet) and the last five messages; opening it marks nothing read, clicking a message does;
+  Mark all read; See all; Notification settings. No bell when the app has no inbox.
+- **My inbox** — Unread / All, newest first, a page at a time; clicking a message marks it read; Mark all read.
+- **My notifications** — every type routed to the user, on its channels, a switch each, and "every notification" per
+  channel; the most specific rule wins; a required type is always on. Saves as you switch.
+
+The console's layout lets anyone signed in reach these two; its admin screens need `notification.view`.
+
 ## Shape
 
-`api/` (client + wire types), `display.ts` (channel labels, status colours, reason words, recipient helpers, the retry
+`api/` (client + wire types), `bell.tsx`, `display.ts` (channel labels, status colours, reason words, recipient helpers, the retry
 rules), `queries/` (QueryDefs, field options, columns, query functions), `links.ts`, `nav.ts`.

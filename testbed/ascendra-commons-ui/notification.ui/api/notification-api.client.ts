@@ -7,6 +7,8 @@ import type {
   DeliveryContent,
   DeliveryStats,
   DeliveryVolume,
+  InboxItem,
+  MyPreferences,
   ChannelRoute,
   CredentialCheck,
   NotificationChannel,
@@ -131,6 +133,35 @@ export const notificationApi = {
   /** Send to them again — audited. */
   removeSuppression(id: string): Promise<void> {
     return api.delete<void>(`/notifications/suppressions/${enc(id)}`);
+  },
+
+  /** GET /notifications/inbox — the signed-in user's own, newest first; `unread` alone if asked. */
+  inbox(query: { unread?: boolean; limit: number; cursor?: string }): Promise<CursorListResponse<InboxItem>> {
+    const { unread, ...rest } = query;
+    return api.get<CursorListResponse<InboxItem>>('/notifications/inbox', { ...rest, ...(unread ? { unread: 'true' } : {}) });
+  },
+
+  /** The bell's badge. */
+  unreadCount(): Promise<{ unread: number }> {
+    return api.get<{ unread: number }>('/notifications/inbox/unread-count');
+  },
+
+  markRead(id: string): Promise<void> {
+    return api.post<void>(`/notifications/inbox/${enc(id)}/read`, {});
+  },
+
+  markAllRead(): Promise<{ marked: number }> {
+    return api.post<{ marked: number }>('/notifications/inbox/read-all', {});
+  },
+
+  /** GET /notifications/preferences/me — my types and channels, on or off. */
+  myPreferences(): Promise<MyPreferences> {
+    return api.get<MyPreferences>('/notifications/preferences/me');
+  },
+
+  /** My own rule — `*` for every type or every channel. A required type can't be turned off (a 400). */
+  setPreference(rule: { notificationType: string; channel: NotificationChannel | '*'; enabled: boolean }): Promise<void> {
+    return api.put<void>('/notifications/preferences/me', rule);
   },
 
   /** A real send, marked as a test — hidden from the log by default, left out of the numbers. */

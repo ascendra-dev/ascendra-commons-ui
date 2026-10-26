@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   ContentArea,
   DashboardContent,
@@ -15,7 +16,7 @@ import {
   SideBarSearch,
   SideBarToggle,
 } from '@/ascendra-ui';
-import { notificationNav } from '@/ascendra-commons-ui/notification.ui/nav';
+import { notificationNav, notificationSelfNav } from '@/ascendra-commons-ui/notification.ui/nav';
 import { useSession } from '../observability/auth/use-session';
 import { NotificationScopeProvider } from './_scope';
 
@@ -26,9 +27,12 @@ import { NotificationScopeProvider } from './_scope';
  */
 export default function NotificationsLayout({ children }: { children: ReactNode }) {
   const { data: session, isLoading } = useSession();
+  const pathname = usePathname();
   const allowed = session?.allowedActions;
-  // The console needs notification.view; without it, say so once instead of every read answering 403.
-  const shut = !isLoading && !allowed?.includes('notification.view');
+  // The admin screens need notification.view; without it, say so once instead of every read answering 403. A user's
+  // own inbox and preferences are anyone's.
+  const own = notificationSelfNav.some((e) => e.href === pathname);
+  const shut = !isLoading && !allowed?.includes('notification.view') && !own;
   const entries = isLoading || !allowed ? notificationNav : notificationNav.filter((e) => allowed.includes(e.requiredAction));
 
   return (
@@ -50,13 +54,23 @@ export default function NotificationsLayout({ children }: { children: ReactNode 
                 </SideBarMenuItemGroup>
               </SideBarMenuSet>
             )}
+            <SideBarMenuSet>
+              <SideBarMenuSetTitle>Everyone</SideBarMenuSetTitle>
+              <SideBarMenuItemGroup>
+                {notificationSelfNav.map((entry) => (
+                  <SideBarMenuItem key={entry.id} alternate="stand-alone" icon={entry.icon} path={entry.href}>
+                    {entry.label}
+                  </SideBarMenuItem>
+                ))}
+              </SideBarMenuItemGroup>
+            </SideBarMenuSet>
           </SideBarMain>
         </SideBarSearch>
       </SideBar>
       <ContentArea>
         {shut ? (
           <DashboardContent>
-            <SimpleAlert variant="primary">The notification console is for admins.</SimpleAlert>
+            <SimpleAlert variant="primary">The notification console is for admins — your own inbox and notification settings are in the sidebar.</SimpleAlert>
           </DashboardContent>
         ) : isLoading ? null : (
           children

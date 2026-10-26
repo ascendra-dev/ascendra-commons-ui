@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/providers/app-providers";
 import { PersonaMenu } from "@/components/dev-sign-in/persona-menu";
+import { AppNotificationBell } from "@/components/notification-bell/app-notification-bell";
 import {
   Header,
   HeaderActions,
@@ -49,6 +50,8 @@ export default function RootLayout({
                 </HeaderLink>
               </HeaderLinks>
               <HeaderActions>
+                {/* notification.ui's in-app bell — the signed-in user's own inbox. */}
+                <AppNotificationBell />
                 <ThemeToggle />
                 {/* Dev sign-in (testbed only) — a real app has its own account menu here. */}
                 <PersonaMenu />
