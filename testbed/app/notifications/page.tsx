@@ -425,10 +425,12 @@ function TypesCard({ stats, isLoading, link }: CardProps) {
       </CardPanel>
       {failing.length > 0 && quiet > 0 && (
         <CardFooter className="text-muted-foreground text-xs">
-          {plural(quiet, 'more type', 'more types')} without failures ·{' '}
-          <Link href={notificationLinks.types()} className="text-primary underline-offset-2 hover:underline">
-            All types
-          </Link>
+          <p>
+            {plural(quiet, 'more type', 'more types')} without failures ·{' '}
+            <Link href={notificationLinks.types()} className="text-primary underline-offset-2 hover:underline">
+              All types
+            </Link>
+          </p>
         </CardFooter>
       )}
     </Card>
@@ -500,11 +502,13 @@ function ConfigHealthCard({
         />
       </CardPanel>
       <CardFooter className="text-muted-foreground text-xs">
-        Provider accounts are only checked for being there —{' '}
-        <Link href={notificationLinks.accounts()} className="text-primary underline-offset-2 hover:underline">
-          verify them
-        </Link>{' '}
-        to find a revoked key.
+        <p>
+          Provider accounts are only checked for being there —{' '}
+          <Link href={notificationLinks.accounts()} className="text-primary underline-offset-2 hover:underline">
+            verify them
+          </Link>{' '}
+          to find a revoked key.
+        </p>
       </CardFooter>
     </Card>
   );
