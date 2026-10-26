@@ -54,7 +54,8 @@ vertical would do — and mount its `nav.ts` into `testbed`'s dashboard shell.
 ## Status
 
 Shipped: `audit-logging.ui`, `rate-limiting.ui`, `idempotency-key.ui`, `domain-events.ui` and
-`background-jobs.ui` — the observability shell — and `authorization.ui`, the access console (its own shell at
-`/access`; `testbed/app/access`, distributed as `packages/access`). Each against `ascendra-commons-sandbox`'s real API.
-Next: `notification`, `file-storage`; the observability screens' shared pieces are extracted later
-(`packages/README.md`).
+`background-jobs.ui` — the observability shell — `authorization.ui`, the access console (its own shell at
+`/access`; `testbed/app/access`, distributed as `packages/access`), and `notification.ui`, the notification console
+(its own shell at `/notifications`; `testbed/app/notifications`, distributed as `packages/notifications`) with the
+`NotificationBell` for an app's top bar. Each against `ascendra-commons-sandbox`'s real API.
+Next: `file-storage`; the observability screens' shared pieces are extracted later (`packages/README.md`).
