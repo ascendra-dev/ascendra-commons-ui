@@ -126,8 +126,8 @@ export const notificationApi = {
   },
 
   /** GET /notifications/suppressions — every entry that skips the viewer's sends. */
-  suppressions(limit: number, cursor?: string): Promise<CursorListResponse<Suppression>> {
-    return api.get<CursorListResponse<Suppression>>('/notifications/suppressions', { limit, cursor });
+  suppressions(limit: number, cursor?: string, recipient?: { recipientKey: string; channel: NotificationChannel }): Promise<CursorListResponse<Suppression>> {
+    return api.get<CursorListResponse<Suppression>>('/notifications/suppressions', { ...recipient, limit, cursor });
   },
 
   /** Send to them again — audited. */

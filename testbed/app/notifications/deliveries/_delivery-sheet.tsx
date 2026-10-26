@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
+import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Button,
@@ -45,6 +46,7 @@ import {
   isGuest,
   isTransient,
   notificationApi,
+  notificationLinks,
   notificationQueryIds,
   reasonLabel,
   recipientFilter,
@@ -170,6 +172,7 @@ function DeliveryDetail({ d, open, onClose }: { d: Delivery; open: (id: string) 
         <SheetSection>
           <MessageSection d={d} />
         </SheetSection>
+        {d.status === 'skipped' && splitReason(d.reason).code === 'suppressed' && <SuppressedNote d={d} />}
         {blocker && <p className="text-muted-foreground text-xs">{blocker}</p>}
       </SheetBody>
       {(mayRetry || filter) && (
@@ -322,7 +325,9 @@ function MessageSection({ d }: { d: Delivery }) {
   });
 
   let body: ReactNode;
-  if (!d.hasContent) {
+  if (d.status === 'skipped') {
+    body = <p className="text-muted-foreground">Nothing was sent, so there&apos;s no message.</p>;
+  } else if (!d.hasContent) {
     body = <p className="text-muted-foreground">The message is no longer kept — it&apos;s cleared after 30 days; this record stays.</p>;
   } else if (!can('notification.view_content')) {
     body = (
@@ -388,5 +393,27 @@ function Variables({ entries }: { entries: Array<[string, unknown]> }) {
         </SimpleBadge>
       ))}
     </div>
+  );
+}
+
+/** A send skipped as suppressed — when the address was suppressed and why, and where to send to it again. */
+function SuppressedNote({ d }: { d: Delivery }) {
+  const entry = useQuery({
+    queryKey: ['notification-suppression-of', d.recipientKey, d.channel],
+    queryFn: () => notificationApi.suppressions(1, undefined, { recipientKey: d.recipientKey!, channel: d.channel }),
+    enabled: !!d.recipientKey,
+  });
+  const s = entry.data?.data[0];
+  if (!s) return null;
+  return (
+    <SimpleAlert variant="secondary">
+      <span>
+        This address {s.reason === 'complaint' ? 'reported spam' : 'bounced'} on {formatDateTime(s.firstAt)}
+        {s.detail ? ` (${s.detail})` : ''} and is suppressed — {s.eventCount} {s.eventCount === 1 ? 'time' : 'times'} since.{' '}
+        <Link href={notificationLinks.suppressions()} className="text-primary underline-offset-2 hover:underline">
+          Suppressions
+        </Link>
+      </span>
+    </SimpleAlert>
   );
 }

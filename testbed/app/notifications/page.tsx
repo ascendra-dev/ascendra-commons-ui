@@ -134,6 +134,7 @@ export default function NotificationsOverviewPage() {
       label: 'Reached',
       value: s && totals.sent + totals.delivered,
       caption: s ? `${pct(totals.sent + totals.delivered, totals.total)}% — ${formatCount(totals.delivered)} confirmed delivered` : '',
+      href: link({ status: 'sent,delivered' }),
     },
     {
       key: 'failed',
@@ -141,6 +142,7 @@ export default function NotificationsOverviewPage() {
       value: s && totals.failed + totals.bounced,
       caption: s ? `${formatCount(totals.failed)} failed · ${formatCount(totals.bounced)} bounced` : '',
       tone: totals.failed + totals.bounced > 0 ? 'alert' : undefined,
+      href: link({ status: 'failed,bounced' }),
     },
     {
       key: 'skipped',

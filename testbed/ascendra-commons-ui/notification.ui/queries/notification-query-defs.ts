@@ -96,7 +96,12 @@ export function deliveryFieldOptions(types: readonly NotificationTypeSummary[], 
     [notificationQueryIds.advancedFilter]: {
       notificationType: types.map((t) => ({ value: t.name, label: t.name })),
       channel: NOTIFICATION_CHANNELS.map((c) => ({ value: c, label: channelLabel(c) })),
-      status: ['sent', 'delivered', 'failed', 'bounced', 'skipped'].map((s) => ({ value: s, label: s })),
+      status: [
+        ...['sent', 'delivered', 'failed', 'bounced', 'skipped'].map((s) => ({ value: s, label: s })),
+        // What the overview counts as reached and as failed.
+        { value: 'sent,delivered', label: 'reached — sent or delivered' },
+        { value: 'failed,bounced', label: 'failed or bounced' },
+      ],
       reason: REASON_CODES.map((code) => ({ value: code, label: reasonTitle(code) })),
       tenantId: tenants.map((t) => ({ value: t.id, label: t.name })),
       test: [

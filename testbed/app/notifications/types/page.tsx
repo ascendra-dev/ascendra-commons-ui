@@ -25,14 +25,14 @@ import { useNotificationScope } from '../_scope';
 
 const NOT_DECLARED = 'Not declared';
 
-/** The types grouped by who they reach, in the order the app first names each audience; leftovers last. */
+/** The types grouped by who they reach, audiences A–Z; leftovers last. */
 function byAudience(types: NotificationTypeSummary[]) {
   const groups = new Map<string, NotificationTypeSummary[]>();
   for (const t of types) {
     const key = t.declared ? (t.audience ?? 'Other') : NOT_DECLARED;
     groups.set(key, [...(groups.get(key) ?? []), t]);
   }
-  return [...groups.entries()].sort(([a], [b]) => Number(a === NOT_DECLARED) - Number(b === NOT_DECLARED));
+  return [...groups.entries()].sort(([a], [b]) => Number(a === NOT_DECLARED) - Number(b === NOT_DECLARED) || a.localeCompare(b));
 }
 
 /** What the app sends — each type with who gets it and its channels. The configuration's front door. */
