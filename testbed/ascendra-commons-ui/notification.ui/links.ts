@@ -12,6 +12,8 @@ export const notificationLinks = {
   overview: () => '/notifications',
   retention: () => '/notifications/retention',
   types: () => '/notifications/types',
+  accounts: () => '/notifications/accounts',
+  suppressions: () => '/notifications/suppressions',
   type: (name: string) => `/notifications/types/${encodeURIComponent(name)}`,
   deliveries: (query?: { queryId: string; params?: TriggerParams }) => run('/notifications/deliveries', query),
 };

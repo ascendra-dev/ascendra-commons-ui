@@ -1,6 +1,6 @@
 import type { ColumnDef, FieldDef, FieldOptionsMap, QueryDef } from '@/ascendra-ui';
 import { formatDateTime } from '@/ascendra-ui/utils/common.util';
-import type { Delivery, NotificationTypeSummary } from '../api/notification-api.types';
+import type { Delivery, NotificationTypeSummary, Suppression } from '../api/notification-api.types';
 import { channelLabel, NOTIFICATION_CHANNELS, REASON_CODES, reasonLabel, reasonTitle, recipientLabel } from '../display';
 
 /** The list's query ids — for a link or row action that runs one (`notificationLinks.deliveries({ queryId, params })`). */
@@ -117,4 +117,19 @@ export const deliveryColumns: ColumnDef<Delivery>[] = [
   { key: 'tenantId', label: 'Tenant', filter: true },
   { key: 'status', label: 'Status', filter: true, searchValue: (_v, row) => `${row.status} ${reasonLabel(row.reason) ?? ''}` },
   { key: 'correlationId', label: 'Correlation', sortable: false },
+];
+
+/** Suppressions — every entry that skips the viewer's sends, newest first. */
+export const suppressionQueryDefs: QueryDef[] = [
+  { id: 'all', title: 'Suppressed recipients', description: 'Everyone a channel stopped sending to — newest first.', group: 'query' },
+];
+
+export const suppressionColumns: ColumnDef<Suppression>[] = [
+  { key: 'recipientName', label: 'Recipient', freeze: true, sortable: false, searchValue: (_v, row) => row.recipientName ?? 'Guest' },
+  { key: 'channel', label: 'Channel', filter: true, searchValue: (_v, row) => channelLabel(row.channel) },
+  { key: 'reason', label: 'Why', searchValue: (_v, row) => `${row.reason} ${row.detail ?? ''}` },
+  { key: 'firstAt', label: 'Since', type: 'date', searchValue: (v) => formatDateTime(v as string) },
+  { key: 'eventCount', label: 'Bounces', type: 'number', align: 'right' },
+  { key: 'tenantId', label: 'Filed by', filter: true },
+  { key: 'id', label: '', sortable: false },
 ];

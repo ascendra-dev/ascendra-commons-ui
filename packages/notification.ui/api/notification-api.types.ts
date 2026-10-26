@@ -149,3 +149,35 @@ export interface NotificationTypeDetail extends Omit<NotificationTypeSummary, 't
 
 /** `POST /notifications/test-send` — a user (yourself, a colleague) or, for a platform admin, an address. */
 export type TestRecipient = { type: 'user'; id: string } | { type: 'raw'; email?: string; phone?: string };
+
+/** `GET /notifications/config/credentials` — which accounts exist; keys are write-only, never returned. */
+export interface ProviderCredential {
+  channel: NotificationChannel;
+  /** null — the platform's own: tenantless sends, and the fallback for a tenant without one. */
+  tenantId: string | null;
+}
+
+/** `POST …/credentials/:channel/verify` — the provider's answer; a stub can't check (`supported: false`). */
+export interface CredentialCheck {
+  supported: boolean;
+  ok?: boolean;
+  detail?: string;
+}
+
+/** `GET /notifications/suppressions` — a recipient a channel stopped sending to; applies to the whole app. */
+export interface Suppression {
+  id: string;
+  channel: NotificationChannel;
+  recipientKey: string;
+  /** The tenant whose send bounced first — the entry is filed under it. */
+  tenantId: string | null;
+  /** `bounced` (a hard bounce) or `complaint`. */
+  reason: string;
+  detail: string | null;
+  firstAt: string;
+  lastAt: string;
+  eventCount: number;
+  /** This viewer may remove it — a tenant admin only those its own tenant filed. */
+  removable: boolean;
+  recipientName: string | null;
+}

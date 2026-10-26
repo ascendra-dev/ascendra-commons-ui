@@ -28,6 +28,12 @@ and the screens don't offer the rest.
   A tenant's own text starts from the default; Delete goes back to it.
 - **Test send** — to yourself, a colleague (a platform admin: any user or an address, and whose configuration), the
   type's samples editable; the result per channel, and a link to the test sends in the log.
+- **Provider accounts** — a grid of tenants × channels (in-app needs none): own, the platform's (the fallback), or
+  missing; Verify asks the provider (verified / rejected with its reason / can't check — this session's answer); Set or
+  Replace takes the provider's own JSON, saves and verifies; Remove sends a tenant back to the platform's account. A
+  tenant admin sees its own row and the platform's read-only.
+- **Suppressions** — every entry that skips the viewer's sends (it applies app-wide), with its bounces, when, who filed
+  it and the sends to it; Remove (audited, confirmed) for one the viewer's tenant filed — the platform's otherwise.
 - **Deliveries** — every send attempt, one row per channel, newest first; test sends hidden unless asked for. Recent;
   Advanced Filter by type, channel, status, reason, tenant (platform), a user, a guest's address (hashed by the API — the log
   never stores it), a recipient key, correlation id and a required range up to 90 days. The status reads in plain words

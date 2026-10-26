@@ -8,10 +8,13 @@ import type {
   DeliveryStats,
   DeliveryVolume,
   ChannelRoute,
+  CredentialCheck,
   NotificationChannel,
   NotificationTypeDetail,
   NotificationTypeSummary,
+  ProviderCredential,
   SendResult,
+  Suppression,
   Template,
   TestRecipient,
   StatsWindow,
@@ -98,6 +101,36 @@ export const notificationApi = {
   /** Render a candidate template with the type's samples — stateless; an unknown variable is a 400. */
   preview(body: { notificationType: string; subject?: string; body: string; isHtml?: boolean; variables?: Record<string, string | number> }) {
     return api.post<{ subject: string | null; body: string }>('/notifications/config/templates/preview', body);
+  },
+
+  /** GET /notifications/config/credentials — a tenant admin sees its own and the platform's. */
+  credentials(): Promise<ProviderCredential[]> {
+    return api.get<ProviderCredential[]>('/notifications/config/credentials');
+  },
+
+  /** PUT — the provider's own config shape; stored as given, never returned, audited without the value. */
+  setCredential(channel: NotificationChannel, tenantId: string | null, config: Record<string, unknown>): Promise<void> {
+    return api.put<void>('/notifications/config/credentials', { channel, tenantId, config });
+  },
+
+  /** A tenant's own goes — its sends use the platform's account (where the app allows the fallback). */
+  deleteCredential(channel: NotificationChannel, tenantId: string | null): Promise<void> {
+    return api.delete<void>(`/notifications/config/credentials/${enc(channel)}${tenantQuery(tenantId)}`);
+  },
+
+  /** Asks the provider whether the key a send would use works. */
+  verifyCredential(channel: NotificationChannel, tenantId: string | null): Promise<CredentialCheck> {
+    return api.post<CredentialCheck>(`/notifications/config/credentials/${enc(channel)}/verify${tenantQuery(tenantId)}`, {});
+  },
+
+  /** GET /notifications/suppressions — every entry that skips the viewer's sends. */
+  suppressions(limit: number, cursor?: string): Promise<CursorListResponse<Suppression>> {
+    return api.get<CursorListResponse<Suppression>>('/notifications/suppressions', { limit, cursor });
+  },
+
+  /** Send to them again — audited. */
+  removeSuppression(id: string): Promise<void> {
+    return api.delete<void>(`/notifications/suppressions/${enc(id)}`);
   },
 
   /** A real send, marked as a test — hidden from the log by default, left out of the numbers. */
