@@ -66,6 +66,8 @@ export default function RootLayout({
               <NavLink href="/access">Access</NavLink>
               {/* And to the notification console — its own shell, packages/notifications. */}
               <NavLink href="/notifications">Notifications</NavLink>
+              {/* And to the file console — its own shell, packages/files. */}
+              <NavLink href="/files">Files</NavLink>
             </Nav>
             <MainContainer>{children}</MainContainer>
           </PageLayout>
