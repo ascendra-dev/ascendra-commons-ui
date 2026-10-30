@@ -57,5 +57,6 @@ Shipped: `audit-logging.ui`, `rate-limiting.ui`, `idempotency-key.ui`, `domain-e
 `background-jobs.ui` — the observability shell — `authorization.ui`, the access console (its own shell at
 `/access`; `testbed/app/access`, distributed as `packages/access`), and `notification.ui`, the notification console
 (its own shell at `/notifications`; `testbed/app/notifications`, distributed as `packages/notifications`) with the
-`NotificationBell` for an app's top bar. Each against `ascendra-commons-sandbox`'s real API.
-Next: `file-storage`; the observability screens' shared pieces are extracted later (`packages/README.md`).
+`NotificationBell` for an app's top bar, and `file-storage.ui`, the file console (its own shell at `/files`;
+`testbed/app/files`, distributed as `packages/files`). Each against `ascendra-commons-sandbox`'s real API.
+The observability screens' shared pieces are extracted later (`packages/README.md`).
